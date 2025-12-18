@@ -1,6 +1,8 @@
 // Components
 import Navigation from "./components/Navbar/Navigation";
+import Footer from "./Components/Footer/Footer";
 
+// Style Sheets
 import "./App.css";
 
 function App() {
@@ -8,6 +10,7 @@ function App() {
     <>
       <div>
         <Navigation />
+        <Footer />
       </div>
     </>
   );
