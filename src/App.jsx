@@ -1,5 +1,6 @@
 // Components
 import Navigation from "./components/Navbar/Navigation";
+import Intro from "./components/intro/Intro";
 import Footer from "./Components/Footer/Footer";
 
 // Style Sheets
@@ -10,6 +11,7 @@ function App() {
     <>
       <div>
         <Navigation />
+        <Intro />
         <Footer />
       </div>
     </>
