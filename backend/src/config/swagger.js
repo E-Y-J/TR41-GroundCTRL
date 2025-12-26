@@ -43,7 +43,8 @@ Every response includes:
 - 🔒 Account Lockout (5 failed attempts = 15 min lockout)
 - 🛡️ Rate Limiting (configurable per endpoint)
 - 📝 Comprehensive Audit Logging
-- 👤 Call Sign System (unique operator identification)
+- 👤 Call Sign System (non-unique display labels for operators)
+- 🆔 UID-based Identity (canonical user identification)
 - 👔 Admin Role Management
 
 ### Mission Time
@@ -225,18 +226,18 @@ All timestamps use ISO 8601 format. Telemetry includes:
           properties: {
             uid: {
               type: 'string',
-              description: 'Unique user identifier (Firebase UID)',
+              description: 'Unique user identifier (Firebase UID) - CANONICAL IDENTIFIER for all operations',
               example: 'abc123xyz456'
             },
             email: {
               type: 'string',
               format: 'email',
-              description: 'Operator email address',
+              description: 'Operator email address (unique constraint for data integrity, not used for targeting)',
               example: 'pilot@groundctrl.com'
             },
             callSign: {
               type: 'string',
-              description: 'Unique operator call sign',
+              description: 'Operator call sign (NON-UNIQUE display label for context only, never used for identity or authorization)',
               example: 'APOLLO-11'
             },
             displayName: {

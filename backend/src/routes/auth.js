@@ -32,7 +32,7 @@ const { loginLimiter, authLimiter } = require('../middleware/rateLimiter');
  *               email:
  *                 type: string
  *                 format: email
- *                 description: Operator email address
+ *                 description: Operator email address (unique constraint for data integrity)
  *                 example: maverick@topgun.navy.mil
  *               password:
  *                 type: string
@@ -41,7 +41,7 @@ const { loginLimiter, authLimiter } = require('../middleware/rateLimiter');
  *                 example: SecurePass123!
  *               callSign:
  *                 type: string
- *                 description: Unique operator call sign identifier
+ *                 description: Operator call sign (non-unique display label for context only)
  *                 example: MAVERICK
  *               displayName:
  *                 type: string
@@ -385,7 +385,7 @@ router.post('/logout', authMiddleware, authController.logout);
  *             properties:
  *               userId:
  *                 type: string
- *                 description: Firebase UID of the user whose tokens should be revoked
+ *                 description: Firebase UID (canonical identifier) of the user whose tokens should be revoked
  *                 example: abc123xyz456
  *     responses:
  *       200:
