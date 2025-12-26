@@ -9,7 +9,8 @@ This document describes the step-by-step process for releasing a new version of 
 Before starting the release process, ensure:
 
 - [ ] All planned phases for this release are complete and merged
-- [ ] All tests pass (`npm test`)
+- [ ] QA Team has completed testing of merged code
+- [ ] Cybersecurity Team has completed security assessment (if applicable)
 - [ ] Code is linted without errors (`npm run lint`)
 - [ ] CHANGELOG.md `[Unreleased]` section is complete and accurate
 - [ ] ARCHITECTURE.md and README.md are up to date
