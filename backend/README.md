@@ -28,6 +28,7 @@ A production-ready Node.js/Express API with enterprise-grade security, Firebase 
 - ✅ **Audit Logging** - Comprehensive operation tracking with severity levels
 - ✅ **Mission Control Responses** - GO/NO-GO/HOLD/ABORT status codes
 - ✅ **Admin Role Management** - Fine-grained permission control
+- ✅ **Call Sign System** - Non-unique operator display names
 - ✅ **Call Sign System** - Non-unique display labels for operators (uid is canonical identifier)
 - ✅ **Swagger Documentation** - Interactive API documentation at `/api/v1/docs`
 
