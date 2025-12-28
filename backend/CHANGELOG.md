@@ -8,22 +8,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+---
+
+## [1.0.1] - 2025-12-28
+
+### Checkpoint B: Foundation Complete (Phases 0-4)
+
+This patch release completes the foundation layer with security hardening, validation infrastructure, and CRUD factory improvements. No new API endpoints were added, making this a backward-compatible patch release.
+
+### Added
 - Phase 0: Project versioning and documentation framework
 - Phase 0: Helper scripts for file structure mapping and line ending conversion
 - Phase 0.5: Identity policy corrections in Swagger documentation
 - Phase 3: Reusable validation middleware (`src/middleware/validate.js`)
+- Phase 4: CRUD Factory lifecycle hooks system (11 hooks: ownershipScope, before/after for create/update/patch/delete/read, auditMetadata)
+- Phase 4: MAX_PAGE_LIMIT constant (100) exported from crudFactory
 
 ### Changed
 - Phase 0.5: Updated Swagger documentation to reflect uid-based identity policy
 - Phase 0.5: Clarified callSign as non-unique display label (not identifier)
 - Phase 0.5: Documented email as unique constraint for data integrity only
+- Phase 1: Removed callSign uniqueness checks - multiple users can now share the same callSign
+- Phase 1: All user-targeted endpoints operate by uid only
+- Phase 2: Global rate limiter applied to all `/api/v1` routes
+- Phase 2: Outbound HTTP calls now have explicit timeouts for DoS protection
+- Phase 2: Auth error messages normalized in production mode
 - Phase 3: All schemas now use `.strict()` mode to reject unknown fields
 - Phase 3: Query parameters capped (limit ≤ 100) and whitelisted (sortBy fields)
 - Phase 3: Auth and user routes now use validation middleware
 - Phase 3: Updated README with Phase 3 features and removed outdated port troubleshooting
 - Phase 3: Enhanced environment configuration with `user_uid` variable
+- Phase 4: CRUD Factory signature now requires hooks parameter (4th argument)
+- Phase 4: Pagination hardening in getAll() - enforces MAX_PAGE_LIMIT=100 and auto-normalizes page/limit values
+- Phase 4: All CRUD handlers now consistently use `req.user?.uid || 'ANONYMOUS'` for audit logging
+- Phase 4: Ownership scoping support via hooks - filters can be applied to queries without repository changes
+- Phase 4: Enhanced JSDoc documentation with comprehensive hook examples
 
 ### Security
+- Phase 2: Global API rate limiting prevents abuse
+- Phase 2: Outbound HTTP timeout protection against DoS attacks
+- Phase 2: Production auth errors no longer leak internal details
 - Phase 3: Unknown fields in requests now rejected at route boundaries
 - Phase 3: Query parameter injection prevented through strict validation
 - Phase 3: Type coercion vulnerabilities eliminated with Zod schemas

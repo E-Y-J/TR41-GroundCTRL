@@ -1,377 +1,584 @@
 # Release Process
 
-This document describes the step-by-step process for releasing a new version of the GroundCTRL Backend.
+**Project:** GroundCTRL Backend  
+**Purpose:** Define procedures for creating, tagging, and publishing releases  
+**Related:** See [VERSIONING.md](https://github.com/E-Y-J/TR41-GroundCTRL/tree/main/backend/VERSIONING.md) for version numbering scheme
+
+---
+
+## Overview
+
+This document outlines the release workflow for GroundCTRL Backend, from phase completion through GitHub release publication. For version numbering decisions and compatibility guarantees, consult [VERSIONING.md](./VERSIONING.md).
+
+---
+
+## Phase-Based Release Strategy
+
+GroundCTRL releases align with implementation phase checkpoints defined in [IMPLEMENTATION_PLAN.md](https://github.com/E-Y-J/TR41-GroundCTRL/tree/main/backend/IMPLEMENTATION_PLAN.md):
+
+| Checkpoint | Phases | Release Type | Trigger |
+|------------|--------|--------------|---------|
+| A | 0-0.5 | INITIAL (v1.0.0) | Documentation baseline complete |
+| B | 1-4 | PATCH (v1.0.1) | Security/validation/CRUD hardening |
+| C | 5-9 | MINOR (v1.1.0-1.5.0) | Each domain adds new endpoints |
+| D | 10-11 | MINOR+PATCH (v1.6.0-1.6.1) | NOVA AI + testing complete |
+
+**Key Principle:** One phase per PR. Releases occur after checkpoint completion.
 
 ---
 
 ## Pre-Release Checklist
 
-Before starting the release process, ensure:
+Before initiating release process, confirm:
 
-- [ ] All planned phases for this release are complete and merged
-- [ ] QA Team has completed testing of merged code
-- [ ] Cybersecurity Team has completed security assessment (if applicable)
-- [ ] Code is linted without errors (`npm run lint`)
-- [ ] CHANGELOG.md `[Unreleased]` section is complete and accurate
-- [ ] ARCHITECTURE.md and README.md are up to date
-- [ ] Swagger documentation reflects all API changes
-- [ ] No known critical bugs or security issues
-- [ ] Team has reviewed and approved the release
-
----
-
-## Release Steps
-
-### 1. Determine Version Number
-
-Based on VERSIONING.md guidelines, determine the new version number:
-
-- **PATCH (x.y.Z)**: Bug fixes, docs only, no breaking changes
-- **MINOR (x.Y.z)**: New features, backwards compatible
-- **MAJOR (X.y.z)**: Breaking changes
-
-**Example:**
-- Current: `1.0.0`
-- Changes: New satellites API (backwards compatible)
-- New version: `1.1.0`
+- [ ] **All checkpoint phases merged to main**
+  - Each phase PR approved by 1+ backend developer
+  - All phase PRs merged and passing CI checks
+  
+- [ ] **Local validation complete**
+  - `npm run lint` passes with no errors
+  - `npm test` passes (when tests exist)
+  - Manual smoke testing of critical paths
+  
+- [ ] **Documentation updated**
+  - CHANGELOG.md [Unreleased] section populated with all changes
+  - Swagger/API docs reflect current state
+  - README.md updated if needed
+  
+- [ ] **Team coordination**
+  - QA team notified of pending release
+  - Cybersecurity team notified if security-related
+  - No blocking issues in Slack Project Tracker
+  
+- [ ] **Version decision made**
+  - Consult [VERSIONING.md](https://github.com/E-Y-J/TR41-GroundCTRL/tree/main/backend/VERSIONING.md) for increment rules
+  - Confirm PATCH vs MINOR vs MAJOR appropriateness
 
 ---
 
-### 2. Update CHANGELOG.md
+## Git Branch Strategy
 
-Move changes from `[Unreleased]` to a new version section:
+GroundCTRL uses a **single-branch strategy** with `main` as the source of truth:
 
-```markdown
-## [1.1.0] - 2025-01-15
-
-### Added
-- Satellites API with full CRUD operations
-- Factory-driven implementation with ownership enforcement
-
-### Changed
-- Updated Swagger documentation for satellites endpoints
-
-### Fixed
-- Minor bug fixes in token validation
+```
+main (production-ready, always deployable)
+├── phase-X-feature (feature branches for phase work)
+└── hotfix/vX.Y.Z+1 (emergency fixes only)
 ```
 
-Keep the `[Unreleased]` section for future changes:
+**Rules:**
+- All phase work branches from `main`
+- All phase PRs target `main` and require peer review
+- No separate development or release branches
+- Hotfix branches only for critical production issues
+- Tags created directly on `main` after version bump
+
+---
+
+## Release Workflow
+
+### Step 1: Determine Version Bump
+
+Consult [VERSIONING.md](https://github.com/E-Y-J/TR41-GroundCTRL/tree/main/backend/VERSIONING.md) decision matrix:
+
+```bash
+# For bug fixes, security patches, docs (no API changes)
+npm version patch --no-git-tag-version  # 1.0.0 → 1.0.1
+
+# For new endpoints, new domains (backward-compatible)
+npm version minor --no-git-tag-version  # 1.0.1 → 1.1.0
+
+# For breaking changes (rare, requires team discussion)
+npm version major --no-git-tag-version  # 1.6.1 → 2.0.0
+```
+
+### Step 2: Update CHANGELOG.md
+
+Move [Unreleased] content to new version section:
 
 ```markdown
 ## [Unreleased]
 
 ### Added
-- (future changes go here)
+### Changed
+### Fixed
+### Security
+
+---
+
+## [X.Y.Z] - YYYY-MM-DD
+
+### Checkpoint [A/B/C/D]: [Description]
+
+[Move all Unreleased content here with full details]
 ```
 
-Update the version history at the bottom:
+**Format Requirements:**
+- Use [Keep a Changelog](https://keepachangelog.com) format
+- Include checkpoint name and description
+- Date in ISO format (YYYY-MM-DD)
+- Organize by categories: Added, Changed, Fixed, Security
+- Reference phases completed (e.g., "Phases 0-4")
+
+### Step 3: Update VERSIONING.md
+
+Update metadata at top of file:
 
 ```markdown
-## Version History
-
-- **[1.1.0]** - 2025-01-15 - Added satellites API
-- **[1.0.0]** - 2025-12-25 - Initial release
+**Current Version:** X.Y.Z
+**Last Updated:** YYYY-MM-DD
 ```
 
----
+Update version history table with actual release date.
 
-### 3. Update package.json
-
-Update the version field in `package.json`:
+### Step 4: Create Release Branch and Commit Changes
 
 ```bash
-npm version [major|minor|patch] --no-git-tag-version
-```
-
-**Examples:**
-```bash
-npm version patch --no-git-tag-version  # 1.0.0 → 1.0.1
-npm version minor --no-git-tag-version  # 1.0.0 → 1.1.0
-npm version major --no-git-tag-version  # 1.0.0 → 2.0.0
-```
-
-Or manually edit `package.json`:
-```json
-{
-  "version": "1.1.0"
-}
-```
-
----
-
-### 4. Update VERSIONING.md (if needed)
-
-Update the "Current Version" at the top:
-
-```markdown
-**Current Version:** 1.1.0  
-**Last Updated:** 2025-12-22
-```
-
----
-
-### 5. Create Release Branch and Commit Changes
-
-Create a release branch and commit all release changes:
-
-```bash
-git checkout -b release/v1.1.0
-git add CHANGELOG.md package.json package-lock.json VERSIONING.md
-git commit -m "Release v1.1.0"
-```
-
-**Commit message format:** `Release vX.Y.Z`
-
----
-
-### 6. Push and Create Pull Request
-
-Push the release branch and create a PR:
-
-```bash
-git push origin release/v1.1.0
-```
-
-Then create a Pull Request:
-- **Title:** `Release v1.1.0 - Satellites API`
-- **Description:** Include highlights from CHANGELOG.md
-- **Reviewers:** Assign at least 1 backend team member for approval
-
----
-
-### 7. Merge Pull Request
-
-After receiving approval:
-1. Merge the PR to main
-2. Delete the release branch
-3. **Checkout main locally:** `git checkout main && git pull origin main`
-
----
-
-### 8. Create Git Tag (After PR Merge)
-
-After the PR is merged to main, create the git tag:
-
-```bash
+# Ensure main is up-to-date
 git checkout main
 git pull origin main
-git tag -a v1.1.0 -m "Release v1.1.0 - Satellites API"
-git push origin v1.1.0
+
+# Create release preparation branch
+git checkout -b release/vX.Y.Z
+
+# Stage version files
+git add CHANGELOG.md VERSIONING.md package.json package-lock.json
+
+# Commit with standard message format
+git commit -m "Release vX.Y.Z"
+
+# Push release branch
+git push origin release/vX.Y.Z
 ```
 
-**Tag format:**
-- Name: `vX.Y.Z` (e.g., `v1.1.0`)
-- Message: Brief description of the release
+### Step 5: Create Release PR
 
----
-
-### 9. Create GitHub Release (Optional)
-
-If using GitHub:
-
-1. Go to repository → Releases → Draft a new release
-2. Select the tag you just created (`v1.1.0`)
-3. Release title: `v1.1.0 - Satellites API`
-4. Description: Copy relevant sections from CHANGELOG.md
-5. Check "Set as the latest release" (if applicable)
-6. Click "Publish release"
-
----
-
-### 10. Post-Release Actions
-
-After releasing:
-
-- [ ] Notify the team via agreed communication channels
-- [ ] Update any dependent services or documentation
-- [ ] Monitor for issues in the first 24-48 hours
-- [ ] Update project management boards/tracking tools
-
----
-
-## Hotfix Release Process
-
-For critical bugs or security issues that need immediate release:
-
-### 1. Create Hotfix Branch
-
-```bash
-git checkout -b hotfix/1.1.1 v1.1.0
-```
-
-### 2. Fix the Issue
-
-Make the minimal changes needed to fix the critical issue.
-
-### 3. Update CHANGELOG.md
-
-Add a new PATCH version section:
+Create Pull Request on GitHub:
+- **Base:** `main`
+- **Compare:** `release/vX.Y.Z`
+- **Title:** `Release vX.Y.Z - Checkpoint [A/B/C/D]`
+- **Description:**
 
 ```markdown
-## [1.1.1] - 2025-01-16
-
-### Fixed
-- CRITICAL: Fixed authentication bypass vulnerability
-- Fixed crash in satellite validation
-
-### Security
-- Patched JWT token validation vulnerability (CVE-XXXX-XXXXX)
-```
-
-### 4. Follow Normal Release Steps
-
-- Update package.json to `1.1.1`
-- Commit: `git commit -m "Hotfix v1.1.1"`
-- Tag: `git tag -a v1.1.1 -m "Hotfix v1.1.1 - Critical security patch"`
-- Push: `git push origin hotfix/1.1.1 --follow-tags`
-
-### 5. Merge Hotfix Back
-
-```bash
-git checkout main
-git merge hotfix/1.1.1
-git push origin main
-git branch -d hotfix/1.1.1
-```
-
----
-
-## Rollback Process
-
-If a release has critical issues:
-
-### Option 1: Quick Hotfix (Preferred)
-
-Release a new PATCH version with the fix (see Hotfix Release Process above).
-
-### Option 2: Revert to Previous Version
-
-```bash
-# Revert to previous tag
-git checkout v1.0.0
-
-# Create new branch
-git checkout -b revert-v1.1.0
-
-# Update package.json to previous version
-# Update CHANGELOG.md to document the revert
-
-git commit -m "Revert to v1.0.0 due to critical issues in v1.1.0"
-git tag -a v1.0.1 -m "Reverted v1.1.0 due to critical issues"
-git push origin revert-v1.1.0 --follow-tags
-```
-
-**Note:** This creates a new tag (v1.0.1) rather than deleting v1.1.0, maintaining history.
-
----
-
-## Version Naming Conventions
-
-### Standard Releases
-- Format: `vX.Y.Z` (e.g., `v1.2.0`)
-- Always include the `v` prefix in tags
-- Use three numbers (major.minor.patch)
-
-### Pre-Release Versions (if needed)
-- Alpha: `v1.2.0-alpha.1`
-- Beta: `v1.2.0-beta.1`
-- Release Candidate: `v1.2.0-rc.1`
-
----
-
-## Release Schedule
-
-GroundCTRL follows **checkpoint-based releases** rather than time-based releases:
-
-- **Checkpoint A** (after Phase 0.5): Docs/process baseline
-- **Checkpoint B** (after Phase 4): Security + validation
-- **Checkpoint C** (after Phase 8): Core domain APIs
-- **Checkpoint D** (after Phase 11): Complete feature set
-
-Releases happen after team review at each checkpoint.
-
----
-
-## Emergency Release Procedure
-
-For critical security vulnerabilities:
-
-1. **Immediately** notify team lead and security officer
-2. Create hotfix branch from latest stable tag
-3. Fix vulnerability with minimal changes
-4. **Fast-track** review (security officer + 1 peer minimum)
-5. Release ASAP following hotfix process
-6. Document in CHANGELOG.md under `### Security`
-7. Notify all stakeholders immediately after release
-
----
-
-## Release Announcement Template
-
-```markdown
-# GroundCTRL Backend v1.1.0 Released
-
-We're excited to announce version 1.1.0 of the GroundCTRL Backend!
+## Release Summary
+- **Version:** vX.Y.Z
+- **Type:** PATCH / MINOR / MAJOR
+- **Date:** YYYY-MM-DD
+- **Phases:** [List phases, e.g., 0-4]
 
 ## Highlights
-- 🛰️ New Satellites API with full CRUD operations
-- 🔒 Enhanced security with improved validation
-- 📝 Updated documentation and Swagger specs
+[Copy Added/Changed/Security sections from CHANGELOG.md]
 
 ## Breaking Changes
-None - this release is fully backwards compatible.
+[If MAJOR release, list breaking changes and migration steps]
+[If MINOR/PATCH, state "None"]
 
-## Upgrade Instructions
-Update your package.json dependency:
+## Checklist
+- [x] CHANGELOG.md updated
+- [x] VERSIONING.md updated
+- [x] package.json version bumped
+- [x] All phase PRs merged
+- [x] Local tests passing
+- [ ] Peer review approved
+- [ ] Ready to tag after merge
 ```
-"groundctrl-backend": "^1.1.0"
+
+**Get peer review approval (1+ backend developer)**
+
+### Step 6: Merge Release PR
+
+After approval, merge PR to main using standard merge commit.
+
+### Step 7: Create Git Tag
+
+After release PR is merged to main:
+
+```bash
+# Checkout main and pull merged changes
+git checkout main
+git pull origin main
+
+# Create annotated tag with release summary
+git tag -a vX.Y.Z -m "vX.Y.Z - Checkpoint [A/B/C/D]: [Brief description]"
+
+# Push tag to origin
+git push origin vX.Y.Z
 ```
+
+**Tag Format:**
+- Name: `vX.Y.Z` (lowercase v prefix)
+- Annotation: One-line summary from CHANGELOG.md
+- Example: `v1.0.1 - Checkpoint B: Foundation Complete`
+
+### Step 8: Create GitHub Release
+
+Navigate to GitHub repository → Releases → "Draft a new release"
+
+**Release Configuration:**
+- **Tag:** Select `vX.Y.Z` (created in Step 5)
+- **Release title:** `vX.Y.Z - [Checkpoint Name]`
+- **Description:** Copy relevant section from CHANGELOG.md, format as:
+
+```markdown
+## Release Summary
+- **Version:** vX.Y.Z
+- **Type:** PATCH / MINOR / MAJOR
+- **Date:** YYYY-MM-DD
+- **Phases:** [List phases, e.g., 0-4]
+
+## Highlights
+[Copy Added/Changed/Security sections from CHANGELOG.md]
+
+## Breaking Changes
+[If MAJOR release, list breaking changes and migration steps]
+[If MINOR/PATCH, state "None"]
+
+## Installation
+\`\`\`bash
+npm install groundctrl-backend@X.Y.Z
+\`\`\`
 
 ## Full Changelog
-See CHANGELOG.md for complete details.
+[Link to CHANGELOG.md]
+```
 
-## Questions or Issues?
-Contact the backend team or open an issue on GitHub.
+- **Pre-release:** Check if beta/rc release
+- **Set as latest release:** Check for stable releases
+- **Publish release:** Click "Publish release" button
+
+### Step 9: Post-Release Notifications
+
+**Slack Notification Template:**
+```
+🚀 Release: GroundCTRL Backend vX.Y.Z
+
+**Type:** PATCH/MINOR/MAJOR
+**Checkpoint:** [A/B/C/D] - [Name]
+**Phases:** [X-Y]
+
+**Highlights:**
+• [Key feature 1]
+• [Key feature 2]
+• [Key feature 3]
+
+**Breaking Changes:** None / [List if MAJOR]
+
+📖 Full notes: [GitHub release link]
+📋 Changelog: [CHANGELOG.md link]
+
+@qa-team - Ready for testing
+@security-team - Security review [if applicable]
+```
+
+**Update IMPLEMENTATION_PLAN.md:**
+- Mark checkpoint phases as DONE
+- Update execution log table with release date
+- Update status sections
+
+---
+
+## Hotfix Workflow
+
+For critical production issues requiring immediate patch release:
+
+### When to Use Hotfix Process
+
+**Hotfix criteria:**
+- Security vulnerability in production
+- Critical bug causing service disruption
+- Data corruption or loss risk
+- Authentication/authorization failure
+
+**NOT hotfix criteria:**
+- Minor bugs with workarounds
+- Feature requests
+- Performance optimizations (non-critical)
+- Documentation updates
+
+### Hotfix Steps
+
+#### 1. Create Hotfix Branch
+
+```bash
+# Branch from latest production release tag
+git checkout -b hotfix/vX.Y.Z+1 vX.Y.Z
+
+# Example: Fix for v1.1.0
+git checkout -b hotfix/v1.1.1 v1.1.0
+```
+
+#### 2. Implement Fix
+
+```bash
+# Make minimal changes to fix issue
+# ... edit files ...
+
+# Verify fix locally
+npm run lint
+npm test
+
+# Commit with descriptive message
+git add .
+git commit -m "Fix: [Brief description of issue]
+
+- [Detail 1]
+- [Detail 2]
+
+Fixes #[issue-number]"
+```
+
+#### 3. Update CHANGELOG.md
+
+Add new PATCH version section:
+
+```markdown
+## [X.Y.Z+1] - YYYY-MM-DD
+
+### Fixed
+- [Description of fix]
+
+### Security
+- [If security-related, describe vulnerability and fix]
+```
+
+#### 4. Bump Version
+
+```bash
+npm version patch --no-git-tag-version
+git add CHANGELOG.md VERSIONING.md package.json package-lock.json
+git commit -m "Release vX.Y.Z+1 (hotfix)"
+```
+
+#### 5. Push and Create PR
+
+```bash
+git push origin hotfix/vX.Y.Z+1
+```
+
+Create PR on GitHub:
+- **Base:** `main`
+- **Title:** `Hotfix vX.Y.Z+1 - [Brief Issue]`
+- **Label:** `hotfix`, `priority-critical`
+- **Description:**
+
+```markdown
+## Hotfix Summary
+**Issue:** [Describe critical issue]
+**Impact:** [Describe user/system impact]
+**Fix:** [Describe solution]
+
+## Testing
+- [x] Local testing passed
+- [x] Issue verified resolved
+- [ ] QA verification (post-merge)
+
+## Related
+Fixes #[issue-number]
+```
+
+#### 6. Fast-Track Review
+
+- Request immediate review from 1+ backend developer
+- Skip non-critical review items for speed
+- QA can test after merge to main
+
+#### 7. Merge and Tag
+
+```bash
+# After PR approval, merge to main
+# Then checkout main and pull
+git checkout main
+git pull origin main
+
+# Create hotfix tag
+git tag -a vX.Y.Z+1 -m "Hotfix vX.Y.Z+1 - [Brief issue description]"
+git push origin vX.Y.Z+1
+```
+
+#### 8. Create GitHub Release
+
+Follow Step 6 from main release workflow, marking as:
+- **Pre-release:** No (unless still testing)
+- **Title:** `vX.Y.Z+1 (Hotfix) - [Issue]`
+
+#### 9. Clean Up
+
+```bash
+# Delete hotfix branch locally
+git branch -d hotfix/vX.Y.Z+1
+
+# Delete hotfix branch remotely
+git push origin --delete hotfix/vX.Y.Z+1
+```
+
+#### 10. Notify Team
+
+```
+🚨 Hotfix Released: vX.Y.Z+1
+
+**Issue:** [Brief description]
+**Severity:** Critical
+**Fixed:** [What was fixed]
+
+📖 Release: [GitHub link]
+
+@qa-team - Please verify in production
+@team - Update local environments
 ```
 
 ---
 
-## Checklist Summary
+## Release Validation
 
-**Pre-Release:**
-- [ ] All planned work merged and tested
-- [ ] CHANGELOG.md updated
-- [ ] Version number decided
+After release publication, verify:
 
-**Release:**
-- [ ] CHANGELOG.md finalized
-- [ ] package.json version updated
-- [ ] VERSIONING.md updated
-- [ ] Release commit created
-- [ ] Git tag created
-- [ ] Changes pushed to remote
+### GitHub Checks
+- [ ] Tag visible in GitHub repository tags list
+- [ ] Release appears in GitHub Releases page
+- [ ] Release marked as "Latest" (if stable)
+- [ ] Release notes formatted correctly
 
-**Post-Release:**
-- [ ] GitHub release created (optional)
-- [ ] Team notified
-- [ ] Monitoring for issues
+### Package Checks
+- [ ] package.json version matches release tag
+- [ ] package-lock.json version matches release tag
+- [ ] CHANGELOG.md includes release entry
+- [ ] VERSIONING.md metadata updated
 
----
+### Documentation Checks
+- [ ] Swagger docs reflect current API state
+- [ ] README.md version badge updated (if present)
+- [ ] Migration guides included (if MAJOR release)
 
-## Questions?
-
-If you're unsure about any step in this process:
-1. Consult VERSIONING.md for version number guidance
-2. Review CONTRIBUTING.md for team workflow
-3. Ask the backend team lead for clarification
-4. Discuss in team meeting if needed
+### Notification Checks
+- [ ] Slack team notification sent
+- [ ] QA team notified and testing
+- [ ] Security team notified (if security-related)
+- [ ] IMPLEMENTATION_PLAN.md execution log updated
 
 ---
 
-## References
+## Rollback Procedure
 
-- VERSIONING.md - Version number guidelines
-- CHANGELOG.md - Release history
-- CONTRIBUTING.md - Team workflow
-- [Semantic Versioning](https://semver.org/)
-- [Keep a Changelog](https://keepachangelog.com/)
+If critical issues discovered immediately after release:
+
+### Option 1: Quick Hotfix (Preferred)
+- Follow hotfix workflow above
+- Issue new PATCH release with fix
+- Faster than rollback, maintains forward progress
+
+### Option 2: Rollback Release (Emergency)
+```bash
+# Revert to previous version in package.json
+npm version [previous-version] --no-git-tag-version
+
+# Create revert commit
+git add package.json package-lock.json
+git commit -m "Revert to v[previous-version] due to [issue]"
+git push origin main
+
+# Mark GitHub release as pre-release
+# (Edit release on GitHub, check "Pre-release")
+
+# Notify team immediately
+```
+
+**Rollback Communication Template:**
+```
+⚠️ ROLLBACK: vX.Y.Z Reverted
+
+**Reason:** [Critical issue description]
+**Action:** Reverted to vX.Y.Z-1
+**Status:** Investigating issue
+
+@team - Update local environments to vX.Y.Z-1
+@qa-team - Stop testing vX.Y.Z
+
+Follow-up: [Link to issue tracker]
+```
+
+---
+
+## Automation Opportunities
+
+### Future GitHub Actions Integration
+
+Potential workflow automations:
+- **Version bump validation:** Verify version increased correctly
+- **CHANGELOG validation:** Ensure version entry exists
+- **Tag creation:** Auto-create tag after version commit
+- **Release draft:** Auto-generate release from CHANGELOG
+- **Slack notification:** Auto-post to Slack on release
+
+### CI/CD Pipeline Integration
+
+Recommended checks:
+- Version format validation (X.Y.Z)
+- CHANGELOG entry verification
+- Breaking change detection (API diff)
+- Documentation build and deploy
+- Automated smoke tests on tag
+
+---
+
+## Quick Reference
+
+### Standard Release Commands
+```bash
+# 1. Create release branch
+git checkout main && git pull origin main
+git checkout -b release/vX.Y.Z
+
+# 2. Update version
+npm version [patch|minor|major] --no-git-tag-version
+
+# 3. Commit and push changes
+git add CHANGELOG.md VERSIONING.md package.json package-lock.json
+git commit -m "Release vX.Y.Z"
+git push origin release/vX.Y.Z
+
+# 4. Create PR on GitHub (base: main, compare: release/vX.Y.Z)
+# Get peer review and merge to main
+
+# 5. After PR merged, create and push tag
+git checkout main && git pull origin main
+git tag -a vX.Y.Z -m "vX.Y.Z - Checkpoint [X]: [Description]"
+git push origin vX.Y.Z
+
+# 6. Create GitHub Release (manual via web UI)
+```
+
+### Hotfix Commands
+```bash
+# 1. Create hotfix branch from tag
+git checkout -b hotfix/vX.Y.Z+1 vX.Y.Z
+
+# 2. Fix, test, commit
+git add .
+git commit -m "Fix: [description]"
+
+# 3. Bump version
+npm version patch --no-git-tag-version
+git add CHANGELOG.md VERSIONING.md package.json package-lock.json
+git commit -m "Release vX.Y.Z+1 (hotfix)"
+git push origin hotfix/vX.Y.Z+1
+
+# 4. Create PR, merge, tag
+git checkout main && git pull origin main
+git tag -a vX.Y.Z+1 -m "Hotfix vX.Y.Z+1 - [issue]"
+git push origin vX.Y.Z+1
+
+# 5. Clean up
+git branch -d hotfix/vX.Y.Z+1
+git push origin --delete hotfix/vX.Y.Z+1
+```
+
+---
+
+## Related Documentation
+
+- **[VERSIONING.md](https://github.com/E-Y-J/TR41-GroundCTRL/tree/main/backend/VERSIONING.md)** - Version numbering scheme and increment rules
+- **[CHANGELOG.md](https://github.com/E-Y-J/TR41-GroundCTRL/tree/main/backend/CHANGELOG.md)** - Complete version history and changes
+- **[IMPLEMENTATION_PLAN.md](https://github.com/E-Y-J/TR41-GroundCTRL/tree/main/backend/IMPLEMENTATION_PLAN.md)** - Phase definitions and checkpoints
+- **[CONTRIBUTING.md](https://github.com/E-Y-J/TR41-GroundCTRL/tree/main/backend/CONTRIBUTING.md)** - Contribution workflow and standards
+- **[Keep a Changelog](https://keepachangelog.com)** - CHANGELOG format standard
+- **[Semantic Versioning](https://semver.org)** - Version numbering standard

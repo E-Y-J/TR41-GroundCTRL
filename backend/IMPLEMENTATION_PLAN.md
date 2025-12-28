@@ -62,7 +62,7 @@ Violations are bugs.
 
 **Baseline:** `v1.0.0` is the current baseline.
 
-We do **not** bump versions after every phase. We bump versions when a meaningful “release slice” is complete.
+We do **not** bump versions after every phase. We bump versions when a meaningful "release slice" is complete.
 
 ### Release decision gates (recommended)
 Bump version when a phase set reaches one of these checkpoints:
@@ -76,13 +76,22 @@ Bump version when a phase set reaches one of these checkpoints:
 3. **Major release (2.0.0)**  
    Breaking API changes, renamed endpoints, changed response structures, changed auth contract, or changes requiring client rewrites.
 
-### Proposed planned releases (re-evaluated at each gate)
-- **v1.0.1 (PATCH)** after Phase 2–4 are complete (abuse protection + timeouts + validation + correctness fixes).
-- **v1.1.0 (MINOR)** after core domain resources are live (Satellites + Scenarios + Steps + Sessions + Commands).
-- **v1.2.0 (MINOR)** after NOVA (AI Tutor) is live end-to-end with persistence and step-aware guidance.
-- **v1.2.1+ (PATCH)** for production hardening, bug fixes, and telemetry improvements.
-- **v1.3.0 (MINOR)** if analytics/leaderboards/achievements expand beyond MVP.
-- **v2.0.0 (MAJOR)** only if breaking changes are required.
+### Planned releases aligned with RELEASE.md (re-evaluated at each gate)
+
+Each new domain adds new API endpoints/resources, which per semantic versioning = MINOR version bump.
+
+| Phase Range | Domain | Version | Type | Checkpoint | Trigger |
+|-------------|--------|---------|------|------------|---------|
+| 0-4 | Foundation | v1.0.1 | PATCH | B | Security/validation/CRUD hardening (no new endpoints) |
+| 5 | Satellites | v1.1.0 | MINOR | C | New `/api/v1/satellites` endpoints (PATCH resets to 0) |
+| 6 | Scenarios | v1.2.0 | MINOR | - | New `/api/v1/scenarios` endpoints |
+| 7 | Scenario Steps | v1.3.0 | MINOR | - | New `/api/v1/scenarios/:id/steps` endpoints |
+| 8 | Sessions/State | v1.4.0 | MINOR | - | New `/api/v1/sessions` endpoints |
+| 9 | Commands | v1.5.0 | MINOR | - | New `/api/v1/commands` endpoints |
+| 10 | NOVA AI | v1.6.0 | MINOR | D | New `/api/v1/ai/messages` endpoints |
+| 11 | Testing/Docs | v1.6.1 | PATCH | - | Bug fixes, hardening (PATCH from 1.6.0) |
+
+**Rationale:** Each domain adds backwards-compatible new resources/endpoints without breaking existing API contracts. This provides clear version signals to frontend/clients about new capabilities.
 
 **Rule:** Each release must have:
 - updated `CHANGELOG.md`
@@ -93,26 +102,27 @@ Bump version when a phase set reaches one of these checkpoints:
 
 ## Phase Overview
 
-- **Phase 0:** Repo hygiene + versioning docs + helper scripts verification + Swagger identity docs (includes 0.5)
+- **Phase 0:** Repo hygiene + versioning docs + helper scripts verification + Swagger identity docs (includes 0.5) → **Checkpoint A: v1.0.0**
 - **Phase 1:** Identity enforcement: callSign non-unique + eliminate callSign-based targeting
 - **Phase 2:** Security quick wins: global rate limiting + outbound timeouts + safer auth error messaging + correctness fixes
 - **Phase 3:** Validation layer: add reusable validate middleware + strict schemas + query caps/whitelists
-- **Phase 4:** CRUD factory hardening for safe-by-default reuse across domains
-- **Phase 5:** Satellites domain implementation
-- **Phase 6:** Scenarios domain implementation
-- **Phase 7:** Scenario Steps domain implementation
-- **Phase 8:** User Scenario Sessions & Simulation State
-- **Phase 9:** Mission Commands (logging + validation + feedback hooks)
-- **Phase 10:** NOVA (AI Tutor) end-to-end integration
-- **Phase 11:** Testing + Documentation Verification
-- **Final:** Release prep
+- **Phase 4:** CRUD factory hardening for safe-by-default reuse across domains → **Checkpoint B: v1.0.1 (PATCH)**
+- **Phase 5:** Satellites domain implementation → **Checkpoint C: v1.1.0 (MINOR)**
+- **Phase 6:** Scenarios domain implementation → **v1.2.0 (MINOR)**
+- **Phase 7:** Scenario Steps domain implementation → **v1.3.0 (MINOR)**
+- **Phase 8:** User Scenario Sessions & Simulation State → **v1.4.0 (MINOR)**
+- **Phase 9:** Mission Commands (logging + validation + feedback hooks) → **v1.5.0 (MINOR)**
+- **Phase 10:** NOVA (AI Tutor) end-to-end integration → **Checkpoint D: v1.6.0 (MINOR)**
+- **Phase 11:** Testing + Documentation Verification → **v1.6.1 (PATCH)**
+- **Final:** Release prep (as needed for each checkpoint)
 
 ---
 
 # PHASE 0: Repo Hygiene + Versioning Docs + Swagger Identity Docs (includes 0.5)
 
-**Status:** READY FOR PR (requires 1 approving reviewer)  
-**Owner:** Austin Carlson
+**Status:** DONE 
+**Owner:** Austin Carlson  
+**Release:** Checkpoint A - v1.0.0 (baseline)
 
 ## Goal
 Establish repo discipline, contributor workflow, and correct identity language in documentation.
@@ -149,8 +159,8 @@ Update:
 
 # PHASE 1: Identity Enforcement (callSign non-unique + remove callSign targeting)
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Status:** DONE  
+**Owner:** AUSTIN CARLSON 
 
 ## Goal
 Ensure runtime behavior follows identity policy (uid canonical, callSign display-only).
@@ -177,8 +187,8 @@ Ensure runtime behavior follows identity policy (uid canonical, callSign display
 
 # PHASE 2: Security Quick Wins + Correctness Fixes
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Status:** DONE  
+**Owner:** AUSTIN CARLSON 
 
 ## Goal
 Close the highest-risk items from the security review: global abuse protection and external-call resilience.
@@ -255,8 +265,9 @@ Update schemas to:
 
 # PHASE 4: CRUD Factory Hardening (safe-by-default reuse)
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Status:** DONE  
+**Owner:** AUSTIN CARLSON  
+**Release:** Checkpoint B - v1.0.1 (PATCH) - Foundation complete
 
 ## Goal
 Make `crudFactory` a reliable engine for upcoming domain work without burying domain rules inside it.
@@ -280,17 +291,26 @@ Make `crudFactory` a reliable engine for upcoming domain work without burying do
 - `src/repositories/auditRepository.js`
 
 ## Acceptance criteria
-- Factory supports reuse for satellites/scenarios/steps/commands standard CRUD
-- Ownership enforcement is possible without duplicating logic per route file
-- Domain logic stays in controller wrappers, not the factory
-- Phase 4 marked DONE + execution log entry added
+- ✅ Factory supports reuse for satellites/scenarios/steps/commands standard CRUD
+- ✅ Ownership enforcement is possible without duplicating logic per route file
+- ✅ Domain logic stays in controller wrappers, not the factory
+- ✅ Phase 4 marked DONE + execution log entry added
+
+## Implementation Summary
+- Added lifecycle hooks system (11 hooks: ownershipScope, before/after for create/update/patch/delete/read, auditMetadata)
+- Hardened pagination with MAX_PAGE_LIMIT = 100 enforcement and auto-normalization
+- All audit logging standardized to use `req.user?.uid || 'ANONYMOUS'`
+- Ownership scoping implemented as filter builder pattern (no repository changes needed)
+- Comprehensive JSDoc with usage examples
+- Mission Control response format preserved throughout
 
 ---
 
 # PHASE 5: Satellites Domain Implementation
 
 **Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Owner:** SELF-ASSIGN  
+**Release:** Checkpoint C - v1.1.0 (MINOR) - Satellites domain
 
 ## Goal
 Implement satellite “spec templates” used by scenarios.
@@ -334,7 +354,8 @@ Minimum fields:
 # PHASE 6: Scenarios Domain Implementation
 
 **Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Owner:** SELF-ASSIGN  
+**Release:** v1.2.0 (MINOR) - Scenarios domain
 
 ## Goal
 Implement scenarios (missions) that reference satellites and define initial state.
@@ -384,7 +405,8 @@ Minimum viable fields:
 # PHASE 7: Scenario Steps Domain Implementation
 
 **Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Owner:** SELF-ASSIGN  
+**Release:** v1.3.0 (MINOR) - Scenario Steps domain
 
 ## Goal
 Implement ordered steps for guided scenarios with objectives and default hints for NOVA.
@@ -432,7 +454,8 @@ Minimum fields:
 # PHASE 8: User Scenario Sessions & Simulation State
 
 **Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Owner:** SELF-ASSIGN  
+**Release:** v1.4.0 (MINOR) - Sessions domain
 
 ## Goal
 Track per-user runs and store simplified simulation state.
@@ -485,7 +508,8 @@ Expected fields:
 # PHASE 9: Mission Commands (logging + validation + feedback hooks)
 
 **Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Owner:** SELF-ASSIGN  
+**Release:** v1.5.0 (MINOR) - Commands domain
 
 ## Goal
 Persist and validate commands issued in the console, bound to session + step.
@@ -534,7 +558,8 @@ Expected fields:
 # PHASE 10: NOVA (AI Tutor) End-to-End Integration
 
 **Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Owner:** SELF-ASSIGN  
+**Release:** Checkpoint D - v1.6.0 (MINOR) - NOVA AI complete
 
 ## Goal
 Implement NOVA as AI tutoring layer with persistence and step-aware guidance.
@@ -586,7 +611,8 @@ Collection: `ai_messages`
 # PHASE 11: Testing + Documentation Verification
 
 **Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Owner:** SELF-ASSIGN  
+**Release:** v1.6.1 (PATCH) - Testing and hardening
 
 ## Goal
 Targeted backend tests + docs verified accurate.
@@ -646,5 +672,9 @@ Cut a clean release based on decision gates.
 
 | Date | Phase | Owner | PR | Notes |
 |------|-------|-------|----|------|
-| 2025-12-25 | Plan created | - | - | Initial implementation plan |
-| 2025-12-28 | Phase 3 | Austin Carlson | Pending | Validation layer complete: created validate.js middleware, hardened all schemas with .strict(), applied validation to auth and user routes |
+| 2025-12-27 | Phase 0 | Austin Carlson | DONE | Repo hygiene, versioning docs, Swagger identity corrections |
+| 2025-12-27 | Phase 0.5 | Austin Carlson | DONE | Identity policy corrections in documentation |
+| 2025-12-27 | Phase 1 | Austin Carlson | DONE | Identity enforcement - callSign non-unique implementation |
+| 2025-12-27 | Phase 2 | Austin Carlson | DONE | Security quick wins: global rate limiting, HTTP timeouts, auth error normalization |
+| 2025-12-28 | Phase 3 | Austin Carlson | DONE | Validation layer complete: created validate.js middleware, hardened all schemas with .strict(), applied validation to auth and user routes |
+| 2025-12-28 | Phase 4 | Austin Carlson | Pending | CRUD Factory hardened with lifecycle hooks system (11 hooks), MAX_PAGE_LIMIT enforcement, ownership scoping, consistent audit logging with uid-based identity |
