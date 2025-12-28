@@ -123,6 +123,8 @@ Each new domain adds new API endpoints/resources, which per semantic versioning 
 **Status:** DONE 
 **Owner:** Austin Carlson  
 **Release:** Checkpoint A - v1.0.0 (baseline)
+**Status:** DONE  
+**Owner:** Austin Carlson
 
 ## Goal
 Establish repo discipline, contributor workflow, and correct identity language in documentation.
@@ -161,6 +163,7 @@ Update:
 
 **Status:** DONE  
 **Owner:** AUSTIN CARLSON 
+**Owner:** Austin Carlson
 
 ## Goal
 Ensure runtime behavior follows identity policy (uid canonical, callSign display-only).
@@ -189,6 +192,7 @@ Ensure runtime behavior follows identity policy (uid canonical, callSign display
 
 **Status:** DONE  
 **Owner:** AUSTIN CARLSON 
+**Owner:** Austin Carlson
 
 ## Goal
 Close the highest-risk items from the security review: global abuse protection and external-call resilience.
@@ -678,3 +682,8 @@ Cut a clean release based on decision gates.
 | 2025-12-27 | Phase 2 | Austin Carlson | DONE | Security quick wins: global rate limiting, HTTP timeouts, auth error normalization |
 | 2025-12-28 | Phase 3 | Austin Carlson | DONE | Validation layer complete: created validate.js middleware, hardened all schemas with .strict(), applied validation to auth and user routes |
 | 2025-12-28 | Phase 4 | Austin Carlson | Pending | CRUD Factory hardened with lifecycle hooks system (11 hooks), MAX_PAGE_LIMIT enforcement, ownership scoping, consistent audit logging with uid-based identity |
+| 2025-12-25 | Plan created | - | - | Initial implementation plan |
+| 2025-12-27 | Phase 0 | Austin Carlson | - | Repo hygiene, versioning docs, Swagger identity corrections |
+| 2025-12-27 | Phase 0.5 | Austin Carlson | - | Identity policy corrections in documentation |
+| 2025-12-27 | Phase 1 | Austin Carlson | - | Identity enforcement - callSign non-unique implementation |
+| 2025-12-27 | Phase 2 | Austin Carlson | - | Security quick wins: global rate limiting, HTTP timeouts, auth error normalization |
