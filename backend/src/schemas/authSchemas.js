@@ -14,7 +14,7 @@ const loginSchema = z.object({
     .email('Invalid email format'),
   password: z.string()
     .min(1, 'Password is required')
-});
+}).strict();
 
 /**
  * Register schema
@@ -39,7 +39,7 @@ const registerSchema = z.object({
     .min(2, 'Display name must be at least 2 characters')
     .max(50, 'Display name must not exceed 50 characters')
     .optional()
-});
+}).strict();
 
 /**
  * Refresh token schema
@@ -47,7 +47,7 @@ const registerSchema = z.object({
 const refreshTokenSchema = z.object({
   refreshToken: z.string()
     .min(1, 'Refresh token is required')
-});
+}).strict();
 
 /**
  * Revoke token schema
@@ -59,7 +59,7 @@ const revokeTokenSchema = z.object({
   userId: z.string()
     .min(1, 'User ID is required')
     .optional()
-}).refine(
+}).strict().refine(
   data => data.token || data.userId,
   {
     message: 'Either token or userId must be provided'

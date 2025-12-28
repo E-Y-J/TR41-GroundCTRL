@@ -24,6 +24,7 @@ A production-ready Node.js/Express API with enterprise-grade security, Firebase 
 - ✅ **Token Blacklisting** - Immediate token revocation via Firebase
 - ✅ **Account Lockout** - 5 failed logins = 15 minute lockout
 - ✅ **Rate Limiting** - Configurable per-endpoint protection
+- ✅ **Input Validation** - Strict schema validation with Zod at route boundaries
 - ✅ **Audit Logging** - Comprehensive operation tracking with severity levels
 - ✅ **Mission Control Responses** - GO/NO-GO/HOLD/ABORT status codes
 - ✅ **Admin Role Management** - Fine-grained permission control
@@ -33,12 +34,19 @@ A production-ready Node.js/Express API with enterprise-grade security, Firebase 
 ### Architecture
 - **Separation of Concerns**: Routes → Controllers → Services → Repositories
 - **Factory Pattern**: Reusable CRUD, response, audit, and lockout factories
-- **Middleware Stack**: Auth, rate limiting, audit logging, error handling
+- **Middleware Stack**: Auth, validation, rate limiting, audit logging, error handling
 - **Firebase Integration**: Firestore + Firebase Auth
+- **Zod Validation**: Runtime type safety with strict schemas and query parameter constraints
 - **Zod Validation**: Runtime type safety for all inputs
 - **Identity Policy**: uid-based targeting (canonical), callSign for display only (non-unique), email unique for data integrity
 - **HTTP Client Resilience**: Configurable timeouts and retry logic for external calls
 - **Vercel-Ready**: Serverless-compatible structure
+
+### Recent Enhancements (Phase 3)
+- ✅ **Validation Middleware** - Reusable validation for body, params, and query parameters
+- ✅ **Strict Schemas** - All schemas use `.strict()` to reject unknown fields
+- ✅ **Query Caps & Whitelists** - Pagination limits capped at 100, sortBy fields whitelisted
+- ✅ **Enhanced Security** - Unknown fields rejected, query parameters normalized and validated
 
 ---
 
@@ -396,50 +404,74 @@ Content-Type: application/json
 ```
 backend/
 ├── src/
-│   ├── config/           # Configuration files
-│   │   ├── firebase.js
-│   │   ├── jwtConfig.js
-│   │   ├── rateLimits.js
-│   │   └── missionControl.js
-│   ├── constants/        # Constants and enums
-│   │   ├── auditEvents.js
-│   │   ├── auditSeverity.js
-│   │   └── httpStatus.js
-│   ├── controllers/      # HTTP request handlers
-│   │   └── authController.js
-│   ├── factories/        # Reusable object creators
-│   │   ├── auditFactory.js
-│   │   └── responseFactory.js
-│   ├── middleware/       # Express middleware
-│   │   ├── authMiddleware.js
-│   │   ├── rateLimiter.js
-│   │   ├── auditLogger.js
-│   │   └── errorHandler.js
-│   ├── repositories/     # Database abstraction
-│   │   ├── auditRepository.js
-│   │   └── tokenBlacklistRepository.js
-│   ├── routes/           # API routes
-│   │   ├── index.js
-│   │   ├── health.js
-│   │   └── auth.js
-│   ├── schemas/          # Zod validation schemas
-│   │   └── authSchemas.js
-│   ├── services/         # Business logic
-│   │   ├── authService.js
-│   │   └── lockoutService.js
-│   ├── utils/            # Utility functions
-│   │   ├── errors.js
-│   │   ├── jwt.js
-│   │   ├── logger.js
-│   │   └── passwordValidation.js
-│   ├── app.js            # Express app configuration
-│   └── server.js         # Server entry point
-├── .env.sample           # Environment variables template
-├── .eslintrc.json        # ESLint configuration
-├── .gitignore            # Git ignore rules
-├── nodemon.json          # Nodemon configuration
-├── package.json          # Dependencies and scripts
-└── README.md             # This file
+│   ├── config/              # Configuration files
+│   │   ├── firebase.js       # Firebase Admin SDK setup
+│   │   ├── jwtConfig.js      # JWT configuration
+│   │   ├── rateLimits.js     # Rate limiting settings
+│   │   ├── missionControl.js # Mission control protocol
+│   │   └── swagger.js        # OpenAPI/Swagger configuration
+│   ├── constants/           # Constants and enums
+│   │   ├── auditEvents.js    # Audit event types
+│   │   ├── auditSeverity.js  # Severity levels
+│   │   └── httpStatus.js     # HTTP status codes
+│   ├── controllers/         # HTTP request handlers
+│   │   ├── authController.js # Authentication endpoints
+│   │   └── userController.js # User management endpoints
+│   ├── factories/           # Reusable object creators
+│   │   ├── auditFactory.js   # Audit log creation
+│   │   ├── crudFactory.js    # CRUD operation factory
+│   │   └── responseFactory.js # Mission control responses
+│   ├── middleware/          # Express middleware
+│   │   ├── authMiddleware.js # JWT authentication & authorization
+│   │   ├── validate.js       # Zod schema validation (body/params/query)
+│   │   ├── rateLimiter.js    # Rate limiting logic
+│   │   ├── auditLogger.js    # Audit logging middleware
+│   │   └── errorHandler.js   # Global error handler
+│   ├── repositories/        # Database abstraction
+│   │   ├── auditRepository.js          # Audit logs
+│   │   ├── tokenBlacklistRepository.js # Token revocation
+│   │   └── userRepository.js           # User operations
+│   ├── routes/              # API routes
+│   │   ├── index.js          # Route aggregation
+│   │   ├── health.js         # Health check endpoint
+│   │   ├── auth.js           # Authentication routes
+│   │   ├── users.js          # User management routes
+│   │   ├── satellites.js     # Satellite routes (stub)
+│   │   ├── scenarios.js      # Scenario routes (stub)
+│   │   ├── commands.js       # Command routes (stub)
+│   │   └── ai.js             # AI/NOVA routes (stub)
+│   ├── schemas/             # Zod validation schemas
+│   │   ├── authSchemas.js    # Auth endpoint schemas (strict)
+│   │   └── userSchemas.js    # User endpoint schemas (strict)
+│   ├── services/            # Business logic
+│   │   ├── authService.js    # Authentication logic
+│   │   ├── userService.js    # User business logic
+│   │   └── lockoutService.js # Account lockout handling
+│   ├── utils/               # Utility functions
+│   │   ├── errors.js         # Custom error classes
+│   │   ├── jwt.js            # JWT helpers
+│   │   ├── logger.js         # Winston logger
+│   │   └── passwordValidation.js # Password strength validation
+│   ├── scripts/             # Helper scripts
+│   │   ├── convert_crlf_to_lf.py  # Line ending converter
+│   │   ├── FB_cleanup.js          # Firebase cleanup utility
+│   │   └── map_file_structure.py  # File structure mapper
+│   ├── app.js               # Express app configuration
+│   └── server.js            # Server entry point with dynamic port
+├── test_examples/           # Testing resources
+│   ├── GroundCTRL_API.postman_collection.json
+│   ├── GroundCTRL_Environment.postman_environment.json
+│   └── README.md
+├── .env.sample              # Environment variables template
+├── .gitignore               # Git ignore rules
+├── eslint.config.js         # ESLint configuration
+├── nodemon.json             # Nodemon configuration
+├── package.json             # Dependencies and scripts
+├── CHANGELOG.md             # Version history
+├── IMPLEMENTATION_PLAN.md   # Phase-by-phase implementation guide
+├── CONTRIBUTING.md          # Contribution guidelines
+├── RELEASE.md               # Release procedures
+└── README.md                # This file
 ```
 
 ---
@@ -539,19 +571,16 @@ Query Firestore `audit_logs` collection:
 - Ensure Firebase project has Firestore and Auth enabled
 - Check network connectivity to Firebase
 
-### Port Already in Use
-```bash
-# Find process using port 3001
-lsof -i :3001  # macOS/Linux
-netstat -ano | findstr :3001  # Windows
-
-# Kill process or change PORT in .env
-```
-
 ### Token Verification Fails
 - Check JWT_SECRET matches between token creation and verification
 - Verify token hasn't expired
 - Check if token is blacklisted
+
+### Validation Errors
+- Ensure request body matches strict schema requirements
+- Unknown fields will be rejected (`.strict()` mode enabled)
+- Query parameters have caps (limit ≤ 100) and whitelisted sortBy fields
+- Check PHASE3_VALIDATION_TESTS.md for validation examples
 
 ---
 

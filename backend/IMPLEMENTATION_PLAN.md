@@ -215,8 +215,8 @@ Close the highest-risk items from the security review: global abuse protection a
 
 # PHASE 3: Validation Layer (Middleware + Strict Schemas + Query Caps)
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Status:** DONE  
+**Owner:** Austin Carlson
 
 ## Goal
 Enforce strict validation at route boundaries to prevent integrity issues and future privilege bypass.
@@ -646,8 +646,8 @@ Cut a clean release based on decision gates.
 
 | Date | Phase | Owner | PR | Notes |
 |------|-------|-------|----|------|
-| 2025-12-25 | Plan created | - | - | Initial implementation plan |
 | 2025-12-27 | Phase 0 | Austin Carlson | - | Repo hygiene, versioning docs, Swagger identity corrections |
 | 2025-12-27 | Phase 0.5 | Austin Carlson | - | Identity policy corrections in documentation |
 | 2025-12-27 | Phase 1 | Austin Carlson | - | Identity enforcement - callSign non-unique implementation |
 | 2025-12-27 | Phase 2 | Austin Carlson | - | Security quick wins: global rate limiting, HTTP timeouts, auth error normalization |
+| 2025-12-28 | Phase 3 | Austin Carlson | Pending | Validation layer complete: created validate.js middleware, hardened all schemas with .strict(), applied validation to auth and user routes |

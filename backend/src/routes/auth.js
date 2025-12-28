@@ -5,9 +5,48 @@
 
 const express = require('express');
 const router = express.Router();
+const { z } = require('zod');
 const authController = require('../controllers/authController');
 const { authMiddleware, requireAdmin } = require('../middleware/authMiddleware');
 const { loginLimiter, authLimiter } = require('../middleware/rateLimiter');
+const { validate } = require('../middleware/validate');
+const {
+  loginSchema,
+  registerSchema,
+  refreshTokenSchema,
+  revokeTokenSchema
+} = require('../schemas/authSchemas');
+
+// Wrapper schemas for unified validation (body + query + params)
+const loginValidation = z.object({
+  body: loginSchema,
+  query: z.object({}).strict(),
+  params: z.object({}).strict()
+});
+
+const registerValidation = z.object({
+  body: registerSchema,
+  query: z.object({}).strict(),
+  params: z.object({}).strict()
+});
+
+const refreshTokenValidation = z.object({
+  body: refreshTokenSchema,
+  query: z.object({}).strict(),
+  params: z.object({}).strict()
+});
+
+const logoutValidation = z.object({
+  body: refreshTokenSchema,
+  query: z.object({}).strict(),
+  params: z.object({}).strict()
+});
+
+const revokeTokenValidation = z.object({
+  body: revokeTokenSchema,
+  query: z.object({}).strict(),
+  params: z.object({}).strict()
+});
 
 /**
  * @swagger
@@ -93,7 +132,7 @@ const { loginLimiter, authLimiter } = require('../middleware/rateLimiter');
  *       429:
  *         $ref: '#/components/responses/RateLimitError'
  */
-router.post('/register', authLimiter, authController.register);
+router.post('/register', authLimiter, validate(registerValidation), authController.register);
 
 /**
  * @swagger
@@ -194,7 +233,7 @@ router.post('/register', authLimiter, authController.register);
  *       429:
  *         $ref: '#/components/responses/RateLimitError'
  */
-router.post('/login', loginLimiter, authController.login);
+router.post('/login', loginLimiter, validate(loginValidation), authController.login);
 
 /**
  * @swagger
@@ -256,7 +295,7 @@ router.post('/login', loginLimiter, authController.login);
  *       429:
  *         $ref: '#/components/responses/RateLimitError'
  */
-router.post('/refresh', authLimiter, authController.refreshToken);
+router.post('/refresh', authLimiter, validate(refreshTokenValidation), authController.refreshToken);
 
 /**
  * @swagger
@@ -362,7 +401,7 @@ router.get('/me', authMiddleware, authController.getCurrentUser);
  *       422:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.post('/logout', authMiddleware, authController.logout);
+router.post('/logout', authMiddleware, validate(logoutValidation), authController.logout);
 
 /**
  * @swagger
@@ -415,6 +454,6 @@ router.post('/logout', authMiddleware, authController.logout);
  *       422:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.post('/revoke', authMiddleware, requireAdmin, authController.revokeToken);
+router.post('/revoke', authMiddleware, requireAdmin, validate(revokeTokenValidation), authController.revokeToken);
 
 module.exports = router;

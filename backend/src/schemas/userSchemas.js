@@ -34,7 +34,7 @@ const createUserSchema = z.object({
     .default(true),
   isAdmin: z.boolean()
     .default(false)
-});
+}).strict();
 
 /**
  * Schema for full user update (PUT)
@@ -54,7 +54,7 @@ const updateUserSchema = z.object({
   role: z.enum(['operator', 'admin', 'viewer']),
   isActive: z.boolean(),
   isAdmin: z.boolean()
-});
+}).strict();
 
 /**
  * Schema for partial user update (PATCH)
@@ -86,7 +86,7 @@ const patchUserSchema = z.object({
     .regex(/\d/, 'Password must contain at least one number')
     .regex(/[@$!%*?&#^()_+\-=[\]{}|;:,.<>/]/, 'Password must contain at least one special character')
     .optional()
-}).refine(
+}).strict().refine(
   data => Object.keys(data).length > 0,
   {
     message: 'At least one field must be provided for update'
@@ -118,7 +118,7 @@ const userQuerySchema = z.object({
   isActive: z.string()
     .transform(val => val === 'true')
     .optional()
-});
+}).strict();
 
 module.exports = {
   createUserSchema,
