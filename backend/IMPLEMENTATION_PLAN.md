@@ -215,8 +215,8 @@ Close the highest-risk items from the security review: global abuse protection a
 
 # PHASE 3: Validation Layer (Middleware + Strict Schemas + Query Caps)
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN
+**Status:** DONE  
+**Owner:** Austin Carlson
 
 ## Goal
 Enforce strict validation at route boundaries to prevent integrity issues and future privilege bypass.
@@ -647,4 +647,4 @@ Cut a clean release based on decision gates.
 | Date | Phase | Owner | PR | Notes |
 |------|-------|-------|----|------|
 | 2025-12-25 | Plan created | - | - | Initial implementation plan |
- bn cdf
+| 2025-12-28 | Phase 3 | Austin Carlson | Pending | Validation layer complete: created validate.js middleware, hardened all schemas with .strict(), applied validation to auth and user routes |

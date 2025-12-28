@@ -11,11 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase 0: Project versioning and documentation framework
 - Phase 0: Helper scripts for file structure mapping and line ending conversion
 - Phase 0.5: Identity policy corrections in Swagger documentation
+- Phase 3: Reusable validation middleware (`src/middleware/validate.js`)
 
 ### Changed
 - Phase 0.5: Updated Swagger documentation to reflect uid-based identity policy
 - Phase 0.5: Clarified callSign as non-unique display label (not identifier)
 - Phase 0.5: Documented email as unique constraint for data integrity only
+- Phase 3: All schemas now use `.strict()` mode to reject unknown fields
+- Phase 3: Query parameters capped (limit ≤ 100) and whitelisted (sortBy fields)
+- Phase 3: Auth and user routes now use validation middleware
+- Phase 3: Updated README with Phase 3 features and removed outdated port troubleshooting
+- Phase 3: Enhanced environment configuration with `user_uid` variable
+
+### Security
+- Phase 3: Unknown fields in requests now rejected at route boundaries
+- Phase 3: Query parameter injection prevented through strict validation
+- Phase 3: Type coercion vulnerabilities eliminated with Zod schemas
 
 ---
 
