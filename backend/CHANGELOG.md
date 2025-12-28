@@ -59,6 +59,8 @@ This patch release completes the foundation layer with security hardening, valid
 - Phase 2: Global API rate limiting prevents abuse
 - Phase 2: Outbound HTTP timeout protection against DoS attacks
 - Phase 2: Production auth errors no longer leak internal details
+
+### Security
 - Phase 3: Unknown fields in requests now rejected at route boundaries
 - Phase 3: Query parameter injection prevented through strict validation
 - Phase 3: Type coercion vulnerabilities eliminated with Zod schemas
