@@ -1,1 +1,45 @@
+name: Firebase Emulator Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  emulator-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend  # All `run:` steps now use backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'  # Enables cache
+          cache-dependency-path: backend/package-lock.json  # Points cache to backend lockfile
+
+      - name: Install firebase-tools
+        run: npm install -g firebase-tools
+
+      - name: Install backend dependencies
+        run: npm ci  # Now finds backend/package-lock.json
+
+      - name: Run Sprint 0 infrastructure tests
+        run: firebase emulators:exec --project demo-project --only auth,firestore "npm test -- --runInBand tests-backend/sprint0"
+
+      - name: Run Sprint 1 security tests
+        run: firebase emulators:exec --project demo-project --only auth,firestore "npm test -- --runInBand tests-backend/sprint1"
+
+      - name: Run all tests
+        run: firebase emulators:exec --project demo-project --only auth,firestore "npm test -- --runInBand tests-backend/sprint0 tests-backend/sprint1"
+
+      - name: Generate test coverage report
+        run: firebase emulators:exec --project demo-project --only auth,firestore "npm test -- --runInBand --coverage tests-backend/sprint0 tests-backend/sprint1"
+        continue-on-error: true
+
 
