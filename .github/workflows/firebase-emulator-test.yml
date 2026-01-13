@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: backend  # All `run:` steps now use backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,12 +20,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'  # Enables cache
+          cache-dependency-path: backend/package-lock.json  # Points cache to backend lockfile
 
       - name: Install firebase-tools
         run: npm install -g firebase-tools
 
       - name: Install backend dependencies
-        run: npm ci
+        run: npm ci  # Now finds backend/package-lock.json
 
       - name: Run Sprint 0 infrastructure tests
         run: firebase emulators:exec --project demo-project --only auth,firestore "npm test -- --runInBand tests-backend/sprint0"
