@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --coverage",
+    "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
@@ -38,6 +38,7 @@
     "@eslint/js": "^9.39.2",
     "@types/jest": "^29.5.11",
     "eslint": "^9.39.2",
+    "firebase-tools": "^13.0.0",
     "globals": "^16.5.0",
     "jest": "^30.2.0",
     "nodemon": "^3.0.2"
