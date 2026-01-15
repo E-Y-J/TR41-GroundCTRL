@@ -5,8 +5,6 @@
 
 const express = require('express');
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001/api/v1';
-
 describe('Phase 2 – Security Quick Wins', () => {
   it('applies global API rate limit to /api/v1 routes', () => {
     const rateLimitConfig = require('../../src/config/rateLimits');
