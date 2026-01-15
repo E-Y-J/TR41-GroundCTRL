@@ -21,17 +21,12 @@ function initializeFirebase() {
     return admin;
   }
 
-  // Configure emulators if needed (must be set before initialization)
-  if (emulatorConfig.useEmulators) {
-    process.env.FIRESTORE_EMULATOR_HOST = emulatorConfig.firestoreEmulatorHost;
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorConfig.authEmulatorHost;
-    
-    if (!isProduction) {
-      logger.info('🧪 Using Firebase emulators:', {
-        auth: emulatorConfig.authEmulatorHost,
-        firestore: emulatorConfig.firestoreEmulatorHost
-      });
-    }
+  // Log emulator configuration if enabled (env vars should be set before app starts)
+  if (emulatorConfig.useEmulators && !isProduction) {
+    logger.info('🧪 Using Firebase emulators:', {
+      auth: process.env.FIREBASE_AUTH_EMULATOR_HOST,
+      firestore: process.env.FIRESTORE_EMULATOR_HOST
+    });
   }
 
   // Sanitize API Key if it has quotes (common .env mistake)
