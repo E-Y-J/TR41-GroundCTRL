@@ -20,6 +20,11 @@ jobs:
       FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
       FIRESTORE_EMULATOR_HOST: localhost:8080
       API_BASE_URL: https://api.missionctrl.org/api/v1
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      NODE_ENV: test
+      RATE_LIMIT_WINDOW_MS: "60000"
+      RATE_LIMIT_MAX_REQUESTS: "100"
+      REQUEST_TIMEOUT_MS: "30000"
 
     steps:
       - name: Checkout
