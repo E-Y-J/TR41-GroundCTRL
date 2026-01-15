@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "groundctrl-prod",
+    "staging": "groundctrl-staging"
+  }
+}
