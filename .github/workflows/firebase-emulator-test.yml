@@ -16,7 +16,7 @@ jobs:
         working-directory: backend
 
     env:
-      FIREBASE_PROJECT_ID: groundctrl-prod
+      FIREBASE_PROJECT_ID: groundctrl-test
       FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
       FIRESTORE_EMULATOR_HOST: localhost:8080
       API_BASE_URL: https://api.missionctrl.org/api/v1
