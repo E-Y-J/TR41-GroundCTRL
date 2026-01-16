@@ -33,7 +33,7 @@ if (missingFirebaseEnvVars.length > 0) {
   throw new Error(
     `Missing Firebase environment variables: ${missingFirebaseEnvVars.join(
       ", "
-    )}. Please define them in your Vite environment file (e.g. .env.local), using the .env.sample file in the repository as a reference for the required variables.`
+    )}. Please define them in your Vite environment file (e.g. .env.local), using the .env.example file in the repository as a reference for the required variables.`
   );
 }
 
