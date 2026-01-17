@@ -130,8 +130,10 @@ async function register(email, password, callSign = null, displayName = null) {
         displayName: displayName || finalCallSign,
         isAdmin: false
       },
-      accessToken,
-      refreshToken
+      tokens: {
+        accessToken,
+        refreshToken
+      }
     };
   } catch (error) {
     if (error.code === 'auth/email-already-exists') {
@@ -188,8 +190,10 @@ async function login(email, password) {
       displayName: userData.displayName,
       isAdmin: userData.isAdmin || false
     },
-    accessToken,
-    refreshToken
+    tokens: {
+      accessToken,
+      refreshToken
+    }
   };
 }
 
