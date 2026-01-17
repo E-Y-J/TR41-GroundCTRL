@@ -40,35 +40,23 @@ The private key is multi-line, so you'll need to format it properly:
 ```bash
 firebase apphosting:secrets:set FIREBASE_PRIVATE_KEY --project groundctrl-c8860
 ```
-When prompted, enter the **entire private key** (copy from the `.env` file):
+
+**⚠️ SECURITY WARNING: Never include real private keys in documentation or version control**
+
+When prompted, enter the **entire private key** from your Firebase service account JSON file downloaded from Firebase Console:
+
+1. Go to Firebase Console > Project Settings > Service Accounts
+2. Click "Generate New Private Key" (if you haven't already)
+3. Download the JSON file
+4. Copy the `private_key` field value from the JSON
+5. Paste it when prompted by the CLI
+
+The private key format should look like this (DO NOT use this placeholder, get your actual key from Firebase):
 ```
 -----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDkf+N8SJw7DSKK
-jrW1MzwvUhY9ZW8US/IEmnYVT/SFgjIRawsEpPUGGrODJ1Lhy9EcIi6G/uaz95OS
-MGkPksxAg18kL12P2Dja/0ORFVio/0peK5d7F8ob76xqjh+Aj40uaRuyfKYuXybk
-RQuhumkGdNbXj2lOSF15MyFAG+iEEObodyVIFQzdruJLDJDD50ETzQhzH2aEcmKe
-w6CpENE8wj266sJezRHCbq+gKOzYNLFjGVyT/YLPR4SYOUr02k1gJZU40TthELEX
-5XuWFMinsrCVRF/HlmYaJt26Mz22HeHLST8ngS5NgPqmndEwvlnG9/d63hBJ3XOr
-yqzZp3+lAgMBAAECggEAIkfmkO+S0tAsabWx4LLEWYQa9pCYeubO8y5aP2XMtVf8
-W30f/M0jvov0eR2F837Ay1P8f3/QDFl9IA5XwMChGJ+s/zCE/K7vjrmDwUk+0THl
-zh2DnzHJPmo1h5H1e3Pt9jPKNju5sdTQMKiEL3oYRiHy1om7PoWgUm3fk+7r8h4P
-Ydcf1yiwjoga+1Oax1wb5RP1YVLvE7Jif6JV5+dimXthQeEn3JRJLLHW+dw0VtKl
-x9g+Z5cv8CFcXY8voMOEl46iRMD+kws7rF8xEfMnBzXEcM+33TczZFi52XqLUiQ4
-FKnT24fCTTvLAvuDaF7dTCpmmDETgjGCz7KdwNjniQKBgQD+BKnGXBfsptiZOkd+
-tJuhpQmGQSvUJyav/RgDnH3LlX7GuPvfxr7hpeR9RnWTgkXIHQ4Bp4nnU6kCsEZl
-6aPRtv5DrtjHMlpqKZ6q5OL67M9x0Xy1O4jLt1hQ49V6G2Jw4k9oytLuA6+DOs4F
-LV5iil+IkM4fcMOM6B7X9nDiGQKBgQDmSEInbHC8iinbSIMkiKSGc7iUqthSATEO
-nMefGYvKUAIjjzlTERIKkSUmafFdBOg8kmqDV/EmPnvLRfJbJ4Ylc3kQwyxHKfV0
-xbOrgGBWoorIBaRvEwarALDS9kpEi/LjF0I4EZZs47gWV6bvYXHz6o4QWKskCSvJ
-3wFUwvZzbQKBgB7++KyAvladQV7pMqIubbM6zT+5ohyALoNZEd4W8W6vLkoXdnym
-5tHoCUqUF3LJebRifzwKcpRsq/ntApoa+Wd0ufAOXNtptIixzW+zAFN4JBQSaPJA
-cn/RPpCYTIta3hdCNkhmP3jVsEwGF++fyp2hnuiuKsjBXMtL47+cjce5AoGBAM5p
-xqJ/2S2myo38GVEOCitaXwEjgnM/DjIC5gv+YgceYExvfPqwOnOuVpZwMCEo3OIu
-e7rvgQC+0UgLkomSi/PV5ZbY2z+OpK3e6IW5tKDzYWKZbCMD8t4k6Fqw2TFIIJbd
-qkWHvkYseD3Oo5u+xN3WSTDtybmrXsy8T/0iJLahAoGBALEDHplDzKNLhUDSR0wY
-J0wZ6Np6JclTkl/UrofZRgELDyeFKNW+P67wLUztVOZVAFMrzAFAnwIJ7+sgc50p
-Cg3O/m7+hh8veLe7XfvoIeRioBDOqm94KlQdD0fAutquMTd+CIWVhniDM2PThVUb
-xj+Pv/1HroxjsWgDM6rc8PLj
+[YOUR_ACTUAL_PRIVATE_KEY_CONTENT_HERE]
+[MULTIPLE_LINES_OF_BASE64_ENCODED_KEY_DATA]
+[GET_THIS_FROM_FIREBASE_CONSOLE_SERVICE_ACCOUNT]
 -----END PRIVATE KEY-----
 ```
 
