@@ -75,7 +75,7 @@ xj+Pv/1HroxjsWgDM6rc8PLj
 ### Set SMTP Password
 ```bash
 firebase apphosting:secrets:set SMTP_PASSWORD --project groundctrl-c8860
-# When prompted, enter: Mx3712635
+# When prompted, enter the SMTP password retrieved from your team's secure secret store (for example, your password manager or secrets vault).
 ```
 
 ### Verify Secrets
