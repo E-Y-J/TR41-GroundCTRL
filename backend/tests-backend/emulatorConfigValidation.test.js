@@ -31,8 +31,14 @@ describe('Firebase Emulator Configuration Validation', () => {
 
       const { initializeFirebase } = require('../src/config/firebase');
 
-      expect(() => initializeFirebase()).toThrow(/PRODUCTION DEPLOYMENT BLOCKED/);
-      expect(() => initializeFirebase()).toThrow(/FIREBASE_AUTH_EMULATOR_HOST/);
+      try {
+        initializeFirebase();
+        // Should not reach here
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error.message).toContain('PRODUCTION DEPLOYMENT BLOCKED');
+        expect(error.message).toContain('FIREBASE_AUTH_EMULATOR_HOST');
+      }
     });
 
     it('should throw error when FIRESTORE_EMULATOR_HOST is set in production', () => {
@@ -44,8 +50,14 @@ describe('Firebase Emulator Configuration Validation', () => {
 
       const { initializeFirebase } = require('../src/config/firebase');
 
-      expect(() => initializeFirebase()).toThrow(/PRODUCTION DEPLOYMENT BLOCKED/);
-      expect(() => initializeFirebase()).toThrow(/FIRESTORE_EMULATOR_HOST/);
+      try {
+        initializeFirebase();
+        // Should not reach here
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error.message).toContain('PRODUCTION DEPLOYMENT BLOCKED');
+        expect(error.message).toContain('FIRESTORE_EMULATOR_HOST');
+      }
     });
 
     it('should throw error when both emulator variables are set in production', () => {
@@ -58,9 +70,15 @@ describe('Firebase Emulator Configuration Validation', () => {
 
       const { initializeFirebase } = require('../src/config/firebase');
 
-      expect(() => initializeFirebase()).toThrow(/PRODUCTION DEPLOYMENT BLOCKED/);
-      expect(() => initializeFirebase()).toThrow(/FIREBASE_AUTH_EMULATOR_HOST/);
-      expect(() => initializeFirebase()).toThrow(/FIRESTORE_EMULATOR_HOST/);
+      try {
+        initializeFirebase();
+        // Should not reach here
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error.message).toContain('PRODUCTION DEPLOYMENT BLOCKED');
+        expect(error.message).toContain('FIREBASE_AUTH_EMULATOR_HOST');
+        expect(error.message).toContain('FIRESTORE_EMULATOR_HOST');
+      }
     });
 
     it('should initialize successfully when no emulator variables are set in production', () => {
