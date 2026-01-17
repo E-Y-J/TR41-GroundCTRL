@@ -31,7 +31,7 @@ firebase login
 ### Set JWT Secret
 ```bash
 firebase apphosting:secrets:set JWT_SECRET --project groundctrl-c8860
-# When prompted, enter: 1789B9935C1222411CD4504EDCFFEC406598A92C21D3B7DF332EB2E628B30394
+# When prompted, enter a strong, randomly generated secret (for example, run `openssl rand -hex 64` locally and paste the output here).
 ```
 
 ### Set Firebase Private Key
