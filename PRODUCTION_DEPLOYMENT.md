@@ -17,7 +17,7 @@ You already have this file: `your-service-account-key.json`
 ### Add to GitHub
 1. Go to: https://github.com/E-Y-J/TR41-GroundCTRL/settings/secrets/actions
 2. Click **"New repository secret"**
-3. Name: `FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860`
+3. Name: `FIREBASE_SERVICE_ACCOUNT`
 4. Value: Paste the **entire JSON** content from `your-service-account-key.json`
 5. Click **"Add secret"**
 
@@ -130,7 +130,7 @@ Once the backend is deployed and you have the URL:
 ## Troubleshooting
 
 ### Frontend Deployment Fails
-- Verify `FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860` secret is set correctly
+- Verify `FIREBASE_SERVICE_ACCOUNT` secret is set correctly
 - Check GitHub Actions logs for specific error messages
 - Ensure `npm run build` works locally in the `frontend/` directory
 

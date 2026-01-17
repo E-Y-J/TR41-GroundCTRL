@@ -34,7 +34,7 @@ You need to add the Firebase service account secret to your GitHub repository:
    - Go to your repository: https://github.com/E-Y-J/TR41-GroundCTRL
    - Settings > Secrets and variables > Actions
    - Click "New repository secret"
-   - Name: `FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860`
+   - Name: `FIREBASE_SERVICE_ACCOUNT`
    - Value: Paste the service account JSON
 
 ### Manual Deploy (Optional)
@@ -177,7 +177,7 @@ After merging to main, verify:
 
 ### Frontend Issues
 - **Build fails**: Check `npm run build` works locally in `frontend/`
-- **Deployment fails**: Verify `FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860` secret is set
+- **Deployment fails**: Verify `FIREBASE_SERVICE_ACCOUNT` secret is set
 - **404 errors**: Ensure `firebase.json` rewrites are configured for SPA routing
 
 ### Backend Issues
