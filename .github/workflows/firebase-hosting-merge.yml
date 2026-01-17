@@ -28,7 +28,7 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860 }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: groundctrl-c8860
       
@@ -41,7 +41,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `🚨 Production Deployment Failed - ${new Date().toISOString().split('T')[0]}`,
-              body: `## Production Deployment Failure\n\n**Workflow Run:** [View Logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n**Branch:** \`${context.ref}\`\n**Commit:** ${context.sha}\n**Commit Message:** ${context.payload.head_commit?.message || 'N/A'}\n\n**Build Status:** ${context.job.status}\n\n### Actions Required:\n1. Review the workflow logs for error details\n2. Check if Firebase service account secret is properly configured\n3. Verify the build completed successfully\n4. Check Firebase Console for any project issues\n\n### Troubleshooting:\n- Ensure \`FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860\` secret is configured\n- Verify the secret has proper permissions\n- Check that the Firebase project is active\n- Review recent changes in the commit\n\nSee \`PRODUCTION_DEPLOYMENT.md\` for deployment guidelines.`,
+              body: `## Production Deployment Failure\n\n**Workflow Run:** [View Logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n**Branch:** \`${context.ref}\`\n**Commit:** ${context.sha}\n**Commit Message:** ${context.payload.head_commit?.message || 'N/A'}\n\n**Build Status:** ${context.job.status}\n\n### Actions Required:\n1. Review the workflow logs for error details\n2. Check if Firebase service account secret is properly configured\n3. Verify the build completed successfully\n4. Check Firebase Console for any project issues\n\n### Troubleshooting:\n- Ensure \`FIREBASE_SERVICE_ACCOUNT\` secret is configured\n- Verify the secret has proper permissions\n- Check that the Firebase project is active\n- Review recent changes in the commit\n\nSee \`PRODUCTION_DEPLOYMENT.md\` for deployment guidelines.`,
               labels: ['deployment-failure', 'urgent', 'production']
             })
             console.log(`Created issue #${issue.data.number}`)

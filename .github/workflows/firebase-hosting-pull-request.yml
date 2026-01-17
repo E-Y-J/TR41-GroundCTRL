@@ -27,7 +27,7 @@ jobs:
       - name: Check if Firebase secret is configured
         id: check_secret
         run: |
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860 }}" ]; then
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
             echo "secret_configured=false" >> $GITHUB_OUTPUT
             echo "⚠️ Firebase service account secret is not configured"
           else
@@ -41,7 +41,7 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860 }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: groundctrl-c8860
       
       - name: Comment on PR - Deployment Skipped
@@ -54,7 +54,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '⚠️ **Firebase Hosting Preview Skipped**\n\nThe Firebase service account secret (`FIREBASE_SERVICE_ACCOUNT_GROUNDCTRL_C8860`) is not configured in this repository.\n\n**To enable preview deployments:**\n1. Add the secret in [Repository Settings → Secrets and variables → Actions](/${{ github.repository }}/settings/secrets/actions)\n2. See `PRODUCTION_DEPLOYMENT.md` for instructions\n\n**Build Status:** ✅ Frontend built successfully'
+              body: '⚠️ **Firebase Hosting Preview Skipped**\n\nThe Firebase service account secret (`FIREBASE_SERVICE_ACCOUNT`) is not configured in this repository.\n\n**To enable preview deployments:**\n1. Add the secret in [Repository Settings → Secrets and variables → Actions](/${{ github.repository }}/settings/secrets/actions)\n2. See `PRODUCTION_DEPLOYMENT.md` for instructions\n\n**Build Status:** ✅ Frontend built successfully'
             })
       
       - name: Comment on PR - Deployment Failed
