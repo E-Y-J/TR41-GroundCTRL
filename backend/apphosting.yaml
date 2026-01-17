@@ -1,5 +1,13 @@
 # Firebase App Hosting Configuration
 # This file configures how your backend is built and deployed to Cloud Run
+#
+# ⚠️ CRITICAL: DO NOT add the following variables to this file:
+#   - FIREBASE_AUTH_EMULATOR_HOST
+#   - FIRESTORE_EMULATOR_HOST
+#
+# These emulator variables are ONLY for local development and should ONLY be
+# set in your local .env file. If these are set in production, the application
+# will fail to start with a clear error message (see backend/src/config/firebase.js).
 
 # Runtime environment
 runConfig:

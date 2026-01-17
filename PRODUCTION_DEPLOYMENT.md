@@ -166,6 +166,30 @@ Once the backend is deployed and you have the URL:
 - Use Firebase Secret Manager for all production secrets
 - The old credentials from the previous `.env` file are now invalid and should be discarded
 
+### Firebase Emulator Configuration Protection
+
+🛡️ **Automated Safeguard**: The application includes a startup check that prevents deployment if Firebase emulator variables are accidentally configured in production:
+
+- **Protected Variables**: 
+  - `FIREBASE_AUTH_EMULATOR_HOST`
+  - `FIRESTORE_EMULATOR_HOST`
+
+- **How it works**: 
+  - When `NODE_ENV=production`, the application checks for emulator variables during Firebase initialization
+  - If detected, the application will **fail to start** with a clear error message
+  - This prevents production traffic from being routed to non-existent local emulators
+
+- **Best Practices**:
+  - Emulator variables should **ONLY** be set in your local `.env` file for development
+  - **DO NOT** add these variables to `backend/apphosting.yaml`
+  - **DO NOT** set these as environment variables in Cloud Run console
+  - The `.env.sample` file has these variables commented out by default
+
+- **For Local Development**:
+  - Uncomment the emulator variables in your local `.env` file when working with Firebase emulators
+  - Keep `NODE_ENV=development` in your local environment
+  - See `backend/.env.sample` for the correct format
+
 ## Auto-Deployment
 
 After initial setup, deployments are automatic:

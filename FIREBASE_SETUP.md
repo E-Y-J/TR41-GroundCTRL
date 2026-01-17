@@ -120,7 +120,8 @@ Once configured, Firebase App Hosting automatically:
 
 ### Backend URL
 After deployment, your backend will be available at:
-- `https://groundctrl-backend-<hash>.run.app`
+- `https://<backend-name>--groundctrl-c8860.<region>.hosted.app`
+- Example: `https://groundctrl--groundctrl-c8860.us-central1.hosted.app`
 - Check Firebase Console > App Hosting for the exact URL
 
 ### Update Frontend Configuration
@@ -128,12 +129,12 @@ Once your backend is deployed, update the frontend to use the backend URL:
 
 ```javascript
 // frontend/src/config/apiConfig.js (create if doesn't exist)
-export const API_BASE_URL = process.env.VITE_API_URL || 'https://groundctrl-backend-<hash>.run.app';
+export const API_BASE_URL = process.env.VITE_API_URL || 'https://groundctrl--groundctrl-c8860.us-central1.hosted.app';
 ```
 
 Add to `frontend/.env.production`:
 ```
-VITE_API_URL=https://your-backend-url.run.app
+VITE_API_URL=https://groundctrl--groundctrl-c8860.us-central1.hosted.app
 ```
 
 ---
@@ -168,7 +169,7 @@ After merging to main, verify:
 ### Backend Deployment
 1. Check Firebase Console > App Hosting
 2. Verify Cloud Run deployment status
-3. Test backend endpoint: `curl https://your-backend-url.run.app/health`
+3. Test backend endpoint: `curl https://groundctrl--groundctrl-c8860.us-central1.hosted.app/api/v1/health`
 
 ---
 
