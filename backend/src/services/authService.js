@@ -107,6 +107,7 @@ async function register(email, password, callSign = null, displayName = null) {
       email,
       callSign: finalCallSign,
       displayName: displayName || finalCallSign,
+      role: 'standard',
       isAdmin: false,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -128,6 +129,7 @@ async function register(email, password, callSign = null, displayName = null) {
         email,
         callSign: finalCallSign,
         displayName: displayName || finalCallSign,
+        role: 'standard',
         isAdmin: false
       },
       tokens: {

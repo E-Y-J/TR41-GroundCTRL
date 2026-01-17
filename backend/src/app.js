@@ -46,11 +46,16 @@ app.use(helmet({
   },
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  xContentTypeOptions: false,  // Set to false to use default 'nosniff'
-  xFrameOptions: { action: 'SAMEORIGIN' },
-  xXssProtection: true  // Explicitly enable X-XSS-Protection header
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
+
+// Additional security headers not covered by helmet defaults
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
 
 // CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
