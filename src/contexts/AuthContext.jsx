@@ -22,8 +22,8 @@ export const AuthProvider = ({ children }) => {
     setUser(data.user);
   };
 
-  const register = async (email, password) => {
-    const data = await registerUser(email, password);
+  const register = async (email, password, callSign) => {
+    const data = await registerUser(email, password, callSign);
     setJwt(data.token);
     setUser(data.user);
   };

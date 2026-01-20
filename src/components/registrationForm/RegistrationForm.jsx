@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 import './RegistrationForm.css'
 
-const RegistrationForm = ({ submitFunction }) => {
+const RegistrationForm = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -12,6 +13,7 @@ const RegistrationForm = ({ submitFunction }) => {
   const [error, setError] = useState('')
 
   const navigate = useNavigate()
+  const { register } = useAuth()
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -35,7 +37,7 @@ const RegistrationForm = ({ submitFunction }) => {
 
     setLoading(true)
     try {
-      await submitFunction(formData)
+      await register(formData.email, formData.password, formData.callSign)
       navigate('/dashboard') // redirect after successful registration
     } catch (err) {
       setError(err.message || 'Registration failed')

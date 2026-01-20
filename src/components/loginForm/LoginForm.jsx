@@ -1,5 +1,7 @@
 // React
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 // React Bootstrap Components.
 import { Button, Form } from "react-bootstrap";
@@ -11,6 +13,9 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const validate = () => {
     const newErrors = {};
@@ -31,17 +36,24 @@ function LoginForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
 
     if (!validate()) return;
 
-    console.log("Logging in with: ", { email, password });
+    try {
+      await login(email, password);
+      navigate("/dashboard");
+    } catch (err) {
+      setFormError(err.message || "Login failed");
+    }
   };
 
   return (
     <Form className="login-form" onSubmit={handleSubmit} noValidate>
       <h2 className="login-title">Login</h2>
+      {formError && <div className="errorMsg">{formError}</div>}
       <Form.Group className="mb-3" controlId="formBasicEmail">
         <Form.Label>Email address</Form.Label>
         <Form.Control
@@ -80,7 +92,12 @@ function LoginForm() {
         Submit
       </Button>
       <div className="register-link-container">
-        <p>Don't have an account? <a href="/register">Register here</a></p>
+        <p>
+          Don't have an account?{" "}
+          <a href="/register" className="register-link">
+            Register here
+          </a>
+        </p>
       </div>
     </Form>
   );

@@ -3,35 +3,22 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from "firebase/auth";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { db } from "../config/firebaseConfig";
+import { setDoc, doc } from "firebase/firestore";
 
 export const registerUser = async (email, password, callSign) => {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   const token = await cred.user.getIdToken();
-
-  const res = await fetch(API_URL+'/auth/register', {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": 'Bearer ' + token
-    },
-    body: JSON.stringify({ callSign }),
+  // Store callSign in Firestore under users collection
+  await setDoc(doc(db, "users", cred.user.uid), {
+    email,
+    callSign
   });
-
-  return res.json();
+  return {user: cred.user, token };
 };
 
 export const loginUser = async (email, password) => {
   const cred = await signInWithEmailAndPassword(auth, email, password);
   const token = await cred.user.getIdToken();
-
-  const res = await fetch(API_URL+'/auth/login', {
-    method: "POST",
-    headers: {
-      "Authorization": 'Bearer ' + token
-    }
-  });
-
-  return res.json();
+  return { user: cred.user, token };
 };
