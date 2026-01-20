@@ -1,7 +1,24 @@
 .intro-card {
   border: 3px solid black;
+  border-left: 10px solid #FF9F1C;
   margin: 20px auto;
   width: 90%;
   padding: 15px 20px;
   box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, rgba(255,183,3,0.06) 0%, rgba(46,196,182,0.05) 100%);
+}
+
+.intro-card h1, .intro-card h2, .intro-card h3, .intro-card h4, .intro-card h5, .intro-card h6 {
+  font-family: 'Roboto Mono', 'Fira Mono', 'Consolas', 'Courier New', monospace;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #071a2e;
+  text-shadow: 0 2px 12px rgba(11,44,74,0.22), 0 1px 0 #fff;
+}
+
+.intro-card .mb-2, .intro-card p, .intro-card span, .intro-card .card-text, .intro-card .card-title, .intro-card .card-subtitle {
+  font-family: 'Fira Mono', 'Roboto Mono', 'Consolas', 'Courier New', monospace;
+  color: #155b9c;
+  letter-spacing: 0.07em;
+  text-shadow: 0 1px 8px rgba(11,44,74,0.19);
 }

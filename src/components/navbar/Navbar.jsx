@@ -1,4 +1,6 @@
 import * as React from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -20,9 +22,19 @@ import "./Navbar.css";
 
 // TODO: Replace Nav links with our own nav links.
 const pages = [];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+const settings = ["Profile", "Account", "Dashboard"];
 
 function Navbar() {
+  const navigate = useNavigate();
+  const { user, setUser, setJwt } = useAuth ? useAuth() : { user: null };
+    // Logout handler
+    const handleLogout = () => {
+      if (setUser) setUser(null);
+      if (setJwt) setJwt(null);
+      handleCloseUserMenu();
+      // Optionally, redirect to home or login page
+      window.location.href = "/";
+    };
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
 
@@ -44,15 +56,20 @@ function Navbar() {
   // console.log("Hello World");
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" sx={{ backgroundColor: "#0B2C4A" }}>
       {/* <Container maxWidth="xl"> */}
       <Toolbar disableGutters className="tool-bar">
-        <img src="/images/image.png" alt="logo" style={{ height: 64, marginRight: 16, display: { xs: "none", md: "flex" } }} />
+        <img
+          src="/images/image.png"
+          alt="logo"
+          style={{ height: 64, marginRight: 16, cursor: "pointer", display: { xs: "none", md: "flex" } }}
+          onClick={() => navigate("/")}
+        />
         <Typography
-          variant="h6"
+          variant="subtitle1"
           noWrap
-          component="a"
-          href="#app-bar-with-responsive-menu"
+          component="span"
+          onClick={() => navigate("/")}
           sx={{
             mr: 2,
             display: { xs: "none", md: "flex" },
@@ -61,6 +78,8 @@ function Navbar() {
             letterSpacing: ".3rem",
             color: "inherit",
             textDecoration: "none",
+            cursor: "pointer",
+            fontSize: { md: "1.25rem", lg: "1.35rem" },
           }}
         >
           GroundCTRL
@@ -98,10 +117,10 @@ function Navbar() {
         </Box>
         <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
         <Typography
-          variant="h5"
+          variant="subtitle1"
           noWrap
-          component="a"
-          href="#app-bar-with-responsive-menu"
+          component="span"
+          onClick={() => navigate("/")}
           sx={{
             mr: 2,
             display: { xs: "flex", md: "none" },
@@ -111,6 +130,8 @@ function Navbar() {
             letterSpacing: ".3rem",
             color: "inherit",
             textDecoration: "none",
+            cursor: "pointer",
+            fontSize: { xs: "1.08rem", sm: "1.18rem" },
           }}
         >
           LOGO
@@ -119,35 +140,43 @@ function Navbar() {
           {/* No nav links */}
         </Box>
         <Box sx={{ flexGrow: 0 }}>
-          <Tooltip title="Open settings">
-            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-              {/* TODO: Replace Avatar with users first initial of first name with a specific background color.  */}
-
-              <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-            </IconButton>
-          </Tooltip>
-          <Menu
-            sx={{ mt: "45px" }}
-            id="menu-appbar"
-            anchorEl={anchorElUser}
-            anchorOrigin={{
-              vertical: "top",
-              horizontal: "right",
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: "top",
-              horizontal: "right",
-            }}
-            open={Boolean(anchorElUser)}
-            onClose={handleCloseUserMenu}
-          >
-            {settings.map((setting) => (
-              <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
-              </MenuItem>
-            ))}
-          </Menu>
+          {user ? (
+            <>
+              <Tooltip title="Open settings">
+                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                  {/* Show user's first initial if available, else fallback */}
+                  <Avatar sx={{ bgcolor: "#1976d2" }}>
+                    {user && user.firstName ? user.firstName[0].toUpperCase() : "U"}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+              <Menu
+                sx={{ mt: "45px" }}
+                id="menu-appbar"
+                anchorEl={anchorElUser}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+              >
+                {settings.map((setting) => (
+                  <MenuItem key={setting} onClick={handleCloseUserMenu}>
+                    <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
+                  </MenuItem>
+                ))}
+                <MenuItem onClick={handleLogout}>
+                  <Typography sx={{ textAlign: "center", color: "red" }}>Logout</Typography>
+                </MenuItem>
+              </Menu>
+            </>
+          ) : null}
         </Box>
       </Toolbar>
       {/* </Container> */}
