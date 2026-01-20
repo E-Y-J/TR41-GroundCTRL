@@ -1,0 +1,119 @@
+#signupView {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+#signupCard {
+  border: 3px solid black;
+  width: 400px;
+  border-radius: 10px;
+  padding: 40px;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.477);
+  margin-bottom: 100px;
+}
+
+#signupHeader {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+#signupTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 10px 0;
+}
+
+#signupSubtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+#signupForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.formField {
+  margin-bottom: 20px;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.textInput {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.textInput:focus {
+  outline: none;
+  border: 2px solid black;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.textInput:hover {
+  border: 2px solid #999;
+}
+
+.errorMsg {
+  color: #d32f2f;
+  font-size: 13px;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #ffebee;
+  border-radius: 5px;
+  border-left: 3px solid #d32f2f;
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.formActions button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.formActions button[type="submit"] {
+  background-color: #007bff;
+  color: white;
+}
+
+.formActions button[type="submit"]:hover {
+  background-color: #0056b3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.formActions button[type="reset"] {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.formActions button[type="reset"]:hover {
+  background-color: #e0e0e0;
+}

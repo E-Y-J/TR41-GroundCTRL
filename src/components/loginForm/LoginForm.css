@@ -1,15 +1,62 @@
 .login-form {
   border: 3px solid black;
-  width: 30%;
+  width: 350px;
   border-radius: 10px;
   padding: 30px;
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.477);
+  margin: 40px auto 120px auto;
 }
 
-.email-login:hover {
-  border: 1px solid black;
+.login-title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
 }
 
+.email-login,
+.password-login {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.email-login:focus,
+.password-login:focus {
+  outline: none;
+  border: 2px solid black;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.email-login:hover,
 .password-login:hover {
-  border: 1px solid black;
+  border: 2px solid black;
+}
+
+.register-link-container {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.register-link-container p {
+  margin: 0;
+}
+
+.register-link-container a {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.register-link-container a:hover {
+  color: #004499;
+  text-decoration: underline;
 }

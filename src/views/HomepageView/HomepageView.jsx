@@ -8,7 +8,6 @@ function HomepageView() {
   return (
     <div className="homepage-view">
       <Intro />
-      <RegistrationForm submitFunction={} />
       <LoginForm />
     </div>
   );

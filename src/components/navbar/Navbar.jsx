@@ -19,7 +19,7 @@ import "./Navbar.css";
 // TODO: Replace logo with our own logo.
 
 // TODO: Replace Nav links with our own nav links.
-const pages = ["Products", "Pricing", "Blog"];
+const pages = [];
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
 function Navbar() {
@@ -47,7 +47,7 @@ function Navbar() {
     <AppBar position="static">
       {/* <Container maxWidth="xl"> */}
       <Toolbar disableGutters className="tool-bar">
-        <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
+        <img src="/images/image.png" alt="logo" style={{ height: 64, marginRight: 16, display: { xs: "none", md: "flex" } }} />
         <Typography
           variant="h6"
           noWrap
@@ -63,7 +63,7 @@ function Navbar() {
             textDecoration: "none",
           }}
         >
-          LOGO
+          GroundCTRL
         </Typography>
 
         <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
@@ -93,11 +93,7 @@ function Navbar() {
             onClose={handleCloseNavMenu}
             sx={{ display: { xs: "block", md: "none" } }}
           >
-            {pages.map((page) => (
-              <MenuItem key={page} onClick={handleCloseNavMenu}>
-                <Typography sx={{ textAlign: "center" }}>{page}</Typography>
-              </MenuItem>
-            ))}
+            {/* No nav links */}
           </Menu>
         </Box>
         <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
@@ -120,15 +116,7 @@ function Navbar() {
           LOGO
         </Typography>
         <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-          {pages.map((page) => (
-            <Button
-              key={page}
-              onClick={handleCloseNavMenu}
-              sx={{ my: 2, color: "white", display: "block" }}
-            >
-              {page}
-            </Button>
-          ))}
+          {/* No nav links */}
         </Box>
         <Box sx={{ flexGrow: 0 }}>
           <Tooltip title="Open settings">

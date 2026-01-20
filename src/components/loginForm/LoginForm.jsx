@@ -41,6 +41,7 @@ function LoginForm() {
 
   return (
     <Form className="login-form" onSubmit={handleSubmit} noValidate>
+      <h2 className="login-title">Login</h2>
       <Form.Group className="mb-3" controlId="formBasicEmail">
         <Form.Label>Email address</Form.Label>
         <Form.Control
@@ -78,6 +79,9 @@ function LoginForm() {
       <Button variant="primary" type="submit">
         Submit
       </Button>
+      <div className="register-link-container">
+        <p>Don't have an account? <a href="/register">Register here</a></p>
+      </div>
     </Form>
   );
 }

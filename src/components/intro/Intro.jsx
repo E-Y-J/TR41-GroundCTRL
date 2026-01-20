@@ -9,15 +9,12 @@ function Intro() {
     <Card className="intro-card">
       <Card.Body>
         <Card.Title>Welcome Future Pilots</Card.Title>
-        <Card.Subtitle className="mb-2 text-muted">Card Subtitle</Card.Subtitle>
+        <Card.Subtitle className="mb-2 text-muted">Virtual Flight Simulator</Card.Subtitle>
         <Card.Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum
+          GroundCTRL is a browser-based training simulator that introduces users to the fundamentals of satellite
+          operations through interactive, guided missions. Players manage a virtual Earth-orbiting satellite using a
+          simplified mission console, real-time AI guidance, and structured objectives that blend learning with
+          gameplay.
         </Card.Text>
       </Card.Body>
     </Card>
