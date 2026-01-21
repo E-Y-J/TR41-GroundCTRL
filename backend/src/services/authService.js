@@ -388,10 +388,349 @@ async function revokeToken(token = null, userId = null) {
 }
 
 
+/**
+ * Bootstrap initial admin user (one-time use)
+ * @param {string} email - Admin email
+ * @param {string} password - Admin password
+ * @param {string} callSign - Admin call sign
+ * @param {string} displayName - Admin display name (optional)
+ * @returns {Promise<object>} Created admin user with tokens
+ */
+async function bootstrapAdmin(email, password, callSign, displayName = null) {
+  const db = getFirestore();
+  
+  try {
+    // Check if any admin already exists
+    const adminsQuery = await db.collection('users')
+      .where('isAdmin', '==', true)
+      .limit(1)
+      .get();
+    
+    if (!adminsQuery.empty) {
+      throw new ConflictError('Admin user already exists. Bootstrap is one-time only.');
+    }
+    
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.success) {
+      throw new ValidationError('Password validation failed', passwordValidation.errors);
+    }
+    
+    // Create Firebase Auth user
+    const auth = getAuth();
+    const userRecord = await auth.createUser({
+      email,
+      password,
+      displayName: displayName || callSign || `Admin-${email.split('@')[0]}`
+    });
+    
+    const uid = userRecord.uid;
+    const finalCallSign = callSign || `Admin-${uid}`;
+    
+    logger.info('Firebase admin user created', { uid, email });
+    
+    // Create admin user document in Firestore
+    const userData = {
+      uid,
+      email,
+      callSign: finalCallSign,
+      displayName: displayName || finalCallSign,
+      isAdmin: true, // This is the admin flag
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastLoginAt: null,
+      isActive: true
+    };
+    
+    await db.collection('users').doc(uid).set(userData);
+    
+    logger.info('Admin user bootstrapped', { uid, callSign: finalCallSign });
+    
+    // Create audit log entry
+    const auditEntry = auditFactory.createAuditEntry(
+      'BOOTSTRAP_ADMIN_SUCCESS',
+      'auth',
+      uid,
+      finalCallSign,
+      'success',
+      'CRITICAL',
+      { email, method: 'bootstrap' }
+    );
+    await auditRepository.logAudit(auditEntry);
+    
+    // Generate tokens
+    const accessToken = jwtUtil.createAccessToken(uid, finalCallSign, true);
+    const refreshToken = jwtUtil.createRefreshToken(uid);
+    
+    return {
+      user: {
+        uid,
+        email,
+        callSign: finalCallSign,
+        displayName: displayName || finalCallSign,
+        isAdmin: true
+      },
+      accessToken,
+      refreshToken
+    };
+  } catch (error) {
+    if (error.code === 'auth/email-already-exists') {
+      throw new ConflictError('Email already in use');
+    }
+    throw error;
+  }
+}
+
+
+/**
+ * Change password for authenticated user
+ * @param {string} userId - User ID
+ * @param {string} currentPassword - Current password for verification
+ * @param {string} newPassword - New password
+ * @param {string} callSign - User's call sign
+ * @returns {Promise<object>} Success message
+ */
+async function changePassword(userId, currentPassword, newPassword, callSign) {
+  const db = getFirestore();
+  
+  try {
+    // Get user data
+    const userDoc = await db.collection('users').doc(userId).get();
+    
+    if (!userDoc.exists) {
+      throw new AuthError('User not found', 404);
+    }
+    
+    const userData = userDoc.data();
+    
+    // Verify current password using Firebase Identity Toolkit
+    await verifyPassword(userData.email, currentPassword);
+    
+    // Validate new password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.success) {
+      throw new ValidationError('Password validation failed', passwordValidation.errors);
+    }
+    
+    // Update password in Firebase Auth
+    const auth = getAuth();
+    await auth.updateUser(userId, {
+      password: newPassword
+    });
+    
+    // Update timestamp in Firestore
+    await db.collection('users').doc(userId).update({
+      updatedAt: new Date()
+    });
+    
+    // Revoke all existing tokens for security
+    await tokenBlacklistRepository.revokeAllUserTokens(userId);
+    
+    logger.info('Password changed successfully', { uid: userId, callSign });
+    
+    // Create audit log entry
+    const auditEntry = auditFactory.createAuditEntry(
+      'PASSWORD_CHANGE_SUCCESS',
+      'auth',
+      userId,
+      callSign,
+      'success',
+      'WARNING',
+      { method: 'authenticated_change' }
+    );
+    await auditRepository.logAudit(auditEntry);
+    
+    return {
+      message: 'Password changed successfully',
+      userId
+    };
+  } catch (error) {
+    if (error instanceof AuthError && error.statusCode === 401) {
+      // Current password is incorrect
+      const auditEntry = auditFactory.createAuditEntry(
+        'PASSWORD_CHANGE_FAILURE',
+        'auth',
+        userId,
+        callSign,
+        'failure',
+        'WARNING',
+        { reason: 'incorrect_current_password' }
+      );
+      await auditRepository.logAudit(auditEntry);
+      throw new AuthError('Current password is incorrect', 401);
+    }
+    throw error;
+  }
+}
+
+
+/**
+ * Request password reset (generates and stores reset token)
+ * @param {string} email - User email
+ * @returns {Promise<object>} Success message (always returns success for security)
+ */
+async function forgotPassword(email) {
+  const db = getFirestore();
+  
+  try {
+    // Try to find user by email
+    const auth = getAuth();
+    let userRecord;
+    
+    try {
+      userRecord = await auth.getUserByEmail(email);
+    } catch (error) {
+      // User not found - return success anyway to prevent email enumeration
+      logger.debug('Password reset requested for non-existent email', { email });
+      return {
+        message: 'If an account exists with this email, a password reset link has been sent.'
+      };
+    }
+    
+    const userId = userRecord.uid;
+    
+    // Get user data from Firestore
+    const userDoc = await db.collection('users').doc(userId).get();
+    
+    if (!userDoc.exists || userDoc.data().isActive === false) {
+      // User not in Firestore or inactive - return success anyway
+      return {
+        message: 'If an account exists with this email, a password reset link has been sent.'
+      };
+    }
+    
+    const userData = userDoc.data();
+    
+    // Generate reset token (JWT with short expiry)
+    const resetToken = jwtUtil.createPasswordResetToken(userId, email);
+    const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    
+    // Store reset token in password_reset_tokens collection
+    const passwordResetRepository = require('../repositories/passwordResetRepository');
+    await passwordResetRepository.createResetToken(userId, resetToken, resetTokenExpiry);
+    
+    logger.info('Password reset token created', { uid: userId, email });
+    
+    // Create audit log entry
+    const auditEntry = auditFactory.createAuditEntry(
+      'PASSWORD_RESET_REQUESTED',
+      'auth',
+      userId,
+      userData.callSign,
+      'success',
+      'INFO',
+      { email, method: 'forgot_password' }
+    );
+    await auditRepository.logAudit(auditEntry);
+    
+    // TODO: Send email with reset link (requires email service)
+    // For now, log the token (in production, this would be sent via email)
+    logger.info('Password reset token (DEVELOPMENT ONLY)', { token: resetToken, email });
+    
+    // Always return success message (prevents email enumeration)
+    return {
+      message: 'If an account exists with this email, a password reset link has been sent.',
+      // In development, include token in response
+      ...(process.env.NODE_ENV !== 'production' && { resetToken })
+    };
+  } catch (error) {
+    logger.error('Password reset error', { error: error.message, email });
+    // Still return success to prevent email enumeration
+    return {
+      message: 'If an account exists with this email, a password reset link has been sent.'
+    };
+  }
+}
+
+
+/**
+ * Reset password using reset token
+ * @param {string} token - Password reset token
+ * @param {string} newPassword - New password
+ * @returns {Promise<object>} Success message
+ */
+async function resetPassword(token, newPassword) {
+  const db = getFirestore();
+  const passwordResetRepository = require('../repositories/passwordResetRepository');
+  
+  try {
+    // Verify reset token
+    const decoded = jwtUtil.verifyPasswordResetToken(token);
+    
+    if (!decoded || !decoded.uid || !decoded.email) {
+      throw new AuthError('Invalid or expired reset token', 401);
+    }
+    
+    // Check if token exists and is not used
+    const resetTokenDoc = await passwordResetRepository.getResetToken(token);
+    
+    if (!resetTokenDoc || resetTokenDoc.used || resetTokenDoc.expiresAt < new Date()) {
+      throw new AuthError('Invalid or expired reset token', 401);
+    }
+    
+    const userId = decoded.uid;
+    
+    // Validate new password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.success) {
+      throw new ValidationError('Password validation failed', passwordValidation.errors);
+    }
+    
+    // Update password in Firebase Auth
+    const auth = getAuth();
+    await auth.updateUser(userId, {
+      password: newPassword
+    });
+    
+    // Mark token as used
+    await passwordResetRepository.markTokenAsUsed(token);
+    
+    // Update timestamp in Firestore
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+    
+    await db.collection('users').doc(userId).update({
+      updatedAt: new Date()
+    });
+    
+    // Revoke all existing tokens for security
+    await tokenBlacklistRepository.revokeAllUserTokens(userId);
+    
+    logger.info('Password reset successfully', { uid: userId });
+    
+    // Create audit log entry
+    const auditEntry = auditFactory.createAuditEntry(
+      'PASSWORD_RESET_SUCCESS',
+      'auth',
+      userId,
+      userData.callSign,
+      'success',
+      'WARNING',
+      { email: decoded.email, method: 'reset_token' }
+    );
+    await auditRepository.logAudit(auditEntry);
+    
+    return {
+      message: 'Password has been reset successfully',
+      userId
+    };
+  } catch (error) {
+    if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+      throw new AuthError('Invalid or expired reset token', 401);
+    }
+    throw error;
+  }
+}
+
+
 module.exports = {
   register,
   login,
   refreshAccessToken,
   logout,
-  revokeToken
+  revokeToken,
+  bootstrapAdmin,
+  changePassword,
+  forgotPassword,
+  resetPassword
 };
