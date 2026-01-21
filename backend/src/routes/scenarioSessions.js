@@ -1,38 +1,38 @@
 /**
- * Scenario Step Routes
+ * Scenario Session Routes
  * 
- * CRUD endpoints for scenario steps
- * Steps are ordered sequences within scenarios with objectives and hints
+ * CRUD endpoints for scenario sessions
+ * Tracks operator progress through training scenarios
  * 
  * @swagger
  * tags:
- *   name: Scenario Steps
- *   description: Ordered step sequences within scenarios - objectives, instructions, and completion conditions
+ *   name: Scenario Sessions
+ *   description: Operator training session tracking - progress, scoring, hints used, and completion status
  */
 
 const express = require('express');
 const router = express.Router();
 const { validate } = require('../middleware/validate');
 const { authMiddleware } = require('../middleware/authMiddleware');
-const controller = require('../controllers/scenarioStepController');
+const controller = require('../controllers/scenarioSessionController');
 const {
-  createScenarioStepSchema,
-  updateScenarioStepSchema,
-  patchScenarioStepSchema,
-  listScenarioStepsSchema
-} = require('../schemas/scenarioStepSchemas');
+  createScenarioSessionSchema,
+  updateScenarioSessionSchema,
+  patchScenarioSessionSchema,
+  listScenarioSessionsSchema
+} = require('../schemas/scenarioSessionSchemas');
 const { z } = require('zod');
 
 router.use(authMiddleware);
 
 /**
  * @swagger
- * /scenario-steps:
+ * /scenario-sessions:
  *   get:
  *     tags:
- *       - Scenario Steps
- *     summary: List scenario steps
- *     description: Returns paginated list of steps. Filter by scenario_id to get steps for a specific scenario.
+ *       - Scenario Sessions
+ *     summary: List scenario sessions
+ *     description: Returns paginated list of sessions. Non-admin users only see their own sessions.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -53,24 +53,30 @@ router.use(authMiddleware);
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [stepOrder, createdAt, updatedAt, title]
- *           default: stepOrder
+ *           enum: [createdAt, updatedAt, started_at, completed_at, status, score]
+ *           default: createdAt
  *         description: Field to sort by
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *           default: asc
+ *           default: desc
  *         description: Sort order
  *       - in: query
  *         name: scenario_id
  *         schema:
  *           type: string
- *         description: Filter by scenario ID (recommended)
+ *         description: Filter by scenario ID
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [NOT_STARTED, IN_PROGRESS, PAUSED, COMPLETED, FAILED, ABANDONED]
+ *         description: Filter by session status
  *     responses:
  *       200:
- *         description: GO - Steps retrieved successfully
+ *         description: GO - Sessions retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -84,7 +90,7 @@ router.use(authMiddleware);
  *                         data:
  *                           type: array
  *                           items:
- *                             $ref: '#/components/schemas/ScenarioStep'
+ *                             $ref: '#/components/schemas/ScenarioSession'
  *                         pagination:
  *                           $ref: '#/components/schemas/Pagination'
  *       401:
@@ -94,7 +100,7 @@ router.get(
   '/',
   validate(z.object({
     body: z.object({}).strict(),
-    query: listScenarioStepsSchema.shape.query,
+    query: listScenarioSessionsSchema.shape.query,
     params: z.object({}).strict()
   })),
   controller.list
@@ -102,12 +108,12 @@ router.get(
 
 /**
  * @swagger
- * /scenario-steps:
+ * /scenario-sessions:
  *   post:
  *     tags:
- *       - Scenario Steps
- *     summary: Create a new scenario step
- *     description: Creates a new step in a scenario. Steps define what the operator should do at each stage of training.
+ *       - Scenario Sessions
+ *     summary: Create a new scenario session
+ *     description: Start tracking a new training session for a scenario. User ID is set from authentication token.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -115,34 +121,22 @@ router.get(
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ScenarioStepInput'
+ *             $ref: '#/components/schemas/ScenarioSessionInput'
  *           examples:
- *             basicStep:
- *               summary: Basic training step
+ *             startNew:
+ *               summary: Start a new session
  *               value:
  *                 scenario_id: 'scen_123'
- *                 stepOrder: 1
- *                 title: 'Check Current Attitude'
- *                 instructions: 'Review the current attitude readings in the telemetry panel.'
- *                 objective: 'Identify current pointing target'
- *                 completionCondition: 'User views attitude panel'
- *                 expectedDurationSeconds: 60
- *                 hintSuggestion: 'Look at the attitude panel to see the current pointing target.'
- *             checkpointStep:
- *               summary: Checkpoint step (resume point)
+ *             withState:
+ *               summary: Start with initial state
  *               value:
  *                 scenario_id: 'scen_123'
- *                 stepOrder: 5
- *                 title: 'Execute Orbital Maneuver'
- *                 instructions: 'Use the SET_ORBIT_ALTITUDE command to adjust the satellite orbit to 420km.'
- *                 objective: 'Successfully change orbital altitude'
- *                 completionCondition: 'Altitude changed to 420km ± 5km'
- *                 isCheckpoint: true
- *                 expectedDurationSeconds: 180
- *                 hintSuggestion: 'Use SET_ORBIT_ALTITUDE command with altitude_km parameter set to 420.'
+ *                 status: 'IN_PROGRESS'
+ *                 current_step_id: 'step_001'
+ *                 currentStepOrder: 1
  *     responses:
  *       201:
- *         description: GO - Step created successfully
+ *         description: GO - Session created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -154,7 +148,7 @@ router.get(
  *                       type: object
  *                       properties:
  *                         data:
- *                           $ref: '#/components/schemas/ScenarioStep'
+ *                           $ref: '#/components/schemas/ScenarioSession'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       422:
@@ -163,7 +157,7 @@ router.get(
 router.post(
   '/',
   validate(z.object({
-    body: createScenarioStepSchema.shape.body,
+    body: createScenarioSessionSchema.shape.body,
     query: z.object({}).strict(),
     params: z.object({}).strict()
   })),
@@ -172,12 +166,12 @@ router.post(
 
 /**
  * @swagger
- * /scenario-steps/{id}:
+ * /scenario-sessions/{id}:
  *   get:
  *     tags:
- *       - Scenario Steps
- *     summary: Get step by ID
- *     description: Returns a single scenario step with all details including hint suggestion.
+ *       - Scenario Sessions
+ *     summary: Get session by ID
+ *     description: Returns a single session. Non-admin users can only access their own sessions.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -186,10 +180,10 @@ router.post(
  *         required: true
  *         schema:
  *           type: string
- *         description: Step ID
+ *         description: Session ID
  *     responses:
  *       200:
- *         description: GO - Step retrieved successfully
+ *         description: GO - Session retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -201,9 +195,11 @@ router.post(
  *                       type: object
  *                       properties:
  *                         data:
- *                           $ref: '#/components/schemas/ScenarioStep'
+ *                           $ref: '#/components/schemas/ScenarioSession'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
@@ -213,7 +209,7 @@ router.get(
     body: z.object({}).strict(),
     query: z.object({}).strict(),
     params: z.object({
-      id: z.string().min(1, 'Step ID is required')
+      id: z.string().min(1, 'Session ID is required')
     }).strict()
   })),
   controller.getOne
@@ -221,12 +217,12 @@ router.get(
 
 /**
  * @swagger
- * /scenario-steps/{id}:
+ * /scenario-sessions/{id}:
  *   put:
  *     tags:
- *       - Scenario Steps
- *     summary: Update step (full replace)
- *     description: Fully replaces a step record. All required fields must be provided.
+ *       - Scenario Sessions
+ *     summary: Update session (full replace)
+ *     description: Fully replaces a session record. User can only update their own sessions.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -235,16 +231,16 @@ router.get(
  *         required: true
  *         schema:
  *           type: string
- *         description: Step ID
+ *         description: Session ID
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ScenarioStepInput'
+ *             $ref: '#/components/schemas/ScenarioSessionInput'
  *     responses:
  *       200:
- *         description: GO - Step updated successfully
+ *         description: GO - Session updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -256,9 +252,11 @@ router.get(
  *                       type: object
  *                       properties:
  *                         data:
- *                           $ref: '#/components/schemas/ScenarioStep'
+ *                           $ref: '#/components/schemas/ScenarioSession'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  *       422:
@@ -267,21 +265,21 @@ router.get(
 router.put(
   '/:id',
   validate(z.object({
-    body: updateScenarioStepSchema.shape.body,
+    body: updateScenarioSessionSchema.shape.body,
     query: z.object({}).strict(),
-    params: updateScenarioStepSchema.shape.params
+    params: updateScenarioSessionSchema.shape.params
   })),
   controller.update
 );
 
 /**
  * @swagger
- * /scenario-steps/{id}:
+ * /scenario-sessions/{id}:
  *   patch:
  *     tags:
- *       - Scenario Steps
- *     summary: Partially update step
- *     description: Updates specific fields of a step. Useful for updating instructions, hints, or reordering.
+ *       - Scenario Sessions
+ *     summary: Partially update session
+ *     description: Updates specific fields of a session. User can only update their own sessions. Useful for updating progress, score, or state.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -290,7 +288,7 @@ router.put(
  *         required: true
  *         schema:
  *           type: string
- *         description: Step ID
+ *         description: Session ID
  *     requestBody:
  *       required: true
  *       content:
@@ -299,53 +297,51 @@ router.put(
  *             type: object
  *             minProperties: 1
  *             properties:
- *               stepOrder:
+ *               status:
+ *                 type: string
+ *                 enum: [NOT_STARTED, IN_PROGRESS, PAUSED, COMPLETED, FAILED, ABANDONED]
+ *               current_step_id:
+ *                 type: string
+ *                 nullable: true
+ *               currentStepOrder:
  *                 type: integer
- *                 minimum: 1
- *                 description: Step sequence number
- *               title:
- *                 type: string
- *                 maxLength: 200
- *                 description: Step title
- *               instructions:
- *                 type: string
- *                 maxLength: 2000
- *                 description: What user should do
- *               objective:
- *                 type: string
- *                 maxLength: 1000
- *                 description: Success criteria
- *               completionCondition:
- *                 type: string
- *                 maxLength: 1000
- *                 description: How system knows step is complete
- *               isCheckpoint:
- *                 type: boolean
- *                 description: Key milestone flag
- *               expectedDurationSeconds:
+ *               completedSteps:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               score:
+ *                 type: number
+ *                 minimum: 0
+ *                 maximum: 100
+ *               total_hints_used:
  *                 type: integer
- *                 minimum: 1
- *                 description: Estimated duration in seconds
- *               hintSuggestion:
+ *               total_errors:
+ *                 type: integer
+ *               state:
+ *                 type: object
+ *               notes:
  *                 type: string
- *                 maxLength: 500
- *                 description: Default hint for NOVA AI
  *           examples:
- *             updateHint:
- *               summary: Update hint suggestion
+ *             advanceStep:
+ *               summary: Advance to next step
  *               value:
- *                 hintSuggestion: 'Try looking at the power panel first, then check battery levels.'
- *             reorder:
- *               summary: Change step order
+ *                 status: 'IN_PROGRESS'
+ *                 current_step_id: 'step_002'
+ *                 currentStepOrder: 2
+ *                 completedSteps: ['step_001']
+ *             updateScore:
+ *               summary: Update score and hints
  *               value:
- *                 stepOrder: 3
- *             markCheckpoint:
- *               summary: Mark as checkpoint
+ *                 score: 85
+ *                 total_hints_used: 2
+ *             complete:
+ *               summary: Complete session
  *               value:
- *                 isCheckpoint: true
+ *                 status: 'COMPLETED'
+ *                 score: 95
  *     responses:
  *       200:
- *         description: GO - Step patched successfully
+ *         description: GO - Session patched successfully
  *         content:
  *           application/json:
  *             schema:
@@ -357,9 +353,11 @@ router.put(
  *                       type: object
  *                       properties:
  *                         data:
- *                           $ref: '#/components/schemas/ScenarioStep'
+ *                           $ref: '#/components/schemas/ScenarioSession'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  *       422:
@@ -368,21 +366,21 @@ router.put(
 router.patch(
   '/:id',
   validate(z.object({
-    body: patchScenarioStepSchema.shape.body,
+    body: patchScenarioSessionSchema.shape.body,
     query: z.object({}).strict(),
-    params: patchScenarioStepSchema.shape.params
+    params: patchScenarioSessionSchema.shape.params
   })),
   controller.patch
 );
 
 /**
  * @swagger
- * /scenario-steps/{id}:
+ * /scenario-sessions/{id}:
  *   delete:
  *     tags:
- *       - Scenario Steps
- *     summary: Delete step
- *     description: Deletes a scenario step. Note that this may affect session progress tracking for operators currently on this step.
+ *       - Scenario Sessions
+ *     summary: Delete session
+ *     description: Deletes a session record. User can only delete their own sessions (or admin can delete any).
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -391,10 +389,10 @@ router.patch(
  *         required: true
  *         schema:
  *           type: string
- *         description: Step ID
+ *         description: Session ID
  *     responses:
  *       200:
- *         description: GO - Step deleted successfully
+ *         description: GO - Session deleted successfully
  *         content:
  *           application/json:
  *             schema:
@@ -410,12 +408,14 @@ router.patch(
  *                           properties:
  *                             id:
  *                               type: string
- *                               description: Deleted step ID
+ *                               description: Deleted session ID
  *                             deleted:
  *                               type: boolean
  *                               example: true
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */

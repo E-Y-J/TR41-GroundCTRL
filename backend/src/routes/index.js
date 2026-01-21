@@ -14,8 +14,10 @@ const userRoutes = require('./users');
 const satelliteRoutes = require('./satellites');
 const scenarioRoutes = require('./scenarios');
 const scenarioStepRoutes = require('./scenarioSteps');
+const scenarioSessionRoutes = require('./scenarioSessions');
 const aiRoutes = require('./ai');
 const commandRoutes = require('./commands');
+const helpRoutes = require('./help');
 
 /**
  * API v1 Routes
@@ -38,8 +40,10 @@ router.get('/', (req, res) => {
         { path: '/satellites', methods: ['GET'], description: 'Satellite operations' },
         { path: '/scenarios', methods: ['GET'], description: 'Mission scenarios' },
         { path: '/scenario-steps', methods: ['GET'], description: 'Scenario steps' },
+        { path: '/scenario-sessions', methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], description: 'Scenario sessions' },
         { path: '/ai', methods: ['GET'], description: 'AI-powered features' },
-        { path: '/commands', methods: ['GET'], description: 'Command operations' }
+        { path: '/commands', methods: ['GET'], description: 'Command operations' },
+        { path: '/help', methods: ['GET'], description: 'Help documentation and knowledge base' }
       ]
     },
     telemetry: {
@@ -70,10 +74,16 @@ router.use('/scenarios', scenarioRoutes);
 // Scenario Step routes
 router.use('/scenario-steps', scenarioStepRoutes);
 
+// Scenario Session routes
+router.use('/scenario-sessions', scenarioSessionRoutes);
+
 // AI routes (stub)
 router.use('/ai', aiRoutes);
 
 // Command routes (stub)
 router.use('/commands', commandRoutes);
+
+// Help routes
+router.use('/help', helpRoutes);
 
 module.exports = router;

@@ -9,7 +9,7 @@
 const express = require('express');
 const router = express.Router();
 const { validate } = require('../middleware/validate');
-const { authMiddleware } = require('../middleware/authMiddleware');
+const { authMiddleware, optionalAuth } = require('../middleware/authMiddleware');
 const scenarioController = require('../controllers/scenarioController');
 const {
   createScenarioSchema,
@@ -19,8 +19,7 @@ const {
 } = require('../schemas/scenarioSchemas');
 const { z } = require('zod');
 
-// All routes require authentication
-router.use(authMiddleware);
+// Note: GET routes use optionalAuth for public access, others require authMiddleware
 
 /**
  * GET /api/v1/scenarios
@@ -215,6 +214,7 @@ router.use(authMiddleware);
  */
 router.get(
   '/',
+  optionalAuth,
   validate(z.object({
     body: z.object({}).strict(),
     query: listScenariosSchema.shape.query,
@@ -470,6 +470,7 @@ router.get(
  */
 router.post(
   '/',
+  authMiddleware,
   validate(z.object({
     body: createScenarioSchema.shape.body,
     query: z.object({}).strict(),
@@ -605,6 +606,7 @@ router.post(
  */
 router.get(
   '/:id',
+  optionalAuth,
   validate(z.object({
     body: z.object({}).strict(),
     query: z.object({}).strict(),
@@ -830,6 +832,7 @@ router.get(
  */
 router.put(
   '/:id',
+  authMiddleware,
   validate(z.object({
     body: updateScenarioSchema.shape.body,
     query: z.object({}).strict(),
@@ -1052,6 +1055,7 @@ router.put(
  */
 router.patch(
   '/:id',
+  authMiddleware,
   validate(z.object({
     body: patchScenarioSchema.shape.body,
     query: z.object({}).strict(),
@@ -1145,6 +1149,7 @@ router.patch(
  */
 router.delete(
   '/:id',
+  authMiddleware,
   validate(z.object({
     body: z.object({}).strict(),
     query: z.object({}).strict(),

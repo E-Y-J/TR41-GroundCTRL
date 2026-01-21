@@ -103,8 +103,103 @@ const authLimiter = rateLimit({
   }
 });
 
+/**
+ * Password change rate limiter
+ * Limit password change attempts (5 per minute)
+ */
+const passwordChangeLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    logger.warn('Password change rate limit exceeded', {
+      ip: req.ip,
+      userId: req.user?.uid
+    });
+    
+    const error = {
+      statusCode: 429,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many password change attempts. Please try again later.',
+      details: 'Password change rate limit exceeded'
+    };
+    
+    const response = responseFactory.createErrorResponse(error, {
+      callSign: req.callSign || 'UNKNOWN',
+      requestId: req.id || uuidv4()
+    });
+    
+    res.status(429).json(response);
+  }
+});
+
+/**
+ * Password reset request rate limiter
+ * Limit password reset requests (3 per hour)
+ */
+const passwordResetRequestLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    logger.warn('Password reset request rate limit exceeded', {
+      ip: req.ip,
+      email: req.body?.email
+    });
+    
+    const error = {
+      statusCode: 429,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many password reset requests. Please try again later.',
+      details: 'Password reset request rate limit exceeded'
+    };
+    
+    const response = responseFactory.createErrorResponse(error, {
+      callSign: 'UNKNOWN',
+      requestId: req.id || uuidv4()
+    });
+    
+    res.status(429).json(response);
+  }
+});
+
+/**
+ * Password reset rate limiter
+ * Limit password reset attempts (5 per 15 minutes)
+ */
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    logger.warn('Password reset rate limit exceeded', {
+      ip: req.ip
+    });
+    
+    const error = {
+      statusCode: 429,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many password reset attempts. Please try again later.',
+      details: 'Password reset rate limit exceeded'
+    };
+    
+    const response = responseFactory.createErrorResponse(error, {
+      callSign: 'UNKNOWN',
+      requestId: req.id || uuidv4()
+    });
+    
+    res.status(429).json(response);
+  }
+});
+
 module.exports = {
   apiLimiter,
   loginLimiter,
-  authLimiter
+  authLimiter,
+  passwordChangeLimiter,
+  passwordResetRequestLimiter,
+  passwordResetLimiter
 };

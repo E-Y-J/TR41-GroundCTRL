@@ -2,6 +2,10 @@
 
 Thank you for contributing to the GroundCTRL Mission Control Platform! This document outlines our workflow, coding standards, and best practices.
 
+**Current Version:** v1.6.0 (Checkpoint D - NOVA AI Complete)  
+**Backend Team:** Austin Carlson, Cameron Carmody, Tessa Robinson  
+**QA Team:** Adam Colyer, Austin Carlson
+
 ---
 
 ## Table of Contents

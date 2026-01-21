@@ -66,9 +66,67 @@ const revokeTokenSchema = z.object({
   }
 );
 
+/**
+ * Change password schema
+ */
+const changePasswordSchema = z.object({
+  currentPassword: z.string()
+    .min(1, 'Current password is required'),
+  newPassword: z.string()
+    .min(8, 'New password must be at least 8 characters')
+    .max(128, 'New password must not exceed 128 characters')
+    .regex(/[A-Z]/, 'New password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'New password must contain at least one lowercase letter')
+    .regex(/\d/, 'New password must contain at least one number')
+    .regex(/[@$!%*?&#^()_+\-=[\]{}|;:,.<>/]/, 'New password must contain at least one special character'),
+  confirmPassword: z.string()
+    .min(1, 'Password confirmation is required')
+}).strict().refine(
+  data => data.newPassword === data.confirmPassword,
+  {
+    message: 'Passwords do not match',
+    path: ['confirmPassword']
+  }
+);
+
+/**
+ * Forgot password schema
+ */
+const forgotPasswordSchema = z.object({
+  email: z.string()
+    .min(1, 'Email is required')
+    .email('Invalid email format')
+}).strict();
+
+/**
+ * Reset password schema
+ */
+const resetPasswordSchema = z.object({
+  token: z.string()
+    .min(1, 'Reset token is required'),
+  newPassword: z.string()
+    .min(8, 'New password must be at least 8 characters')
+    .max(128, 'New password must not exceed 128 characters')
+    .regex(/[A-Z]/, 'New password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'New password must contain at least one lowercase letter')
+    .regex(/\d/, 'New password must contain at least one number')
+    .regex(/[@$!%*?&#^()_+\-=[\]{}|;:,.<>/]/, 'New password must contain at least one special character'),
+  confirmPassword: z.string()
+    .min(1, 'Password confirmation is required')
+}).strict().refine(
+  data => data.newPassword === data.confirmPassword,
+  {
+    message: 'Passwords do not match',
+    path: ['confirmPassword']
+  }
+);
+
 module.exports = {
   loginSchema,
   registerSchema,
   refreshTokenSchema,
-  revokeTokenSchema
+  revokeTokenSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema
 };

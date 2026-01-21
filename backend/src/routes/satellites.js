@@ -7,7 +7,7 @@ const express = require('express');
 const router = express.Router();
 const { z } = require('zod');
 const satelliteController = require('../controllers/satelliteController');
-const { authMiddleware } = require('../middleware/authMiddleware');
+const { authMiddleware, optionalAuth } = require('../middleware/authMiddleware');
 const { validate } = require('../middleware/validate');
 const {
   createSatelliteSchema,
@@ -201,7 +201,7 @@ const deleteSatelliteValidation = z.object({
  *       422:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.get('/', authMiddleware, validate(listSatellitesValidation), satelliteController.list);
+router.get('/', optionalAuth, validate(listSatellitesValidation), satelliteController.list);
 
 /**
  * @swagger
@@ -312,7 +312,7 @@ router.get('/', authMiddleware, validate(listSatellitesValidation), satelliteCon
  *       422:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.get('/:id', authMiddleware, validate(getSatelliteValidation), satelliteController.getOne);
+router.get('/:id', optionalAuth, validate(getSatelliteValidation), satelliteController.getOne);
 
 /**
  * @swagger

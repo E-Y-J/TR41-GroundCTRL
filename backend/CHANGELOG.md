@@ -35,13 +35,109 @@ Fixed 4 critical conflicts causing 80+ test failures. All changes ensure proper 
 
 ---
 
-## [1.3.0] - Development
+## [1.6.0] - 2026-01-18
 
-### Phase 7: Scenario Steps Domain (In Progress)
+### Checkpoint D: NOVA AI Complete - All Core Domains Operational (Phases 7-10)
 
-Working on ordered steps for guided scenarios with objectives and default hints for NOVA.
+This minor release completes the NOVA AI tutor integration and marks a major milestone with all core training platform domains now operational. The platform now supports the complete training workflow: satellites, scenarios, scenario steps, user sessions, commands, and AI-powered tutoring.
 
 ### Added
+- Phase 7: Complete scenario steps domain with ordered step sequences for guided scenarios
+- Phase 7: Step objectives, instructions, and completion conditions for guided training
+- Phase 7: Checkpoint system for key milestones (useful for resuming sessions)
+- Phase 7: Default hint suggestions for NOVA AI integration
+- Phase 7: Scenario step repository with Firestore integration
+- Phase 7: Scenario step controller and comprehensive Swagger documentation
+- Phase 8: Complete user scenario sessions domain for tracking operator training progress
+- Phase 8: Session state management with simulation state persistence (JSON)
+- Phase 8: Session status tracking (NOT_STARTED, IN_PROGRESS, PAUSED, COMPLETED, FAILED, ABANDONED)
+- Phase 8: Step progression system with server-controlled advancement
+- Phase 8: Session metrics tracking (score, hints used, errors, attempt number)
+- Phase 8: Optimistic locking with version control for concurrent updates
+- Phase 8: Session repository, controller, and comprehensive Swagger documentation
+- Phase 9: Complete mission commands domain for console command logging and validation
+- Phase 9: Command registry with 40+ valid satellite operation commands (orbit, power, attitude, thermal, propulsion, communication, system)
+- Phase 9: Command result tracking (OK, ERROR, NO_EFFECT) with detailed messages
+- Phase 9: Session-bound command history for progress tracking
+- Phase 9: Command validation with payload verification
+- Phase 9: Execute command endpoint for real-time command submission
+- Phase 9: Command repository, controller, and comprehensive Swagger documentation
+- Phase 10: Complete NOVA AI tutor integration with step-aware guidance
+- Phase 10: AI message persistence with conversation history by session
+- Phase 10: Message role tracking (user, assistant) and hint type classification
+- Phase 10: Step-aware context composition (scenario, step, commands, session state)
+- Phase 10: Hint usage tracking with session counter updates
+- Phase 10: Fallback hint system using step.hint_suggestion when AI unavailable
+- Phase 10: AI messages repository, controller, and comprehensive Swagger documentation
+
+### Changed
+- All domain schemas verified and fully functional with strict validation
+- CRUD factory pattern consistently applied across all domains
+- Ownership scoping enforced for user-created resources across all domains
+
+### Fixed
+
+### Security
+- All new endpoints enforce authentication and authorization
+- Session ownership properly validated (users can only access their own sessions)
+- Command operations validated against session ownership
+- AI conversations properly scoped to authenticated users
+
+---
+
+## [1.5.0] - 2026-01-18
+
+### Commands Domain Complete (Phase 9)
+
+This minor release completes the commands domain, providing comprehensive command logging, validation, and feedback systems for satellite operations during training sessions.
+
+### Added
+- Phase 9: Complete mission commands domain with full CRUD operations
+- Phase 9: Command registry validation with 40+ satellite operation commands
+- Phase 9: Command result status tracking (OK/ERROR/NO_EFFECT)
+- Phase 9: Session-bound command history
+- Phase 9: Execute command endpoint for real-time operations
+
+### Changed
+
+### Fixed
+
+### Security
+
+---
+
+## [1.4.0] - 2026-01-18
+
+### Sessions Domain Complete (Phase 8)
+
+This minor release completes the user scenario sessions domain, enabling comprehensive tracking of operator training progress with simulation state persistence and step progression.
+
+### Added
+- Phase 8: Complete user scenario sessions domain with full CRUD operations
+- Phase 8: Session state management with JSON persistence
+- Phase 8: Step progression system with advancement tracking
+- Phase 8: Session metrics (score, hints used, errors)
+- Phase 8: Optimistic locking for concurrent update safety
+
+### Changed
+
+### Fixed
+
+### Security
+
+---
+
+## [1.3.0] - 2026-01-18
+
+### Scenario Steps Domain Complete (Phase 7)
+
+This minor release completes the scenario steps domain, providing ordered step sequences for guided training scenarios with objectives and AI tutor integration.
+
+### Added
+- Phase 7: Complete scenario steps domain with full CRUD operations
+- Phase 7: Step ordering and validation
+- Phase 7: Checkpoint system for key milestones
+- Phase 7: Default hint suggestions for NOVA AI
 
 ### Changed
 
@@ -268,7 +364,11 @@ This patch release completes the foundation layer with security hardening, valid
 - **[1.0.1]** - 2025-12-28 - Foundation hardening (security, validation, CRUD improvements)
 - **[1.1.0]** - 2025-01-02 - Satellites domain complete (Checkpoint C)
 - **[1.2.0]** - 2025-12-31 - Scenarios domain complete (Phase 6)
-- **[1.3.0]** - Development - Scenario Steps domain (Phase 7)
+- **[1.3.0]** - 2026-01-18 - Scenario Steps domain complete (Phase 7)
+- **[1.4.0]** - 2026-01-18 - Sessions domain complete (Phase 8)
+- **[1.5.0]** - 2026-01-18 - Commands domain complete (Phase 9)
+- **[1.6.0]** - 2026-01-18 - NOVA AI complete - All core domains operational (Checkpoint D)
+- **[1.6.1]** - In Progress - Testing and documentation verification (Phase 11)
 
 ---
 

@@ -395,11 +395,138 @@ async function getCurrentUser(req, res, next) {
   }
 }
 
+/**
+ * Bootstrap initial admin user (one-time use)
+ * POST /auth/bootstrap-admin
+ */
+async function bootstrapAdmin(req, res, next) {
+  try {
+    const { email, password, callSign, displayName } = req.body;
+    
+    // Bootstrap admin user
+    const result = await authService.bootstrapAdmin(email, password, callSign, displayName);
+    
+    logger.info('Admin user bootstrapped successfully', { uid: result.user.uid, callSign: result.user.callSign });
+    
+    // SECURITY: Set refresh token as HttpOnly cookie
+    if (result.refreshToken) {
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/api/v1/auth'
+      });
+    }
+    
+    // Remove refresh token from response payload
+    const responsePayload = {
+      user: result.user,
+      tokens: {
+        accessToken: result.accessToken
+      }
+    };
+    
+    // Send response
+    const response = responseFactory.createSuccessResponse(responsePayload, {
+      callSign: result.user.callSign,
+      requestId: req.id,
+      statusCode: httpStatus.CREATED,
+      flatten: true
+    });
+    
+    res.status(httpStatus.CREATED).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Change password (authenticated user)
+ * POST /auth/change-password
+ */
+async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.uid;
+    const callSign = req.callSign;
+    
+    // Change password
+    const result = await authService.changePassword(userId, currentPassword, newPassword, callSign);
+    
+    logger.info('Password changed successfully', { uid: userId, callSign });
+    
+    // Send response
+    const response = responseFactory.createSuccessResponse(result, {
+      callSign,
+      requestId: req.id
+    });
+    
+    res.status(httpStatus.OK).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Request password reset
+ * POST /auth/forgot-password
+ */
+async function forgotPassword(req, res, next) {
+  try {
+    const { email } = req.body;
+    
+    // Request password reset
+    const result = await authService.forgotPassword(email);
+    
+    logger.info('Password reset requested', { email });
+    
+    // Send response (always success for security)
+    const response = responseFactory.createSuccessResponse(result, {
+      callSign: 'SYSTEM',
+      requestId: req.id
+    });
+    
+    res.status(httpStatus.OK).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Reset password with token
+ * POST /auth/reset-password
+ */
+async function resetPassword(req, res, next) {
+  try {
+    const { token, newPassword } = req.body;
+    
+    // Reset password
+    const result = await authService.resetPassword(token, newPassword);
+    
+    logger.info('Password reset successfully', { userId: result.userId });
+    
+    // Send response
+    const response = responseFactory.createSuccessResponse(result, {
+      callSign: 'SYSTEM',
+      requestId: req.id
+    });
+    
+    res.status(httpStatus.OK).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
   refreshToken,
   logout,
   revokeToken,
-  getCurrentUser
+  getCurrentUser,
+  bootstrapAdmin,
+  changePassword,
+  forgotPassword,
+  resetPassword
 };
