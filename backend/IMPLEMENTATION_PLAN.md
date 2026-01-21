@@ -139,8 +139,8 @@ Create:
 - `.github/PULL_REQUEST_TEMPLATE.md` (phase number, checklist, changelog checkbox)
 
 ### Helper scripts (verify + document usage)
-- Verify `src/scripts/map_file_structure.py` exists and works
-- Verify `src/scripts/convert_crlf_to_lf.py` exists and works
+- Verify `scripts/map_file_structure.py` exists and works (located in root/scripts directory)
+- Verify `scripts/convert_crlf_to_lf.py` exists and works (located in root/scripts directory)
 - Add short usage notes for both in `CONTRIBUTING.md` or `RELEASE.md`
 
 ### Swagger identity corrections (docs-only)
@@ -404,8 +404,8 @@ Minimum viable fields:
 
 # PHASE 7: Scenario Steps Domain Implementation
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN  
+**Status:** DONE  
+**Owner:** AUSTIN CARLSON, CAMERON CARMODY, & TESSA ROBINSON  
 **Release:** v1.3.0 (MINOR) - Scenario Steps domain
 
 ## Goal
@@ -453,8 +453,8 @@ Minimum fields:
 
 # PHASE 8: User Scenario Sessions & Simulation State
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN  
+**Status:** DONE  
+**Owner:** AUSTIN CARLSON, CAMERON CARMODY, & TESSA ROBINSON  
 **Release:** v1.4.0 (MINOR) - Sessions domain
 
 ## Goal
@@ -507,8 +507,8 @@ Expected fields:
 
 # PHASE 9: Mission Commands (logging + validation + feedback hooks)
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN  
+**Status:** DONE  
+**Owner:** AUSTIN CARLSON, CAMERON CARMODY, & TESSA ROBINSON  
 **Release:** v1.5.0 (MINOR) - Commands domain
 
 ## Goal
@@ -557,8 +557,8 @@ Expected fields:
 
 # PHASE 10: NOVA (AI Tutor) End-to-End Integration
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN  
+**Status:** DONE  
+**Owner:** AUSTIN CARLSON, CAMERON CARMODY, & TESSA ROBINSON  
 **Release:** Checkpoint D - v1.6.0 (MINOR) - NOVA AI complete
 
 ## Goal
@@ -610,8 +610,8 @@ Collection: `ai_messages`
 
 # PHASE 11: Testing + Documentation Verification
 
-**Status:** NOT STARTED  
-**Owner:** SELF-ASSIGN  
+**Status:** PARTIAL - Sprint 0 tests working  
+**Owner:** ADAM COLYER & AUSTIN CARLSON  
 **Release:** v1.6.1 (PATCH) - Testing and hardening
 
 ## Goal
@@ -687,3 +687,8 @@ Cut a clean release based on decision gates.
 | 2025-12-31 | Phase 5 | Cameron Carmody | DONE | Complete satellite management domain with full CRUD operations, ownership scoping, comprehensive Swagger docs, and validation middleware fixes |
 | 2025-12-31 | Phase 6 | Cameron Carmody | DONE | Complete scenario management domain with full CRUD operations, satellite references, initial state, comprehensive Swagger docs, and validation middleware |
 | 2026-01-17 | Critical Fixes | System | DONE | Fixed 4 critical test conflicts: (1) Response envelope middleware properly wraps all responses, (2) authService returns raw data (no pre-wrapping), (3) Rate limiting uses IP+email composite key, (4) Login lockout & audit logging verified working |
+| 2026-01-18 | Phase 7 | Austin Carlson, Cameron Carmody, & Tessa Robinson | DONE | Complete scenario steps domain - ordered steps for guided scenarios with objectives and hints for NOVA |
+| 2026-01-18 | Phase 8 | Austin Carlson, Cameron Carmody, & Tessa Robinson | DONE | Complete user scenario sessions domain - session tracking, state management, step progression |
+| 2026-01-18 | Phase 9 | Austin Carlson, Cameron Carmody, & Tessa Robinson | DONE | Complete mission commands domain - command logging, validation, and feedback hooks |
+| 2026-01-18 | Phase 10 | Austin Carlson, Cameron Carmody, & Tessa Robinson | DONE | Complete NOVA AI integration - AI tutor with persistence and step-aware guidance |
+| 2026-01-18 | Phase 11 | Adam Colyer & Austin Carlson | PARTIAL | Sprint 0 tests complete and working - additional testing and documentation in progress |

@@ -95,12 +95,24 @@ All timestamps use ISO 8601 format. Telemetry includes:
         description: 'Mission scenario management (CRUD operations with satellite references and initial state)'
       },
       {
-        name: 'AI',
-        description: 'AI-powered features (coming soon)'
+        name: 'Scenario Steps',
+        description: 'Ordered step sequences for guided scenarios (objectives, instructions, hints for NOVA)'
+      },
+      {
+        name: 'Scenario Sessions',
+        description: 'User training session tracking (progress, state management, step progression)'
       },
       {
         name: 'Commands',
-        description: 'Command operations (coming soon)'
+        description: 'Mission command logging and validation (satellite operations during training sessions)'
+      },
+      {
+        name: 'AI (NOVA)',
+        description: 'AI-powered tutoring system with step-aware guidance and conversation history'
+      },
+      {
+        name: 'Help Articles',
+        description: 'Help documentation and knowledge base (articles, FAQs, categories)'
       }
     ],
     components: {
@@ -613,6 +625,625 @@ All timestamps use ISO 8601 format. Telemetry includes:
               type: 'string',
               description: 'User ID who created the scenario',
               example: 'abc123xyz456'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            }
+          }
+        },
+        ScenarioStep: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique step identifier',
+              example: 'step_123'
+            },
+            scenario_id: {
+              type: 'string',
+              description: 'FK to scenarios.id',
+              example: 'scen_123'
+            },
+            stepOrder: {
+              type: 'number',
+              description: 'Step sequence (1, 2, 3, ...)',
+              example: 1
+            },
+            title: {
+              type: 'string',
+              description: 'Step title',
+              example: 'Check Current Attitude'
+            },
+            instructions: {
+              type: 'string',
+              description: 'What user is asked to do at this step',
+              example: 'Check the satellite attitude control system status'
+            },
+            objective: {
+              type: 'string',
+              description: 'What counts as "success" for this step',
+              example: 'Verify attitude is within 2 degrees of NADIR'
+            },
+            completionCondition: {
+              type: 'string',
+              description: 'How backend knows step is complete (logic description)',
+              example: 'attitude.error_degrees <= 2.0 && attitude.currentTarget === "NADIR"'
+            },
+            isCheckpoint: {
+              type: 'boolean',
+              description: 'true for key milestones (useful for resuming)',
+              example: false
+            },
+            expectedDurationSeconds: {
+              type: 'number',
+              description: 'Estimated step duration in seconds',
+              example: 120
+            },
+            hint_suggestion: {
+              type: 'string',
+              description: 'Default hint text the AI tutor can use',
+              example: 'Check the attitude control panel on the left side'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            }
+          }
+        },
+        ScenarioSession: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique session identifier',
+              example: 'sess_123'
+            },
+            user_id: {
+              type: 'string',
+              description: 'User ID (uid) of the operator',
+              example: 'abc123xyz456'
+            },
+            scenario_id: {
+              type: 'string',
+              description: 'FK to scenarios.id',
+              example: 'scen_123'
+            },
+            status: {
+              type: 'string',
+              enum: ['NOT_STARTED', 'IN_PROGRESS', 'PAUSED', 'COMPLETED', 'FAILED', 'ABANDONED'],
+              description: 'Current session status',
+              example: 'IN_PROGRESS'
+            },
+            current_step_id: {
+              type: 'string',
+              description: 'FK to scenario_steps.id - current step',
+              example: 'step_123',
+              nullable: true
+            },
+            currentStepOrder: {
+              type: 'number',
+              description: 'Current step order the operator is on',
+              example: 1
+            },
+            completedSteps: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Array of completed step IDs',
+              example: []
+            },
+            score: {
+              type: 'number',
+              description: 'Session score (0-100)',
+              example: 85,
+              nullable: true
+            },
+            total_hints_used: {
+              type: 'number',
+              description: 'Number of hints requested during session',
+              example: 2
+            },
+            total_errors: {
+              type: 'number',
+              description: 'Number of errors made during session',
+              example: 1
+            },
+            state: {
+              type: 'object',
+              description: 'Runtime simulation state (JSON)',
+              example: { satelliteState: { power: { currentCharge_percent: 85 } } }
+            },
+            started_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Session start timestamp',
+              example: '2025-01-01T00:00:00.000Z',
+              nullable: true
+            },
+            completed_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Session completion timestamp',
+              example: '2025-01-01T01:00:00.000Z',
+              nullable: true
+            },
+            last_activity_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last activity timestamp',
+              example: '2025-01-01T00:30:00.000Z'
+            },
+            attemptNumber: {
+              type: 'number',
+              description: 'Which attempt this is for the operator',
+              example: 1
+            },
+            notes: {
+              type: 'string',
+              description: 'Session notes or feedback',
+              example: 'Good progress on power management',
+              nullable: true
+            },
+            version: {
+              type: 'number',
+              description: 'Version number for optimistic locking',
+              example: 1
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            }
+          }
+        },
+        Command: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique command identifier',
+              example: 'cmd_123'
+            },
+            session_id: {
+              type: 'string',
+              description: 'FK to user_scenario_sessions.id',
+              example: 'sess_123',
+              nullable: true
+            },
+            scenario_step_id: {
+              type: 'string',
+              description: 'FK to scenario_steps.id',
+              example: 'step_123',
+              nullable: true
+            },
+            issued_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'When the command was issued',
+              example: '2025-01-01T00:00:00.000Z'
+            },
+            command_name: {
+              type: 'string',
+              description: 'Command type from valid command registry (40+ satellite operations)',
+              example: 'SET_ATTITUDE_MODE',
+              enum: [
+                'SET_ORBIT_ALTITUDE', 'SET_ORBIT_INCLINATION', 'EXECUTE_ORBITAL_MANEUVER', 'STATION_KEEPING',
+                'DEPLOY_SOLAR_ARRAYS', 'RETRACT_SOLAR_ARRAYS', 'SET_POWER_MODE', 'ENABLE_BATTERY_CHARGING', 'DISABLE_BATTERY_CHARGING',
+                'SET_ATTITUDE_MODE', 'SET_POINTING_TARGET', 'EXECUTE_ATTITUDE_MANEUVER', 'CALIBRATE_GYROSCOPE',
+                'SET_THERMAL_MODE', 'ENABLE_HEATER', 'DISABLE_HEATER', 'SET_THERMAL_SETPOINT',
+                'ARM_PROPULSION', 'DISARM_PROPULSION', 'EXECUTE_BURN', 'ABORT_BURN',
+                'ENABLE_TRANSMITTER', 'DISABLE_TRANSMITTER', 'SET_ANTENNA_MODE', 'UPLINK_DATA', 'DOWNLINK_DATA',
+                'SYSTEM_RESET', 'SAFE_MODE', 'NOMINAL_MODE', 'RUN_DIAGNOSTICS'
+              ]
+            },
+            command_payload: {
+              type: 'object',
+              description: 'Command parameters as JSON (structure varies by command_name)',
+              example: { mode: 'NADIR' }
+            },
+            result_status: {
+              type: 'string',
+              enum: ['OK', 'ERROR', 'NO_EFFECT'],
+              description: 'Command execution result status',
+              example: 'OK',
+              nullable: true
+            },
+            result_message: {
+              type: 'string',
+              description: 'Detailed result/error message',
+              example: 'Attitude mode set to NADIR successfully',
+              nullable: true
+            },
+            is_valid: {
+              type: 'boolean',
+              description: 'Whether command passed validation',
+              example: true
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            }
+          }
+        },
+        AIMessage: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique message identifier',
+              example: 'msg_123'
+            },
+            session_id: {
+              type: 'string',
+              description: 'FK to scenario_sessions.id',
+              example: 'sess_123'
+            },
+            user_id: {
+              type: 'string',
+              description: 'User ID (uid) of the operator',
+              example: 'abc123xyz456'
+            },
+            role: {
+              type: 'string',
+              enum: ['user', 'assistant'],
+              description: 'Message role (user or NOVA assistant)',
+              example: 'assistant'
+            },
+            content: {
+              type: 'string',
+              description: 'Message text content',
+              example: 'Great job! You successfully oriented the satellite to NADIR.'
+            },
+            step_id: {
+              type: 'string',
+              description: 'FK to scenario_steps.id - current step when message was sent',
+              example: 'step_123',
+              nullable: true
+            },
+            command_id: {
+              type: 'string',
+              description: 'FK to user_commands.id - related command if applicable',
+              example: 'cmd_123',
+              nullable: true
+            },
+            hint_type: {
+              type: 'string',
+              enum: ['CONCEPTUAL', 'PROCEDURAL', 'TROUBLESHOOTING', 'CONTEXTUAL', 'FALLBACK'],
+              description: 'Type of hint provided (for assistant messages)',
+              example: 'PROCEDURAL',
+              nullable: true
+            },
+            is_fallback: {
+              type: 'boolean',
+              description: 'Whether this is a fallback response (AI unavailable)',
+              example: false
+            },
+            metadata: {
+              type: 'object',
+              description: 'Additional metadata (e.g., model used, token count)',
+              example: { model: 'gpt-4', tokens: 150 }
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            },
+            updated_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            }
+          }
+        },
+        HelpCategory: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique category identifier',
+              example: 'cat_123'
+            },
+            code: {
+              type: 'string',
+              description: 'Unique category code (uppercase alphanumeric with underscores)',
+              example: 'GETTING_STARTED'
+            },
+            name: {
+              type: 'string',
+              description: 'Display name for the category',
+              example: 'Getting Started'
+            },
+            description: {
+              type: 'string',
+              description: 'Brief category description',
+              example: 'Learn the basics of GroundCTRL',
+              nullable: true
+            },
+            icon: {
+              type: 'string',
+              description: 'Icon name (e.g., Lucide icon name)',
+              example: 'rocket',
+              nullable: true
+            },
+            color: {
+              type: 'string',
+              description: 'Category accent color (hex format)',
+              example: '#3b82f6',
+              nullable: true
+            },
+            orderIndex: {
+              type: 'number',
+              description: 'Sort order (lower = first)',
+              example: 0
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether category is active',
+              example: true
+            },
+            parentCategoryId: {
+              type: 'string',
+              description: 'For nested categories',
+              example: null,
+              nullable: true
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            }
+          }
+        },
+        HelpArticle: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique article identifier',
+              example: 'article_123'
+            },
+            slug: {
+              type: 'string',
+              description: 'URL-friendly identifier',
+              example: 'getting-started-with-missions'
+            },
+            title: {
+              type: 'string',
+              description: 'Article title',
+              example: 'Getting Started with Missions'
+            },
+            subtitle: {
+              type: 'string',
+              description: 'Optional subtitle or tagline',
+              example: 'Learn how to create and run your first mission',
+              nullable: true
+            },
+            excerpt: {
+              type: 'string',
+              description: 'Short summary for search results and cards',
+              example: 'A beginner-friendly guide to mission creation',
+              nullable: true
+            },
+            category_id: {
+              type: 'string',
+              description: 'FK to help_categories.id',
+              example: 'cat_123'
+            },
+            type: {
+              type: 'string',
+              enum: ['GUIDE', 'REFERENCE', 'TROUBLESHOOTING', 'FAQ', 'RELEASE_NOTES', 'GLOSSARY'],
+              description: 'Article format type',
+              example: 'GUIDE'
+            },
+            difficulty: {
+              type: 'string',
+              enum: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'],
+              description: 'Content difficulty level',
+              example: 'BEGINNER',
+              nullable: true
+            },
+            tags: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Tags for filtering and search',
+              example: ['missions', 'beginner', 'tutorial']
+            },
+            content: {
+              type: 'array',
+              items: {
+                type: 'object',
+                description: 'Structured content blocks (PARAGRAPH, HEADING, LIST, CODE, IMAGE, etc.)'
+              },
+              description: 'Structured content blocks'
+            },
+            status: {
+              type: 'string',
+              enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED', 'NEEDS_REVIEW'],
+              description: 'Publishing status',
+              example: 'PUBLISHED'
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether article is active',
+              example: true
+            },
+            isFeatured: {
+              type: 'boolean',
+              description: 'Show in featured/popular section',
+              example: false
+            },
+            isPinned: {
+              type: 'boolean',
+              description: 'Pin to top of category',
+              example: false
+            },
+            orderIndex: {
+              type: 'number',
+              description: 'Sort order within category',
+              example: 0
+            },
+            estimatedReadMinutes: {
+              type: 'number',
+              description: 'Estimated reading time in minutes',
+              example: 5,
+              nullable: true
+            },
+            thumbnailUrl: {
+              type: 'string',
+              description: 'Thumbnail image for cards',
+              example: 'https://example.com/thumbnail.jpg',
+              nullable: true
+            },
+            views: {
+              type: 'number',
+              description: 'View count',
+              example: 1250
+            },
+            helpfulCount: {
+              type: 'number',
+              description: 'Helpful votes',
+              example: 45
+            },
+            notHelpfulCount: {
+              type: 'number',
+              description: 'Not helpful votes',
+              example: 3
+            },
+            version: {
+              type: 'string',
+              description: 'Version number (semver)',
+              example: '1.0.0'
+            },
+            author_id: {
+              type: 'string',
+              description: 'FK to users.id (content author)',
+              example: 'abc123xyz456',
+              nullable: true
+            },
+            publishedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'When article was/will be published',
+              example: '2025-01-01T00:00:00.000Z',
+              nullable: true
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2025-01-01T00:00:00.000Z'
+            }
+          }
+        },
+        HelpFAQ: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Unique FAQ identifier',
+              example: 'faq_123'
+            },
+            question: {
+              type: 'string',
+              description: 'The question',
+              example: 'How do I reset my password?'
+            },
+            answer: {
+              type: 'string',
+              description: 'Plain text or markdown answer',
+              example: 'Click on "Forgot Password" on the login page...'
+            },
+            category_id: {
+              type: 'string',
+              description: 'FK to help_categories.id',
+              example: 'cat_123'
+            },
+            tags: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Tags for filtering',
+              example: ['account', 'password', 'login']
+            },
+            orderIndex: {
+              type: 'number',
+              description: 'Sort order',
+              example: 0
+            },
+            status: {
+              type: 'string',
+              enum: ['DRAFT', 'PUBLISHED', 'ARCHIVED', 'NEEDS_REVIEW'],
+              description: 'Publishing status',
+              example: 'PUBLISHED'
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether FAQ is active',
+              example: true
+            },
+            isFeatured: {
+              type: 'boolean',
+              description: 'Show in main FAQ section',
+              example: true
+            },
+            relatedArticleIds: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Related article IDs',
+              example: ['article_123']
             },
             createdAt: {
               type: 'string',

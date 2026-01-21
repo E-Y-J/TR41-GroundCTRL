@@ -395,11 +395,107 @@ async function getCurrentUser(req, res, next) {
   }
 }
 
+/**
+ * Bootstrap initial admin user (one-time use)
+ * POST /auth/bootstrap-admin
+ */
+async function bootstrapAdmin(req, res, next) {
+  try {
+    // For now, return not implemented
+    // This would be implemented in a future phase
+    const response = responseFactory.createSuccessResponse(
+      { message: 'Bootstrap admin endpoint - implementation pending' },
+      {
+        callSign: 'SYSTEM',
+        requestId: req.id,
+        statusCode: httpStatus.NOT_IMPLEMENTED
+      }
+    );
+    
+    res.status(httpStatus.NOT_IMPLEMENTED).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Change password (authenticated user)
+ * POST /auth/change-password
+ */
+async function changePassword(req, res, next) {
+  try {
+    // For now, return not implemented
+    // This would be implemented in a future phase
+    const response = responseFactory.createSuccessResponse(
+      { message: 'Change password endpoint - implementation pending' },
+      {
+        callSign: req.callSign,
+        requestId: req.id,
+        statusCode: httpStatus.NOT_IMPLEMENTED
+      }
+    );
+    
+    res.status(httpStatus.NOT_IMPLEMENTED).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Request password reset
+ * POST /auth/forgot-password
+ */
+async function forgotPassword(req, res, next) {
+  try {
+    // For now, return not implemented
+    // This would be implemented in a future phase
+    const response = responseFactory.createSuccessResponse(
+      { message: 'Forgot password endpoint - implementation pending' },
+      {
+        callSign: 'SYSTEM',
+        requestId: req.id,
+        statusCode: httpStatus.NOT_IMPLEMENTED
+      }
+    );
+    
+    res.status(httpStatus.NOT_IMPLEMENTED).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Reset password with token
+ * POST /auth/reset-password
+ */
+async function resetPassword(req, res, next) {
+  try {
+    // For now, return not implemented
+    // This would be implemented in a future phase
+    const response = responseFactory.createSuccessResponse(
+      { message: 'Reset password endpoint - implementation pending' },
+      {
+        callSign: 'SYSTEM',
+        requestId: req.id,
+        statusCode: httpStatus.NOT_IMPLEMENTED
+      }
+    );
+    
+    res.status(httpStatus.NOT_IMPLEMENTED).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
   refreshToken,
   logout,
   revokeToken,
-  getCurrentUser
+  getCurrentUser,
+  bootstrapAdmin,
+  changePassword,
+  forgotPassword,
+  resetPassword
 };
