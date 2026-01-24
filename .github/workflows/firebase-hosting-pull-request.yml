@@ -39,6 +39,7 @@ jobs:
       - name: Deploy to Firebase Hosting Preview
         id: firebase_deploy
         if: steps.check_secret.outputs.secret_configured == 'true'
+        continue-on-error: true  # Known issue: action fails to parse expireTime even when deployment succeeds
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
