@@ -649,44 +649,122 @@ VITE_WEBSOCKET_URL=http://localhost:8080
 
 ---
 
-## Rollout Strategy (Accelerated Timeline)
+## Implementation Steps
 
-### Day 1: Backend Foundation (6-8 hours)
-- **Hours 1-2**: Install socket.io, create WebSocket server structure
-- **Hours 3-4**: Implement authentication middleware and session manager
-- **Hours 5-6**: Create telemetry handler with basic state broadcasting
-- **Hours 7-8**: Create command handler with execution flow
+### Backend Implementation
 
-### Day 2: Simulation Engine (6-8 hours)
-- **Hours 1-3**: Build orbital mechanics calculations (altitude, inclination, position)
-- **Hours 4-6**: Implement subsystem state updates (power, thermal, attitude, etc.)
-- **Hours 7-8**: Integrate simulation engine with session manager
+1. **Install Socket.IO Dependencies**
+   - `cd backend && npm install socket.io`
+   - Add to package.json dependencies
 
-### Day 3: Frontend Integration (6-8 hours)
-- **Hours 1-2**: Install socket.io-client, create WebSocket context
-- **Hours 3-4**: Update MissionPanel to consume real-time data
-- **Hours 5-6**: Update WorldMap and launch animation with actual altitude
-- **Hours 7-8**: Implement subsystem status indicators from scenario structure
+2. **Create WebSocket Server**
+   - Create `backend/src/websocket/server.js`
+   - Set up Socket.IO server with CORS configuration
+   - Define telemetry and command namespaces
 
-### Day 4: Command System & Testing (6-8 hours)
-- **Hours 1-2**: Implement command transmission UI
-- **Hours 3-4**: Add command status tracking and visual feedback
-- **Hours 5-6**: Integration testing (end-to-end flows)
-- **Hours 7-8**: Bug fixes, performance optimization, documentation
+3. **Integrate with Express**
+   - Modify `backend/src/server.js` to create HTTP server
+   - Attach Socket.IO to HTTP server
+   - Ensure both Express and WebSocket use same port
 
-### Alternative: Sprint Timeline (2-3 Days Intensive)
+4. **Implement Authentication Middleware**
+   - Create `backend/src/websocket/middleware/socketAuth.js`
+   - Verify JWT tokens from socket handshake
+   - Attach user data to socket instance
 
-**Day 1 (Full Day - 8-10 hours):**
-- Morning: Backend WebSocket infrastructure + authentication
-- Afternoon: Session manager, telemetry/command handlers, basic simulation
+5. **Build Session Manager Service**
+   - Create `backend/src/services/sessionManager.js`
+   - Manage active session states in memory
+   - Handle room joins/leaves
+   - Broadcast state updates to session rooms
+   - Persist state changes to Firestore
 
-**Day 2 (Full Day - 8-10 hours):**
-- Morning: Enhanced simulation engine with orbital mechanics
-- Afternoon: Frontend WebSocket integration, real-time data display
+6. **Create Telemetry Handler**
+   - Create `backend/src/websocket/handlers/telemetryHandler.js`
+   - Handle `session:join` and `session:leave` events
+   - Emit `session:joined` with initial state
+   - Broadcast `state:update` on changes
 
-**Day 3 (Half Day - 4-6 hours):**
-- Morning: Command system UI, testing, bug fixes
-- Afternoon: Documentation and deployment preparation
+7. **Create Command Handler**
+   - Create `backend/src/websocket/handlers/commandHandler.js`
+   - Handle `command:send` events
+   - Emit `command:status` updates through execution lifecycle
+   - Integrate with session state updates
+
+8. **Build Simulation Engine**
+   - Create `backend/src/services/simulationEngine.js`
+   - Implement orbital mechanics calculations
+   - Compute subsystem state transitions
+   - Update session state every 2 seconds
+   - Start/stop simulations based on session lifecycle
+
+### Frontend Implementation
+
+9. **Install Socket.IO Client**
+   - `cd frontend && npm install socket.io-client`
+   - Add to package.json dependencies
+
+10. **Create WebSocket Context**
+    - Create `frontend/src/contexts/WebSocketContext.jsx`
+    - Implement connection management
+    - Handle auto-reconnection
+    - Provide session join/leave functions
+    - Expose session state to components
+
+11. **Integrate WebSocket Provider**
+    - Update `frontend/src/App.jsx`
+    - Wrap app with `<WebSocketProvider>`
+    - Ensure it's inside authentication context
+
+12. **Update MissionPanel Component**
+    - Import `useWebSocket` hook
+    - Replace mock data with real-time session state
+    - Display connection status indicator
+    - Use actual telemetry data for orbit parameters
+
+13. **Update WorldMap Component**
+    - Accept `sessionState` prop
+    - Use real satellite altitude and inclination
+    - Generate ground tracks from actual orbital data
+    - Update satellite position from telemetry
+
+14. **Create Subsystem Status Component**
+    - Build dynamic subsystem renderer
+    - Map subsystem data to status indicators
+    - Match POWER, COMMS, ATTITUDE, PAYLOAD to scenario structure
+    - Display subsystem-specific metrics
+
+15. **Implement Command Transmission UI**
+    - Add command send functionality
+    - Display command status (validating → transmitting → executing → completed)
+    - Show visual feedback for each stage
+    - Handle command errors
+
+### Testing & Validation
+
+16. **Backend Testing**
+    - Test WebSocket authentication
+    - Verify session join/leave lifecycle
+    - Test state broadcasting to multiple clients
+    - Validate command execution flow
+
+17. **Frontend Testing**
+    - Test WebSocket connection establishment
+    - Verify auto-reconnection on disconnect
+    - Test state updates trigger re-renders
+    - Validate command transmission
+
+18. **Integration Testing**
+    - End-to-end session flow
+    - Multiple concurrent sessions
+    - Command execution updates telemetry
+    - Firestore persistence verification
+
+19. **Performance & Security**
+    - Load testing (100+ concurrent connections)
+    - Rate limiting verification
+    - Session isolation testing
+    - CORS and authentication validation
 
 ---
 
