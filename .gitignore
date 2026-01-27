@@ -57,3 +57,4 @@ build/
 tests-backend/
 coverage/
 .nyc_output/
+backend/.env.test

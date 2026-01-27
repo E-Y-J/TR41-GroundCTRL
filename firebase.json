@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "test-project"
+    "default": "groundctrl-c8860"
   },
   "firestore": {
     "rules": "firestore.rules",

@@ -4,6 +4,13 @@
  * Consolidated from: sprint0/backendPhase2SecurityQuickWins.test.js
  */
 
+// IMPORTANT: Set rate limit env vars BEFORE requiring anything
+// These tests specifically verify rate limiting works, so we need production-like limits
+process.env.API_RATE_LIMIT_WINDOW_MS = String(15 * 60 * 1000); // 15 minutes
+process.env.API_RATE_LIMIT_MAX_REQUESTS = '100';
+process.env.LOGIN_RATE_LIMIT_WINDOW_MS = String(60 * 1000); // 1 minute  
+process.env.LOGIN_RATE_LIMIT_MAX_REQUESTS = '5';
+
 const request = require('supertest');
 const { apiLimiter, loginLimiter, authLimiter } = require('../../../src/middleware/rateLimiter');
 const httpClient = require('../../../src/utils/httpClient');
@@ -12,9 +19,10 @@ describe('Rate Limiting - Comprehensive Tests', () => {
   let app;
 
   beforeAll(() => {
-    process.env.NODE_ENV = 'test';
-    process.env.RATE_LIMIT_GLOBAL = '100/15min';
-    process.env.RATE_LIMIT_LOGIN = '5/15min';
+    // Delete the cached app module to force reload with new rate limits
+    delete require.cache[require.resolve('../../../src/app')];
+    delete require.cache[require.resolve('../../../src/config/rateLimits')];
+    
     app = require('../../../src/app');
   });
 
