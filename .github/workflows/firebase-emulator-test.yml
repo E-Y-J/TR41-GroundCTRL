@@ -102,6 +102,7 @@ jobs:
           NODE_ENV: test
           FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
           FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
+          JWT_SECRET: 'test-secret-key-for-ci-testing-only-do-not-use-in-production'
       
       - name: Stop emulators
         if: always()
