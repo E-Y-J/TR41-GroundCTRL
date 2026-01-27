@@ -4,21 +4,36 @@
  */
 
 const request = require('supertest');
-const { getTestApp } = require('../helpers/test-utils');
+const { getTestApp, generateUniqueEmail } = require('../helpers/test-utils');
 
 describe('Performance - Load Tests', () => {
   let app;
+  let authToken;
 
   beforeAll(async () => {
     // Use the test helper to get app instance
     app = getTestApp();
     // Add delay to ensure emulators are ready
     await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Create a test user and get a valid auth token for performance tests
+    const userData = {
+      email: generateUniqueEmail('perf-test'),
+      password: 'TestPassword123!',
+      callSign: `PERF-${Date.now()}`,
+      displayName: 'Performance Test User',
+    };
+
+    const response = await request(app)authT
+      .post('/api/v1/auth/register')
+      .send(userData)
+      .expect(201);
+
+    authToken = response.body.payload.tokens.accessToken;
   }, 60000);
 
   describe('PERF-001: Concurrent Protected Endpoint Requests', () => {
     it('should handle 500 concurrent requests efficiently', async () => {
-      const token = 'valid-test-token'; // Generate valid token
       const startTime = Date.now();
       
       const requests = Array(500).fill(null).map(() =>
