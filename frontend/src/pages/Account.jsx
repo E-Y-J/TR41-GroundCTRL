@@ -8,9 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, User, Mail, Shield, Trash2, Satellite, Award, Clock, Rocket } from "lucide-react"
 import { Footer } from "@/components/footer"
-import { updateProfile  } from "firebase/auth"
+import { updateProfile, sendPasswordResetEmail } from "firebase/auth"
 
 export default function AccountPage() {
+  // Password reset state
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetSuccess, setResetSuccess] = useState(false)
+  const [resetError, setResetError] = useState("")
   const navigate = useNavigate()
   const { user, loading, signOut } = useAuth()
   
@@ -42,6 +46,20 @@ export default function AccountPage() {
       console.error("Error updating profile:", error)
     }
     setSaving(false)
+  }
+
+  const handlePasswordReset = async () => {
+    if (!user?.email) return
+    setResetLoading(true)
+    setResetError("")
+    setResetSuccess(false)
+    try {
+      await sendPasswordResetEmail(user.auth || user, user.email)
+      setResetSuccess(true)
+    } catch (err) {
+      setResetError(err?.message || "Failed to send reset email.")
+    }
+    setResetLoading(false)
   }
 
   const handleDeleteAccount = async () => {
@@ -177,7 +195,18 @@ export default function AccountPage() {
                   <p className="font-medium text-foreground">Password</p>
                   <p className="text-sm text-muted-foreground">Last changed: Never</p>
                 </div>
-                <Button variant="outline">Change Password</Button>
+                <div className="flex flex-col items-end gap-2">
+                  <Button variant="outline" onClick={handlePasswordReset} disabled={resetLoading || resetSuccess}>
+                    {resetLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {resetSuccess ? "Email Sent!" : "Change Password"}
+                  </Button>
+                  {resetError && (
+                    <span className="text-xs text-red-500 mt-1">{resetError}</span>
+                  )}
+                  {resetSuccess && (
+                    <span className="text-xs text-green-600 mt-1">Check your email for a reset link.</span>
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <div>
