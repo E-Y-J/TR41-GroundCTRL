@@ -87,9 +87,12 @@ jobs:
           fi
           
           # Give emulators extra time to fully initialize internal state
-          echo "⏳ Waiting additional 10 seconds for full initialization..."
-          sleep 10
-          echo "✅ Firebase emulators are fully ready!"
+          echo "⏳ Waiting additional 20 seconds for full Firebase initialization..."
+          sleep 20
+          echo "✅ Firebase emulators should now be fully initialized"
+          echo "🔍 Verifying emulator connectivity..."
+          curl -s http://127.0.0.1:9099 > /dev/null && echo "  Auth emulator OK" || echo "  Auth emulator FAILED"
+          curl -s http://127.0.0.1:8080 > /dev/null && echo "  Firestore emulator OK" || echo "  Firestore emulator FAILED"
         env:
           NODE_ENV: test
       
