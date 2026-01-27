@@ -105,9 +105,7 @@ function initializeFirebase() {
         project_id: process.env.FIREBASE_PROJECT_ID,
         private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID || undefined,
         private_key: process.env.FIREBASE_PRIVATE_KEY
-          ? process.env.FIREBASE_PRIVATE_KEY
-            .replace(/\\n/g, '\n')
-            .replace(/^"|"$/g, '')
+          ? Buffer.from(process.env.FIREBASE_PRIVATE_KEY, 'base64').toString('utf8')
           : undefined,
         client_email: process.env.FIREBASE_CLIENT_EMAIL,
         client_id: process.env.FIREBASE_CLIENT_ID || undefined,

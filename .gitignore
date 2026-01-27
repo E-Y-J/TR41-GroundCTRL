@@ -52,3 +52,8 @@ build/
 !.firebaserc
 !.env.sample
 !.env.test
+
+# Test directories
+tests-backend/
+coverage/
+.nyc_output/

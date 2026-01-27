@@ -74,6 +74,12 @@ const missionControl = require('../config/missionControl');
  *               timestamp: 1704067200000
  */
 router.get('/', (req, res) => {
+  // Set security headers directly
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
   const healthData = {
     status: 'GO',
     statusDetail: 'All systems operational',
