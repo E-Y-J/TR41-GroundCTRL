@@ -1,4 +1,5 @@
-# GroundCTRL
+# GroundCTRL - Mission Control Platform
+
 ## Virtual Satellite Simulator
 
 **GroundCTRL** is a browser-based training simulator that introduces users to the fundamentals of satellite operations through interactive, guided missions. Players manage a virtual Earth-orbiting satellite using a simplified mission console, real-time AI guidance, and structured objectives that blend learning with gameplay. Designed for space enthusiasts, students, and new operators, the platform provides visual feedback, step-by-step tutorials, and progress tracking. The simulator runs in modern desktop browsers and aims to make satellite operations education engaging, accessible, and beginner-friendly. Built with **React**, **Node.js**, and **Firebase**.
@@ -27,6 +28,35 @@
 - **Quality Assurance**  
   - Adam Colyer — [@AColyer13](https://github.com/AColyer13)
 
+## Testing
+
+The backend test suite is located in `backend/tests/` and organized by test type:
+
+```bash
+# Navigate to backend
+cd backend
+
+# Install dependencies
+npm install
+
+# Start Firebase emulators (required for integration tests)
+firebase emulators:start
+
+# Run all tests
+npm test
+
+# Run specific test suites
+npm run test:unit          # Unit tests only
+npm run test:integration   # Integration tests (requires emulators)
+npm run test:e2e          # End-to-end tests
+npm run test:security     # Security tests
+npm run test:performance  # Performance tests
+
+# Run with coverage
+npm run test:coverage
+```
+
+For detailed testing documentation, see [backend/tests/README.md](backend/tests/README.md).
 ---
 
 ## ✨ Implemented Features
