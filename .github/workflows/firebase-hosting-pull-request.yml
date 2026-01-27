@@ -7,6 +7,7 @@ permissions:
   checks: write        # Required for Firebase action to create check runs
   contents: read
   pull-requests: write
+  security-events: read  # Required for CodeQL integration
 
 # Cancel previous runs when new commits are pushed
 concurrency:
