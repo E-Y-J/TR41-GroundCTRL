@@ -24,7 +24,7 @@ describe('Performance - Load Tests', () => {
       displayName: 'Performance Test User',
     };
 
-    const response = await request(app)authT
+    const response = await request(app)
       .post('/api/v1/auth/register')
       .send(userData)
       .expect(201);
@@ -39,7 +39,7 @@ describe('Performance - Load Tests', () => {
       const requests = Array(500).fill(null).map(() =>
         request(app)
           .get('/api/v1/users/me')
-          .set('Authorization', `Bearer ${token}`)
+          .set('Authorization', `Bearer ${authToken}`)
       );
 
       await Promise.all(requests);
