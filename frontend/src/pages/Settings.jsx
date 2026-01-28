@@ -11,6 +11,18 @@ import { Loader2, Bell, Globe, Palette, Satellite, Settings as SettingsIcon } fr
 import { Footer } from "@/components/footer"
 import { useTheme } from "next-themes"
 
+// Helper to update preferences in backend
+async function updatePreferences(userId, preferences) {
+  const res = await fetch(`/users/${userId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ preferences }),
+  })
+  if (!res.ok) throw new Error("Failed to update preferences")
+  return res.json()
+}
+
 export default function SettingsPage() {
   const navigate = useNavigate()
   const { user, loading } = useAuth()
@@ -32,6 +44,17 @@ export default function SettingsPage() {
 
   if (!user) {
     return null
+  }
+
+  const handleThemeChange = async (newTheme) => {
+    if (!user) return
+    try {
+      await updatePreferences(user.uid, { theme: newTheme })
+      setTheme(newTheme)
+    } catch (err) {
+      // Optionally show error to user
+      console.error("Failed to update theme preference:", err)
+    }
   }
 
   return (
@@ -70,7 +93,7 @@ export default function SettingsPage() {
                     <p className="font-medium text-foreground">Theme</p>
                     <p className="text-sm text-muted-foreground">Select your preferred theme</p>
                   </div>
-                  <Select value={theme} onValueChange={setTheme}>
+                  <Select value={theme} onValueChange={handleThemeChange}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>

@@ -9,18 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, User, Mail, Shield, Trash2, Satellite, Award, Clock, Rocket } from "lucide-react"
 import { Footer } from "@/components/footer"
 import { sendPasswordResetEmail } from "firebase/auth"
-
-// Add API call helper
-async function updateUserProfile(userId, data) {
+// Add API call helper for account deletion
+async function deleteUserAccount(userId) {
   const res = await fetch(`/users/${userId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-    credentials: "include", // if you use cookies/session auth
+    method: "DELETE",
+    credentials: "include",
   })
-  if (!res.ok) throw new Error("Failed to update profile")
+  if (!res.ok) throw new Error("Failed to delete account on backend")
   return res.json()
 }
 
@@ -35,6 +30,8 @@ export default function AccountPage() {
   const [displayName, setDisplayName] = useState("")
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState("")
+  const [deleteError, setDeleteError] = useState("")
 
   useEffect(() => {
     if (!loading && !user) {
@@ -78,9 +75,21 @@ export default function AccountPage() {
   }
 
   const handleDeleteAccount = async () => {
-    if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      await signOut()
-      navigate("/")
+    setDeleteError("")
+    if (deleteConfirm !== "DELETE") {
+      setDeleteError("You must type DELETE to confirm account deletion.")
+      return
+    }
+    if (confirm("Are you absolutely sure you want to delete your account? This action cannot be undone.")) {
+      try {
+        // Call backend delete endpoint first
+        await deleteUserAccount(user.uid)
+        // Then sign out and navigate away (or call Firebase delete if required)
+        await signOut()
+        navigate("/")
+      } catch (err) {
+        setDeleteError(err.message || "Failed to delete account.")
+      }
     }
   }
 
@@ -223,12 +232,17 @@ export default function AccountPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between opacity-60 pointer-events-none">
                 <div>
-                  <p className="font-medium text-foreground">Two-Factor Authentication</p>
+                  <p className="font-medium text-foreground flex items-center gap-2">
+                    Two-Factor Authentication
+                    <span className="ml-2 px-2 py-0.5 rounded bg-muted text-xs text-muted-foreground border border-border">Coming Soon</span>
+                  </p>
                   <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
                 </div>
-                <Button variant="outline">Enable</Button>
+                <Button variant="outline" disabled title="Feature coming soon">
+                  Enable
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -243,16 +257,31 @@ export default function AccountPage() {
               <CardDescription>Irreversible actions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-foreground">Delete Account</p>
-                  <p className="text-sm text-muted-foreground">
-                    Permanently delete your account and all data
-                  </p>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">Delete Account</p>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently delete your account and all data
+                    </p>
+                  </div>
+                  <Button variant="destructive" onClick={handleDeleteAccount}>
+                    Delete Account
+                  </Button>
                 </div>
-                <Button variant="destructive" onClick={handleDeleteAccount}>
-                  Delete Account
-                </Button>
+                <div className="flex flex-col gap-2 mt-2">
+                  <label htmlFor="deleteConfirm" className="text-xs text-muted-foreground">
+                    Type <span className="font-bold text-red-500">DELETE</span> to confirm:
+                  </label>
+                  <Input
+                    id="deleteConfirm"
+                    value={deleteConfirm}
+                    onChange={e => setDeleteConfirm(e.target.value)}
+                    placeholder="DELETE"
+                    className="max-w-xs"
+                  />
+                  {deleteError && <span className="text-xs text-red-500">{deleteError}</span>}
+                </div>
               </div>
             </CardContent>
           </Card>
