@@ -7,22 +7,44 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Smoke Test', () => {
   test('should load the application', async ({ page }) => {
-    // Just try to load the page
-    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    console.log('=== SMOKE TEST: Attempting to load app ===');
     
-    // Wait a bit
-    await page.waitForTimeout(2000);
+    // Try to load the page
+    try {
+      const response = await page.goto('/', { 
+        waitUntil: 'domcontentloaded', 
+        timeout: 60000 
+      });
+      console.log('Page response status:', response?.status());
+      console.log('Page URL:', page.url());
+    } catch (error) {
+      console.error('Failed to load page:', error.message);
+      throw error;
+    }
+    
+    // Wait longer for React to initialize
+    await page.waitForTimeout(5000);
+    
+    // Take screenshot for debugging
+    await page.screenshot({ path: 'test-results/smoke-test.png', fullPage: true });
     
     // Check if ANYTHING rendered
     const body = page.locator('body');
     const hasContent = await body.textContent();
     
     console.log('Page content length:', hasContent?.length || 0);
-    console.log('Page URL:', page.url());
+    console.log('First 200 chars:', hasContent?.substring(0, 200));
+    
+    // Check for root element
+    const root = await page.locator('#root').count();
+    console.log('Root element found:', root > 0);
+    
+    const rootContent = await page.locator('#root').textContent();
+    console.log('Root content length:', rootContent?.length || 0);
     
     // Body should have some content
     expect(hasContent).toBeTruthy();
-    expect(hasContent.length).toBeGreaterThan(0);
+    expect(hasContent.length).toBeGreaterThan(10);
   });
 
   test('should not have JavaScript errors', async ({ page }) => {
