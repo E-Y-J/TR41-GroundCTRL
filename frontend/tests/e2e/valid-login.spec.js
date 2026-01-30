@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, generateTestEmail, generateTestPassword } from './helpers.js';
+import { login } from './helpers.js';
 
 /**
  * UI-002: Valid Login Test
