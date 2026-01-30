@@ -250,55 +250,11 @@ export default function MissionBriefingPage() {
     setCreatingSession(true)
     
     try {
-      // Fetch the full scenario data
-      const scenario = await fetchScenarioById(id)
-      
-      if (!scenario) {
-        throw new Error('Scenario not found')
-      }
-      
-      console.log('Full scenario data:', scenario)
-      console.log('Scenario _firestore:', scenario._firestore)
-      
-      // Get steps from the right location - check both places
-      const scenarioSteps = scenario._firestore?.steps || scenario.steps || []
-      console.log('Scenario steps:', scenarioSteps)
-      
-      // Create session document directly in Firestore
-      // This creates a snapshot of the scenario at this point in time
+      // Create session via backend API
+      // Only send fields expected by backend schema
+      // Backend will set user_id from authenticated user
       const sessionData = {
-        user_id: user.uid,
         scenario_id: id,
-        scenario: {
-          title: scenario.name || scenario.title,
-          description: scenario.description,
-          category: scenario.category,
-          difficulty: scenario.difficulty,
-        },
-        steps: scenarioSteps,
-        satellite: scenario._firestore?.satellite_id ? {
-          id: scenario._firestore.satellite_id,
-          name: 'SAT-01', // Default name
-          orbit: {
-            altitude_km: 415,
-            inclination_degrees: 51.6,
-            eccentricity: 0.0
-          },
-          power: {
-            currentCharge_percent: 95,
-            solarPower_watts: 1800,
-            consumption_watts: 450
-          },
-          thermal: {
-            temperature_celsius: 20
-          },
-          propulsion: {
-            fuel_percent: 100
-          },
-          payload: {
-            status: 'nominal'
-          }
-        } : null,
         status: 'NOT_STARTED',
         currentStepOrder: 0,
         completedSteps: [],
@@ -309,7 +265,7 @@ export default function MissionBriefingPage() {
         version: 1
       }
       
-      // Create the session in Firestore
+      console.log('Creating session with data:', sessionData)
       const newSessionId = await createSession(sessionData)
       
       setSessionId(newSessionId)
@@ -337,50 +293,10 @@ export default function MissionBriefingPage() {
     setCreatingSession(true)
     
     try {
-      // Fetch the full scenario data
-      const scenario = await fetchScenarioById(id)
-      
-      if (!scenario) {
-        throw new Error('Scenario not found')
-      }
-      
-      // Get steps from the right location - check both places
-      const scenarioSteps = scenario._firestore?.steps || scenario.steps || []
-      
-      // Create session document directly in Firestore
+      // Create session via backend API
+      // Only send fields expected by backend schema
       const sessionData = {
-        user_id: user.uid,
         scenario_id: id,
-        scenario: {
-          title: scenario.name || scenario.title,
-          description: scenario.description,
-          category: scenario.category,
-          difficulty: scenario.difficulty,
-        },
-        steps: scenarioSteps,
-        satellite: scenario._firestore?.satellite_id ? {
-          id: scenario._firestore.satellite_id,
-          name: 'SAT-01', // Default name
-          orbit: {
-            altitude_km: 415,
-            inclination_degrees: 51.6,
-            eccentricity: 0.0
-          },
-          power: {
-            currentCharge_percent: 95,
-            solarPower_watts: 1800,
-            consumption_watts: 450
-          },
-          thermal: {
-            temperature_celsius: 20
-          },
-          propulsion: {
-            fuel_percent: 100
-          },
-          payload: {
-            status: 'nominal'
-          }
-        } : null,
         status: 'NOT_STARTED',
         currentStepOrder: 0,
         completedSteps: [],
@@ -391,7 +307,7 @@ export default function MissionBriefingPage() {
         version: 1
       }
       
-      // Create the session in Firestore
+      console.log('Creating session (skip) with data:', sessionData)
       const newSessionId = await createSession(sessionData)
       
       setSessionData(sessionData) // Store session data

@@ -57,7 +57,10 @@ export default function ScenarioCreator() {
       title: '',
       instructions: '',
       objective: '',
-      hints: ''
+      completionCondition: '',
+      isCheckpoint: false,
+      expectedDurationSeconds: 300,
+      hint_suggestion: ''
     }
   ])
 
@@ -115,7 +118,10 @@ export default function ScenarioCreator() {
         title: '',
         instructions: '',
         objective: '',
-        hints: ''
+        completionCondition: '',
+        isCheckpoint: false,
+        expectedDurationSeconds: 300,
+        hint_suggestion: ''
       }
     ])
   }
@@ -198,10 +204,12 @@ export default function ScenarioCreator() {
 
       // Create steps
       for (const step of steps) {
-        await createScenarioStep({
+        const stepPayload = {
           ...step,
           scenario_id: scenarioId
-        })
+        }
+        console.log('Creating step:', stepPayload)
+        await createScenarioStep(stepPayload)
       }
 
       toast({
@@ -512,12 +520,49 @@ export default function ScenarioCreator() {
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold">Hints for NOVA AI</Label>
                         <Textarea
-                          value={step.hints}
-                          onChange={(e) => updateStep(index, 'hints', e.target.value)}
-                          placeholder="Optional hints to help NOVA guide the user..."
+                          value={step.hint_suggestion}
+                          onChange={(e) => updateStep(index, 'hint_suggestion', e.target.value)}
+                          placeholder="Hints to help NOVA guide the user..."
                           rows={3}
-                          className="resize-none w-full"
+                          className="w-full resize-none"
                         />
+                      </div>
+
+                      {/* Completion Condition */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold">Completion Condition <span className="text-red-500">*</span></Label>
+                        <Textarea
+                          value={step.completionCondition}
+                          onChange={(e) => updateStep(index, 'completionCondition', e.target.value)}
+                          placeholder="How the system knows this step is complete (e.g., 'User successfully sends TLE command')..."
+                          rows={2}
+                          className="w-full resize-none"
+                          required
+                        />
+                      </div>
+
+                      {/* Duration & Checkpoint */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">Duration (seconds) <span className="text-red-500">*</span></Label>
+                          <Input
+                            type="number"
+                            value={step.expectedDurationSeconds}
+                            onChange={(e) => updateStep(index, 'expectedDurationSeconds', parseInt(e.target.value) || 300)}
+                            min={1}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2 flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`checkpoint-${index}`}
+                            checked={step.isCheckpoint}
+                            onChange={(e) => updateStep(index, 'isCheckpoint', e.target.checked)}
+                            className="mr-2"
+                          />
+                          <Label htmlFor={`checkpoint-${index}`} className="text-sm font-semibold cursor-pointer">Checkpoint (key milestone)</Label>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

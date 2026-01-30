@@ -98,6 +98,7 @@ export async function createScenarioStep(stepData) {
     return response.payload || response
   } catch (error) {
     console.error('Failed to create scenario step:', error)
+    console.error('Step validation errors:', error.data?.errors || error.data)
     throw new Error(error.message || 'Failed to create step')
   }
 }
