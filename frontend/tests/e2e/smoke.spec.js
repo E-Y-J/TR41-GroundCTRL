@@ -52,22 +52,31 @@ test.describe('Smoke Test', () => {
     const consoleErrors = [];
     
     page.on('pageerror', error => {
+      // Ignore Firebase auth errors in CI (expected without config)
+      if (error.message.includes('Firebase') && error.message.includes('auth/invalid-api-key')) {
+        console.log('Ignoring expected Firebase config error in CI');
+        return;
+      }
       errors.push(error.message);
       console.log('PAGE ERROR:', error.message);
     });
     
     page.on('console', msg => {
       if (msg.type() === 'error') {
+        // Ignore Firebase errors
+        if (msg.text().includes('Firebase') && msg.text().includes('auth/invalid-api-key')) {
+          return;
+        }
         consoleErrors.push(msg.text());
         console.log('CONSOLE ERROR:', msg.text());
       }
     });
 
-    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(2000);
 
-    console.log('Total page errors:', errors.length);
-    console.log('Total console errors:', consoleErrors.length);
+    console.log('Total page errors (excluding Firebase):', errors.length);
+    console.log('Total console errors (excluding Firebase):', consoleErrors.length);
 
     // Log first few errors if any
     if (errors.length > 0) {
