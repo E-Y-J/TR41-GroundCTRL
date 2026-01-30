@@ -10,6 +10,7 @@ import { Loader2, User, Mail, Shield, Trash2, Satellite, Award, Clock, Rocket } 
 import { Footer } from "@/components/footer"
 import { sendPasswordResetEmail } from "firebase/auth"
 // Add API call helper for profile update
+
 async function updateUserProfile(userId, data) {
   const res = await fetch(`/users/${userId}`, {
     method: "PATCH",
@@ -30,6 +31,7 @@ async function deleteUserAccount(userId) {
   if (!res.ok) throw new Error("Failed to delete account on backend")
   return res.json()
 }
+
 
 export default function AccountPage() {
   // Password reset state
