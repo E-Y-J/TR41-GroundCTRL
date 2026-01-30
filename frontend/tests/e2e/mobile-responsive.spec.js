@@ -49,14 +49,6 @@ test.describe('UI-007: Mobile Responsive Design', () => {
     await hamburger.click();
     await page.waitForTimeout(500); // Wait for animation
     
-    // Mobile navigation drawer should appear
-    const mobileNav = page.locator(
-      '[role="dialog"], ' +
-      '[data-testid*="mobile-menu"], ' +
-      '[class*="mobile-menu"], ' +
-      'nav [class*="drawer"]'
-    );
-    
     // Check if navigation links are now visible
     const navLinks = page.locator('nav a, [role="navigation"] a');
     const visibleLinks = await navLinks.evaluateAll((links) => {
