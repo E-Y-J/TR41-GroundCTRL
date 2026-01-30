@@ -24,17 +24,21 @@ test.describe('UI-001: Basic App Rendering', () => {
     // Wait for page to be fully loaded
     await page.waitForLoadState('networkidle');
 
-    // Check that Navbar is visible
-    const navbar = page.locator('nav, [role="navigation"], header').first();
-    await expect(navbar).toBeVisible();
+    // Check that Header (AppHeader) is visible
+    const header = page.locator('header');
+    await expect(header).toBeVisible();
+    
+    // Check header contains logo
+    const logo = page.locator('header img[alt*="GroundCTRL"]');
+    await expect(logo).toBeVisible();
 
     // Check that Footer is visible
-    const footer = page.locator('footer').first();
+    const footer = page.locator('footer');
     await expect(footer).toBeVisible();
 
-    // Check that main content/home page is visible
-    const mainContent = page.locator('main, [role="main"]').first();
-    await expect(mainContent).toBeVisible();
+    // Check that page has content (min-h-screen div)
+    const pageContent = page.locator('div.min-h-screen');
+    await expect(pageContent).toBeVisible();
 
     // Verify no console errors occurred
     expect(consoleErrors).toHaveLength(0);
@@ -59,10 +63,14 @@ test.describe('UI-001: Basic App Rendering', () => {
     // Verify page title is set
     const title = await page.title();
     expect(title).toBeTruthy();
-    expect(title.length).toBeGreaterThan(0);
+    expect(title).toContain('GroundCTRL');
 
-    // Verify basic structure
-    const body = page.locator('body');
-    await expect(body).toBeVisible();
+    // Verify header with navigation links
+    const navLinks = page.locator('header nav a');
+    await expect(navLinks.first()).toBeVisible();
+    
+    // Verify theme toggle button exists
+    const themeToggle = page.locator('button:has(svg)');
+    await expect(themeToggle.first()).toBeVisible();
   });
 });

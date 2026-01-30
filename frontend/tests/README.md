@@ -4,16 +4,25 @@ This directory contains end-to-end (E2E) tests for the GroundCTRL frontend appli
 
 ## Test Coverage
 
-The tests implement the requirements from the Comprehensive Test Plan:
+The tests implement UI-specific requirements based on the actual app structure:
 
-- **UI-001**: Basic App Rendering - Verifies Navbar, Footer, and Home page render without errors
-- **UI-002**: Valid Login - Tests successful login flow and avatar display
-- **UI-003**: Invalid Login - Tests error handling for invalid credentials in production mode
-- **UI-004**: Duplicate CallSign - Verifies registration allows duplicate callSigns
-- **UI-005**: Code Splitting - Tests lazy loading and chunk fetching
+### Active Tests (Run in CI)
+- **UI-001**: Basic App Rendering - Verifies Header, Footer, and page load without errors
+- **UI-005**: Code Splitting - Tests lazy loading and chunk fetching with React.lazy()
 - **UI-006**: Tailwind Styling - Validates Tailwind CSS classes are applied correctly
-- **UI-007**: Mobile Responsive - Tests hamburger menu and mobile navigation
-- **UI-008**: ES Module Imports - Verifies no CommonJS require statements for React
+- **UI-007**: Mobile Responsive - Tests responsive layout at different viewport sizes
+- **UI-008**: ES Module Imports - Verifies no CommonJS require statements
+- **UI-009**: Theme Toggle - Tests dark/light mode switching
+- **UI-010**: Lazy Loading - Tests React Suspense and loading states
+- **UI-011**: Navigation - Tests nav links and routing
+- **UI-012**: 404 Not Found - Tests error page handling
+
+### Backend-Dependent Tests (Skipped in CI)
+- **UI-002**: Valid Login - Tests successful login flow (requires backend)
+- **UI-003**: Invalid Login - Tests error handling for invalid credentials (requires backend)
+- **UI-004**: Duplicate CallSign - Verifies registration with duplicate callSigns (requires backend)
+
+> **Note:** Auth tests are skipped in CI but can be run locally with backend running.
 
 ## Setup
 

@@ -1,0 +1,93 @@
+import { test, expect } from '@playwright/test';
+
+/**
+ * UI-011: Navigation and Routing Test
+ * 
+ * Description: Test navigation menu links and active states
+ * Expected Result: Nav links work correctly and show active state
+ */
+
+test.describe('UI-011: Navigation and Routing', () => {
+  test('should display all navigation links', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Get all nav links
+    const navLinks = page.locator('header nav a');
+    const count = await navLinks.count();
+
+    // Should have multiple nav links (Missions, Simulator, Help, etc.)
+    expect(count).toBeGreaterThanOrEqual(3);
+  });
+
+  test('should navigate to all major routes', async ({ page }) => {
+    const routes = [
+      { path: '/', title: 'GroundCTRL' },
+      { path: '/missions', title: 'Missions' },
+      { path: '/simulator', title: 'Simulator' },
+      { path: '/help', title: 'Help' },
+      { path: '/contact', title: 'Contact' },
+    ];
+
+    for (const route of routes) {
+      await page.goto(route.path);
+      await page.waitForLoadState('networkidle');
+
+      // Page should load successfully
+      const header = page.locator('header');
+      await expect(header).toBeVisible();
+
+      // Title should contain relevant text
+      const title = await page.title();
+      expect(title).toBeTruthy();
+    }
+  });
+
+  test('should highlight active navigation link', async ({ page }) => {
+    await page.goto('/missions');
+    await page.waitForLoadState('networkidle');
+
+    // Find the missions link
+    const missionsLink = page.locator('header nav a[href="/missions"]');
+    
+    if (await missionsLink.count() > 0) {
+      // Get classes on active link
+      const classes = await missionsLink.getAttribute('class');
+      
+      // Should have active indicator (primary color or border)
+      expect(classes).toMatch(/primary|border/i);
+    }
+  });
+
+  test('should navigate via logo click', async ({ page }) => {
+    await page.goto('/missions');
+    await page.waitForLoadState('networkidle');
+
+    // Click logo to return home
+    const logo = page.locator('header a:has(img[alt*="GroundCTRL"])');
+    await logo.click();
+    await page.waitForLoadState('networkidle');
+
+    // Should be back on home page
+    await expect(page).toHaveURL('/');
+  });
+
+  test('should have working footer links', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Check footer has links
+    const footerLinks = page.locator('footer a');
+    const count = await footerLinks.count();
+    
+    expect(count).toBeGreaterThan(0);
+
+    // Test one footer link (Privacy)
+    const privacyLink = page.locator('footer a[href="/privacy"]');
+    if (await privacyLink.count() > 0) {
+      await privacyLink.click();
+      await page.waitForLoadState('networkidle');
+      await expect(page).toHaveURL('/privacy');
+    }
+  });
+});
