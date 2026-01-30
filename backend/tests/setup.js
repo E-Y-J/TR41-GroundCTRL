@@ -8,7 +8,23 @@ process.env.NODE_ENV = 'test';
 // Use 127.0.0.1 instead of localhost for better compatibility
 process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
 process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
-process.env.JWT_SECRET = 'test-secret-key-for-testing-only-do-not-use-in-production';
+
+// Generate test RSA key pair for JWT
+const crypto = require('crypto');
+const { generateKeyPairSync } = crypto;
+const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicKeyEncoding: {
+    type: 'spki',
+    format: 'pem'
+  },
+  privateKeyEncoding: {
+    type: 'pkcs8',
+    format: 'pem'
+  }
+});
+process.env.JWT_PRIVATE_KEY = privateKey;
+process.env.JWT_PUBLIC_KEY = publicKey;
 
 // Disable external network requests
 process.env.FIREBASE_EMULATOR_HUB = '127.0.0.1:4400';

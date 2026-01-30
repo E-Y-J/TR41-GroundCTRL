@@ -126,8 +126,8 @@ app.use(cors({
 }));
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Trust proxy (required for Cloud Run to get real client IPs from X-Forwarded-* headers)
 app.set('trust proxy', 1);

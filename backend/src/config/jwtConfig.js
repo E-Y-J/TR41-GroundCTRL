@@ -8,10 +8,11 @@
  */
 
 module.exports = {
-  secret: process.env.JWT_SECRET,
+  privateKey: process.env.JWT_PRIVATE_KEY,
+  publicKey: process.env.JWT_PUBLIC_KEY,
   accessTokenExpiry: process.env.JWT_ACCESS_TOKEN_EXPIRY || '15m',
   refreshTokenExpiry: process.env.JWT_REFRESH_TOKEN_EXPIRY || '7d',
-  algorithm: 'HS256',
+  algorithm: 'RS256',
   issuer: 'GroundCTRL',
   audience: 'GroundCTRL-API'
 };
