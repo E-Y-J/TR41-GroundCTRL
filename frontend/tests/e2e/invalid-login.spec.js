@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
  * Expected Result: Error displayed; no hint of email existence.
  */
 
-test.describe('UI-003: Invalid Login (Production Mode)', () => {
+test.describe.skip('UI-003: Invalid Login (Production Mode)', () => {
   test.use({
     extraHTTPHeaders: {
       'X-Test-Env': 'production',

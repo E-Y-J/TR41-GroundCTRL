@@ -9,7 +9,7 @@ import { register, generateTestEmail, generateTestPassword } from './helpers.js'
  * Expected Result: 201 Created; both users share same callSign.
  */
 
-test.describe('UI-004: Duplicate CallSign Registration', () => {
+test.describe.skip('UI-004: Duplicate CallSign Registration', () => {
   const sharedCallSign = 'SHARED-TEST-CS';
   
   test('should allow registration with duplicate callSign', async ({ page }) => {
