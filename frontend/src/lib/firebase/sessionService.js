@@ -12,7 +12,7 @@
  */
 
 import { db } from './config'
-import { doc, getDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore'
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import * as apiSessionService from '../api/sessionService'
 
 const SESSIONS_COLLECTION = 'scenario_sessions'
