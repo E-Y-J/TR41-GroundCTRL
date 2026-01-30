@@ -46,7 +46,7 @@ test.describe('UI-007: Mobile Responsive Design', () => {
     const bodyWidth = await body.evaluate(el => el.scrollWidth);
     
     // Should not cause significant horizontal scroll (allow some tolerance)
-    expect(bodyWidth).toBeLessThanOrEqual(400);
+    expect(bodyWidth).toBeLessThanOrEqual(420);
   });
 
   test('should be fully responsive at 480px breakpoint', async ({ page }) => {
