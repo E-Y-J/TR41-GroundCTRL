@@ -62,7 +62,7 @@ npm run test:e2e:debug
 
 ```bash
 # Run a specific test file
-npx playwright test ui-001-basic-rendering.spec.js
+npx playwright test basic-rendering.spec.js
 
 # Run tests matching a pattern
 npx playwright test --grep "login"
