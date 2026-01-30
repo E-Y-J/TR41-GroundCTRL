@@ -42,38 +42,13 @@ export default defineConfig({
   },
 
   /* Configure projects for major browsers */
-  projects: process.env.CI
-    ? [
-        // CI: Only test Chromium for speed
-        {
-          name: 'chromium',
-          use: { ...devices['Desktop Chrome'] },
-        },
-      ]
-    : [
-        // Local: Test all browsers
-        {
-          name: 'chromium',
-          use: { ...devices['Desktop Chrome'] },
-        },
-        {
-          name: 'firefox',
-          use: { ...devices['Desktop Firefox'] },
-        },
-        {
-          name: 'webkit',
-          use: { ...devices['Desktop Safari'] },
-        },
-        /* Test against mobile viewports */
-        {
-          name: 'Mobile Chrome',
-          use: { ...devices['Pixel 5'] },
-        },
-        {
-          name: 'Mobile Safari',
-          use: { ...devices['iPhone 12'] },
-        },
-      ],
+  projects: [
+    // Test only Chromium for speed
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
