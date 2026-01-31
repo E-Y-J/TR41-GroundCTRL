@@ -18,25 +18,29 @@ const logger = require('../utils/logger');
  * Sync OAuth user profile (Google, etc.)
  * POST /auth/sync-oauth-profile
  * SECURITY: Must be called with authenticated user token
+ * Uses authenticated user's UID from token, not from request body
  */
 async function syncOAuthProfile(req, res, next) {
   try {
-    const { uid, email, displayName, photoURL } = req.body;
+    // SECURITY: Require authentication - get UID from verified token, not request body
+    if (!req.user || !req.user.uid) {
+      throw new ValidationError('Authentication required');
+    }
     
-    // SECURITY: Verify provided uid matches authenticated user
+    const { email, displayName, photoURL } = req.body;
+    
+    if (!email) {
+      throw new ValidationError('email is required');
+    }
+    
+    // SECURITY: Use authenticated user's UID from token, not from request body
     // This prevents users from manipulating other users' profiles
-    if (req.user && req.user.uid !== uid) {
-      throw new ValidationError('Cannot sync profile for different user');
-    }
-    
-    if (!uid || !email) {
-      throw new ValidationError('uid and email are required');
-    }
+    const authenticatedUid = req.user.uid;
     
     // Create or update user profile in Firestore
-    const result = await authService.syncOAuthProfile(uid, email, displayName, photoURL);
+    const result = await authService.syncOAuthProfile(authenticatedUid, email, displayName, photoURL);
     
-    logger.info('OAuth profile synced', { uid, email });
+    logger.info('OAuth profile synced', { uid: authenticatedUid, email });
     
     const response = responseFactory.createSuccessResponse(result, {
       callSign: result.user.callSign,

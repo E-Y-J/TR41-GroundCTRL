@@ -60,8 +60,8 @@ export async function signInWithGoogle() {
   // Sync user profile with backend (creates if new, updates if existing)
   if (userCredential.user) {
     try {
+      // SECURITY: Backend uses authenticated UID from token, not from request body
       await apiAuthService.syncGoogleProfile({
-        uid: userCredential.user.uid,
         email: userCredential.user.email,
         displayName: userCredential.user.displayName || "",
         photoURL: userCredential.user.photoURL || null
