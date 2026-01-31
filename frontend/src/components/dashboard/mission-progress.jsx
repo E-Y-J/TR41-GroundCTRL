@@ -19,7 +19,6 @@ export function MissionProgress() {
   const [missions, setMissions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [progressByTier, setProgressByTier] = useState({})
 
   useEffect(() => {
     async function loadMissionData() {
