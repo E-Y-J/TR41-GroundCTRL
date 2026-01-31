@@ -1,11 +1,11 @@
 
 // Minimal stub for authentication service
+
+// Minimal stub for authentication service
 module.exports = {
   async login({ _email, _password }) {
     return { token: 'dummy-token', refreshToken: 'dummy-refresh', uid: 'dummy-uid' };
-
   },
-};
   async register({ _email, _password }) {
     return { uid: 'dummy-uid', email: _email };
   },
@@ -15,4 +15,5 @@ module.exports = {
   async revokeToken({ _token }) {
     return { success: true };
   },
+};
 
