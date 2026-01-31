@@ -9,27 +9,32 @@ let appInstance = null;
 
 /**
  * Get or create the test Express app instance
- * This ensures Firebase is only initialized once across all tests
  * @returns {Express} The Express app instance
  */
 function getTestApp() {
   if (!appInstance) {
-    // Set emulator hosts before requiring the app
     process.env.NODE_ENV = 'test';
     process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
     process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
     process.env.FIREBASE_WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY || 'test-api-key-for-emulator';
 
-    // Clear the require cache to ensure fresh initialization
     delete require.cache[require.resolve('../../src/app')];
-
     appInstance = require('../../src/app');
   }
   return appInstance;
 }
 
 /**
- * Create a test user in Firebase Auth Emulator AND Firestore
+ * Generate unique email for testing
+ * @param {string} prefix - Email prefix
+ * @returns {string} Unique email
+ */
+function generateUniqueEmail(prefix = 'test') {
+  return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 10000)}@test.com`;
+}
+
+/**
+ * Create a test user - FAST VERSION
  * @param {string} email - User email
  * @param {string} password - User password
  * @param {string} callSign - Optional call sign
@@ -37,30 +42,24 @@ function getTestApp() {
  */
 async function createTestUser(email, password = 'TestPassword123!', callSign = null) {
   try {
-    // First, try to delete existing user with this email
+    // Quick cleanup
     try {
       const existingUser = await admin.auth().getUserByEmail(email);
       await admin.auth().deleteUser(existingUser.uid);
-      // Also delete Firestore document
       const db = admin.firestore();
       await db.collection('users').doc(existingUser.uid).delete();
-      // Wait longer for deletion to propagate
-      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
-      // User doesn't exist, continue
+      // User doesn't exist
     }
 
-    // Create user in Firebase Auth
+    // Create auth user
     const userRecord = await admin.auth().createUser({
       email,
       password,
       emailVerified: true,
     });
 
-    // Wait longer for user creation to propagate
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Create corresponding Firestore user document (REQUIRED for login!)
+    // Create Firestore document IMMEDIATELY
     const db = admin.firestore();
     const generatedCallSign = callSign || `TEST${Date.now().toString().slice(-6)}`;
     await db.collection('users').doc(userRecord.uid).set({
@@ -75,8 +74,8 @@ async function createTestUser(email, password = 'TestPassword123!', callSign = n
       status: 'ACTIVE'
     });
 
-    // Wait longer for Firestore write to complete
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Minimal wait - emulator is usually fast
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     return userRecord;
   } catch (error) {
@@ -86,7 +85,7 @@ async function createTestUser(email, password = 'TestPassword123!', callSign = n
 }
 
 /**
- * Delete a test user from Firebase Auth and Firestore
+ * Delete a test user
  * @param {string} uid - User ID
  */
 async function deleteTestUser(uid) {
@@ -102,7 +101,7 @@ async function deleteTestUser(uid) {
 }
 
 /**
- * Generate a valid JWT token for testing
+ * Generate JWT token
  * @param {string} uid - User ID
  * @returns {Promise<string>} Custom token
  */
@@ -112,41 +111,10 @@ async function generateTestToken(uid) {
 
 /**
  * Wait helper
- * @param {number} ms - Milliseconds to wait
+ * @param {number} ms - Milliseconds
  */
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Login with retry logic for flaky emulator
- * @param {object} app - Express app
- * @param {string} email - User email
- * @param {string} password - User password
- * @param {number} maxRetries - Maximum retry attempts
- * @returns {Promise<object>} Login response
- */
-async function loginWithRetry(app, email, password, maxRetries = 3) {
-  const request = require('supertest');
-  let lastResponse;
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    lastResponse = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email, password });
-    
-    if (lastResponse.status === 200) {
-      return lastResponse;
-    }
-    
-    console.log(`Login attempt ${attempt}/${maxRetries} failed with status ${lastResponse.status}`);
-    
-    if (attempt < maxRetries) {
-      await wait(1000);
-    }
-  }
-  
-  return lastResponse;
 }
 
 module.exports = {
@@ -154,6 +122,6 @@ module.exports = {
   createTestUser,
   deleteTestUser,
   generateTestToken,
-  wait,
-  loginWithRetry
+  generateUniqueEmail,
+  wait
 };
