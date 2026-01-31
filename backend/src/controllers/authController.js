@@ -24,30 +24,26 @@ async function syncOAuthProfile(req, res, next) {
   try {
     // SECURITY: Require authentication first – this is the only gate
     if (!req.user || !req.user.uid) {
-      // Use a generic error so this is clearly the auth check
       throw new ValidationError('Authentication required to sync profile');
     }
 
     const authenticatedUid = req.user.uid;
 
-    // Pure input validation – not a permissions check
+    // Optional user-controlled fields – used only as data, not for auth
     const body = req.body || {};
-    const email = typeof body.email === 'string' ? body.email.trim() : '';
+    const email = typeof body.email === 'string' ? body.email.trim() : undefined;
     const displayName = body.displayName;
     const photoURL = body.photoURL;
 
-    if (!email) {
-      // This is just "bad request" validation, not an auth decision
-      throw new ValidationError('Valid email is required to sync profile');
-    }
-
-    // Sensitive action is always executed strictly for authenticatedUid,
-    // never based on any user-controlled identifier.
+    // Call service with UID + optional profile data.
+    // Service is responsible for deciding how to update user collection.
     const result = await authService.syncOAuthProfile(
       authenticatedUid,
-      email,
-      displayName,
-      photoURL
+      {
+        email,
+        displayName,
+        photoURL
+      }
     );
 
     logger.info('OAuth profile synced', { uid: authenticatedUid, email });

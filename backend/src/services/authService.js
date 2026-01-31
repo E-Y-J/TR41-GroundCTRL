@@ -52,14 +52,13 @@ async function verifyPassword(email, password) {
 /**
  * Sync OAuth user profile (Google, etc.)
  * Creates or updates user profile in Firestore for OAuth users
- * @param {string} uid - Firebase Auth UID (already created by OAuth)
- * @param {string} email - User email
- * @param {string} displayName - User's display name
- * @param {string} photoURL - User's photo URL
+ * @param {string} uid - Firebase Auth UID (from verified token)
+ * @param {object} profileData - Optional profile data {email, displayName, photoURL}
  * @returns {Promise<object>} User data with tokens
  */
-async function syncOAuthProfile(uid, email, displayName = null, photoURL = null) {
+async function syncOAuthProfile(uid, profileData = {}) {
   const db = getFirestore();
+  const { email, displayName, photoURL } = profileData;
   
   try {
     // Check if user already exists in Firestore
