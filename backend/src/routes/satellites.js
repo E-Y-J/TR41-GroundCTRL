@@ -201,7 +201,7 @@ const deleteSatelliteValidation = z.object({
  *       422:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.get('/', optionalAuth, validate(listSatellitesValidation), satelliteController.list);
+router.get('/', authMiddleware, validate(listSatellitesValidation), satelliteController.list);
 
 /**
  * @swagger

@@ -34,6 +34,7 @@ router.get('/', (req, res) => {
       version: missionControl.version,
       availableRoutes: [
         { path: '/health', methods: ['GET'], description: 'Health check and system status' },
+        { path: '/ping', methods: ['GET'], description: 'Quick connectivity check' },
         { path: '/auth/login', methods: ['POST'], description: 'Operator authentication' },
         { path: '/auth/logout', methods: ['POST'], description: 'Operator session termination' },
         { path: '/auth/refresh', methods: ['POST'], description: 'Token refresh' },
@@ -54,6 +55,17 @@ router.get('/', (req, res) => {
       requestId: req.id || 'N/A'
     },
     timestamp: Date.now()
+  });
+});
+
+// Ping endpoint - quick connectivity check
+router.get('/ping', (req, res) => {
+  res.status(200).json({
+    status: 'GO',
+    code: 200,
+    brief: 'System operational',
+    payload: { message: 'pong' },
+    telemetry: { missionTime: new Date().toISOString() }
   });
 });
 

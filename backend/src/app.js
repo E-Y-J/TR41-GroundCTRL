@@ -53,6 +53,12 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Add HSTS header in production
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
+  
   console.log('DEBUG: Headers set:', res.getHeaders());
   next();
 });
@@ -60,6 +66,11 @@ app.use((req, res, next) => {
 // Security headers middleware (helmet)
 if (process.env.NODE_ENV !== 'test') {
   app.use(helmet({
+    hsts: {
+      maxAge: 31536000, // 1 year in seconds
+      includeSubDomains: true,
+      preload: true
+    },
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ['\'self\''],
@@ -104,15 +115,21 @@ if (process.env.NODE_ENV !== 'test') {
 // Expose Firebase status for health checks
 app.locals.firebaseInitialized = firebaseInitialized;
 
-// CORS configuration
+// CORS configuration for test and production
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-  : ['http://localhost:5173'];
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5000', 
+     'https://groundctrl.org', 'https://staging.groundctrl.org'];
 
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
     if (!origin) return callback(null, true);
+    
+    // In test environment, be more permissive
+    if (process.env.NODE_ENV === 'test') {
+      return callback(null, true);
+    }
     
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
@@ -122,8 +139,13 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400 // 24 hours for preflight cache
+};
+
+app.use(cors(corsOptions));
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

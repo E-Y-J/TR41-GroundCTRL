@@ -35,16 +35,33 @@ function getTestApp() {
  */
 async function createTestUser(email, password = 'TestPassword123!') {
   try {
+    // Add extra randomness to prevent conflicts
+    const uniqueEmail = email.includes('@') && !email.includes(Math.random().toString(36))
+      ? email.replace('@', `-${Math.random().toString(36).substring(7)}@`)
+      : email;
+    
     const userRecord = await admin.auth().createUser({
-      email,
+      email: uniqueEmail,
       password,
       emailVerified: true,
     });
     return userRecord;
   } catch (error) {
     if (error.code === 'auth/email-already-exists') {
-      const existingUser = await admin.auth().getUserByEmail(email);
-      return existingUser;
+      // If email still exists, try to delete and recreate
+      try {
+        const existingUser = await admin.auth().getUserByEmail(email);
+        await admin.auth().deleteUser(existingUser.uid);
+        // Retry creation
+        const userRecord = await admin.auth().createUser({
+          email,
+          password,
+          emailVerified: true,
+        });
+        return userRecord;
+      } catch (retryError) {
+        throw error; // Throw original error if retry fails
+      }
     }
     throw error;
   }
