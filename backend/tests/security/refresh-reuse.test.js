@@ -6,6 +6,7 @@
 
 const request = require('supertest');
 const { getTestApp } = require('../helpers/test-utils');
+const { getAuth, getFirestore } = require('../helpers/firebase-admin');
 
 describe('Refresh Token Reuse Prevention Tests', () => {
   let app;
@@ -15,7 +16,6 @@ describe('Refresh Token Reuse Prevention Tests', () => {
     app = getTestApp();
     // Add delay to ensure emulators are ready
     await new Promise(resolve => setTimeout(resolve, 1000));
-  }, 60000);
 
     // Create a test user
     const auth = getAuth();
@@ -36,13 +36,7 @@ describe('Refresh Token Reuse Prevention Tests', () => {
       createdAt: new Date(),
       updatedAt: new Date()
     });
-
-    testUser = {
-      uid: userRecord.uid,
-      email: 'refresh-test@example.com',
-      callSign: 'REFRESH_TEST'
-    };
-  });
+  }, 60000);
 
   afterAll(async () => {
     // Cleanup will be handled by test framework
