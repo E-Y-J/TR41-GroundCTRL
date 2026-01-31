@@ -10,7 +10,7 @@
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
     "test:e2e": "jest tests/e2e",
-    "test:security": "jest tests/security",
+    "test:security": "cross-env NODE_ENV=test jest --config=tests/security/jest.config.js",
     "test:performance": "jest tests/performance",
     "test:ci-cd": "jest tests/ci-cd",
     "test:watch": "jest --watch",
