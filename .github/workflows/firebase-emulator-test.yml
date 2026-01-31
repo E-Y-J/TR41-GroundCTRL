@@ -143,17 +143,13 @@ jobs:
         with:
           script: |
             const body = `❌ **Backend Tests Failed**
-
             The backend tests did not pass for this PR.
-
             � **Next Steps:**
             1. Review the [test logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             2. Check that Firebase emulators started successfully
             3. Run tests locally: \`firebase emulators:start --only auth,firestore\` then \`npm test\`
             4. Push fixes to this PR
-
             **Commit:** \`${context.sha.substring(0, 7)}\``;
-
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
