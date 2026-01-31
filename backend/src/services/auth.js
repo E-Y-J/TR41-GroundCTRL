@@ -13,5 +13,4 @@ module.exports = {
   async revokeToken({ _token }) {
     return { success: true };
   },
-};
-};
+
