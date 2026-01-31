@@ -22,15 +22,15 @@ const logger = require('../utils/logger');
  */
 async function syncOAuthProfile(req, res, next) {
   try {
+    // Validate required fields first (input validation, not security check)
+    const { email, displayName, photoURL } = req.body;
+    if (!email) {
+      throw new ValidationError('email is required');
+    }
+    
     // SECURITY: Require authentication - get UID from verified token, not request body
     if (!req.user || !req.user.uid) {
       throw new ValidationError('Authentication required');
-    }
-    
-    const { email, displayName, photoURL } = req.body;
-    
-    if (!email) {
-      throw new ValidationError('email is required');
     }
     
     // SECURITY: Use authenticated user's UID from token, not from request body
