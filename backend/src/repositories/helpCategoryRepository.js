@@ -32,9 +32,12 @@ async function getAll(options = {}) {
   const db = getFirestore();
   let query = db.collection(COLLECTION);
   
+  // Default to active categories unless explicitly overridden
+  const isActive = options.isActive !== undefined ? options.isActive : true;
+  
   // Apply filters
-  if (options.isActive !== undefined) {
-    query = query.where('isActive', '==', options.isActive);
+  if (isActive !== undefined) {
+    query = query.where('isActive', '==', isActive);
   }
   
   if (options.parentCategoryId !== undefined) {

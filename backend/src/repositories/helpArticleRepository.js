@@ -60,6 +60,21 @@ async function getAll(options = {}) {
   // Track if we're using a where clause on a non-sort field
   let hasFilterClause = false;
   
+  // Default to published and active articles unless explicitly overridden
+  const status = options.status !== undefined ? options.status : 'PUBLISHED';
+  const isActive = options.isActive !== undefined ? options.isActive : true;
+  
+  // Apply default status filters
+  if (status) {
+    query = query.where('status', '==', status);
+    hasFilterClause = true;
+  }
+  
+  if (isActive !== undefined) {
+    query = query.where('isActive', '==', isActive);
+    hasFilterClause = true;
+  }
+  
   // Apply filters
   if (options.category_id) {
     query = query.where('category_id', '==', options.category_id);
@@ -76,15 +91,6 @@ async function getAll(options = {}) {
     hasFilterClause = true;
   }
   
-  if (options.status) {
-    query = query.where('status', '==', options.status);
-    hasFilterClause = true;
-  }
-  
-  if (options.isActive !== undefined) {
-    query = query.where('isActive', '==', options.isActive);
-    hasFilterClause = true;
-  }
   
   if (options.isFeatured !== undefined) {
     query = query.where('isFeatured', '==', options.isFeatured);

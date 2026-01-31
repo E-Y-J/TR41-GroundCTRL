@@ -36,17 +36,22 @@ async function getAll(options = {}) {
   const page = options.page || 1;
   const limit = options.limit || 20;
   
+  // Default to published and active FAQs unless explicitly overridden
+  const status = options.status !== undefined ? options.status : 'PUBLISHED';
+  const isActive = options.isActive !== undefined ? options.isActive : true;
+  
+  // Apply default filters
+  if (status) {
+    query = query.where('status', '==', status);
+  }
+  
+  if (isActive !== undefined) {
+    query = query.where('isActive', '==', isActive);
+  }
+  
   // Apply filters
   if (options.category_id) {
     query = query.where('category_id', '==', options.category_id);
-  }
-  
-  if (options.status) {
-    query = query.where('status', '==', options.status);
-  }
-  
-  if (options.isActive !== undefined) {
-    query = query.where('isActive', '==', options.isActive);
   }
   
   if (options.isFeatured !== undefined) {
