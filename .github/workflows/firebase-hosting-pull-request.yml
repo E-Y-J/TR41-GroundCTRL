@@ -83,7 +83,7 @@ jobs:
       - name: Install Playwright browsers (for E2E tests)
         if: steps.check_secret.outputs.secret_configured == 'true' && steps.extract_url.outputs.deployment_status == 'success'
         working-directory: ./frontend
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps
         continue-on-error: true
       
       - name: Run E2E tests against deployed preview
