@@ -40,7 +40,8 @@ export async function loginWithFirebaseToken(firebaseToken) {
  */
 export async function registerUser(userData) {
   try {
-    const response = await api.post('/auth/register', userData, {}) // Uses standard API client configuration
+    // Registration doesn't require authentication (user doesn't exist yet)
+    const response = await api.post('/auth/register', userData, {}, false)
     return response.payload || response.user
   } catch (error) {
     console.error('Failed to register user:', error)
