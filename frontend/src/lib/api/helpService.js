@@ -106,7 +106,7 @@ export async function getArticlesByCategory(categoryId, limit = 100) {
 export async function getPopularArticles(limit = 4) {
   try {
     const response = await api.get(`/help/articles/popular?limit=${limit}`, {}, false)
-    return response.payload?.articles || []
+    return response.payload?.data?.articles || []
   } catch (error) {
     console.error('Failed to fetch popular articles:', error)
     return []

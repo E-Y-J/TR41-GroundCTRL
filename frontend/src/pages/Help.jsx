@@ -67,6 +67,7 @@ export default function HelpPage() {
   // State for fetched data
   const [categories, setCategories] = useState([])
   const [faqs, setFaqs] = useState([])
+  const [displayedFaqs, setDisplayedFaqs] = useState([]) // Randomly selected FAQs to display
   const [popularArticles, setPopularArticles] = useState([])
   const [categoryArticles, setCategoryArticles] = useState({})
   const [articleCounts, setArticleCounts] = useState({}) // Track counts per category
@@ -87,6 +88,13 @@ export default function HelpPage() {
         
         setCategories(categoriesData)
         setFaqs(faqsData)
+        
+        // Randomly select 5 FAQs to display
+        if (faqsData.length > 0) {
+          const shuffled = [...faqsData].sort(() => 0.5 - Math.random())
+          setDisplayedFaqs(shuffled.slice(0, 5))
+        }
+        
         setPopularArticles(popularData)
         
         // Fetch article counts for all categories
@@ -155,10 +163,10 @@ export default function HelpPage() {
   const isSearching = searchQuery.length >= 2
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-background">
       <AppHeader />
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Nova Assistant Sidebar - Unified component with auth detection */}
         <NovaAssistant 
           context="help" 
@@ -166,7 +174,7 @@ export default function HelpPage() {
           className="hidden lg:flex" 
         />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           <main className="flex-1 overflow-y-auto">
           {/* Loading State */}
           {loading && (
@@ -177,9 +185,9 @@ export default function HelpPage() {
             </div>
           )}
 
-          {/* Hero Section - Compact Single Row */}
+          {/* Hero Section - Compact Single Row - Sticky */}
           {!loading && (
-            <section className="bg-card border-b border-border py-4 px-6">
+            <section className="sticky top-0 z-10 bg-card border-b border-border py-4 px-6 shadow-sm">
             <div className="max-w-6xl mx-auto flex items-center gap-6">
               <div className="flex items-center gap-3 shrink-0">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -401,9 +409,9 @@ export default function HelpPage() {
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold text-foreground">Frequently Asked Questions</h2>
 
-                  {faqs.length > 0 ? (
+                  {displayedFaqs.length > 0 ? (
                     <div className="space-y-3">
-                      {faqs.map((faq, index) => (
+                      {displayedFaqs.map((faq, index) => (
                       <div
                         key={faq.id}
                         className="bg-card border border-border rounded-lg overflow-hidden"
