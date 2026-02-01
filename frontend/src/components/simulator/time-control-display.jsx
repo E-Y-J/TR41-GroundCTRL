@@ -30,9 +30,11 @@ const TIME_SCALES = [
   { value: 1000, label: '1000x', icon: <Zap className="w-3 h-3" />, description: 'Maximum' }
 ];
 
+const DEFAULT_TIME_SCALE = 1; // Real-time scale
+
 export function TimeControlDisplay({ className = '', sessionId }) {
   const { timeScale, telemetrySocket } = useWebSocket();
-  const [lastNonZeroScale, setLastNonZeroScale] = useState(1);
+  const [lastNonZeroScale, setLastNonZeroScale] = useState(DEFAULT_TIME_SCALE);
   
   // Derive isPaused from authoritative timeScale from backend
   const isPaused = timeScale === 0;
