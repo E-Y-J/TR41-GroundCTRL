@@ -137,11 +137,11 @@ const postUserMessageSchema = z.object({
       .min(1, 'Message content is required')
       .max(5000, 'User message must be 5000 characters or fewer')
       .refine(
-        (val) => !/<script.*?>/i.test(val) && !/<\/script>/i.test(val),
+        (val) => !/<script\b[\s\S]*?>/i.test(val) && !/<\/script\b[\s\S]*?>/i.test(val),
         { message: 'Scripts not allowed in content' }
       )
       .refine(
-        (val) => !/<iframe.*?>/i.test(val) && !/<\/iframe>/i.test(val),
+        (val) => !/<iframe\b[\s\S]*?>/i.test(val) && !/<\/iframe\b[\s\S]*?>/i.test(val),
         { message: 'Iframes not allowed in content' }
       )
       .refine(
