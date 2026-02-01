@@ -28,6 +28,7 @@ export function NovaAssistant({ sessionId, stepId }) {
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [novaStatus, setNovaStatus] = useState('checking') // 'online', 'offline', 'checking'
+  const [suggestions, setSuggestions] = useState([])
   const [messages, setMessages] = useState([
     {
       id: "intro-1",
@@ -132,12 +133,23 @@ export function NovaAssistant({ sessionId, stepId }) {
 
       const data = await response.json()
       
+      // Extract message content from response payload
+      const messageData = data.payload?.data?.message || data.message || {}
+      const suggestionsData = data.payload?.data?.suggestions || data.suggestions || []
+      
       const novaResponse = {
         id: `assistant-${Date.now()}`,
         type: "assistant",
-        content: data.replyText || "I'm sorry, I couldn't process that request."
+        content: messageData.content || data.replyText || "I'm sorry, I couldn't process that request."
       }
       setMessages(prev => [...prev, novaResponse])
+      
+      // Update suggestions if provided
+      if (suggestionsData && suggestionsData.length > 0) {
+        setSuggestions(suggestionsData)
+      } else {
+        setSuggestions([])
+      }
       
       // Save progress after chat interaction
       setTimeout(() => {
@@ -257,21 +269,43 @@ export function NovaAssistant({ sessionId, stepId }) {
             )}
           </Button>
         </form>
-        <div className="flex gap-2">
-          {quickActions.map((action, i) => (
-            <Button 
-              key={i}
-              variant="outline" 
-              size="sm" 
-              disabled={isLoading}
-              onClick={() => handleSend(action.prompt)}
-              className="flex-1 rounded-lg text-xs bg-transparent gap-1.5"
-            >
-              <action.icon className="h-3 w-3" />
-              {action.label}
-            </Button>
-          ))}
-        </div>
+        
+        {/* Suggestions from API or quick actions */}
+        {suggestions.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((suggestion) => (
+              <Button 
+                key={suggestion.id}
+                variant="outline" 
+                size="sm" 
+                disabled={isLoading}
+                onClick={() => {
+                  handleSend(suggestion.action)
+                  setSuggestions([]) // Clear suggestions after clicking
+                }}
+                className="flex-shrink-0 rounded-lg text-xs bg-transparent"
+              >
+                {suggestion.label}
+              </Button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            {quickActions.map((action, i) => (
+              <Button 
+                key={i}
+                variant="outline" 
+                size="sm" 
+                disabled={isLoading}
+                onClick={() => handleSend(action.prompt)}
+                className="flex-1 rounded-lg text-xs bg-transparent gap-1.5"
+              >
+                <action.icon className="h-3 w-3" />
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
     </aside>
   )
