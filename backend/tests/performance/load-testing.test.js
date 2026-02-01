@@ -81,7 +81,7 @@ describe('Performance - Load Tests', () => {
       // instead of being rejected with 429 errors
       const requests = Array(100).fill(null).map(() =>
         request(app)
-          .post('/api/v1/ai/help/ask')
+          .post('/api/v1/ai/chat')
           .send({ content: 'Test question' })
       );
 
