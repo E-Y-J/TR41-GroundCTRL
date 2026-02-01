@@ -17,6 +17,7 @@ const scenarioRepository = require('../repositories/scenarioRepository');
 const helpArticleRepository = require('../repositories/helpArticleRepository');
 const helpFaqRepository = require('../repositories/helpFaqRepository');
 const { generateAnonymousId, generateHelpSessionId, isAnonymousId } = require('../utils/anonymousId');
+const aiQueue = require('./aiQueue');
 const logger = require('../utils/logger');
 
 // Gemini model configuration - can be overridden via environment variable
@@ -377,22 +378,37 @@ async function generateNovaResponse(sessionId, userId, userMessage, options = {}
   // Build prompt
   const fullPrompt = buildStepAwarePrompt(context, userMessage);
 
-  // Try to get response with retries
+  // Try to get response with retries - wrapped in queue for rate limiting
   let lastError = null;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      // Create timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), REQUEST_TIMEOUT_MS);
-      });
+      // Wrap AI call in queue to prevent rate limit errors
+      const result = await aiQueue.addToQueue(
+        async () => {
+          // Create timeout promise
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Request timeout')), REQUEST_TIMEOUT_MS);
+          });
 
-      // Generate content with timeout
-      const generatePromise = model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
-        generationConfig: GENERATION_CONFIG,
-      });
+          // Generate content with timeout
+          const generatePromise = model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+            generationConfig: GENERATION_CONFIG,
+          });
 
-      const result = await Promise.race([generatePromise, timeoutPromise]);
+          return await Promise.race([generatePromise, timeoutPromise]);
+        },
+        {
+          priority: request_hint ? 1 : 0, // Prioritize hint requests
+          metadata: {
+            sessionId,
+            userId,
+            type: 'training',
+            attempt,
+          },
+        }
+      );
+
       const responseText = result.response.text();
 
       // Detect if this is a hint
@@ -825,20 +841,38 @@ async function generateHelpResponse(userMessage, options = {}) {
     ? buildAuthenticatedHelpPrompt(helpContext, userMessage, callSign || 'OPERATOR')
     : buildHelpAwarePrompt(helpContext, userMessage);
 
-  // Try to get response with retries
+  // Try to get response with retries - wrapped in queue for rate limiting
   let lastError = null;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), REQUEST_TIMEOUT_MS);
-      });
+      // Wrap AI call in queue to prevent rate limit errors
+      const result = await aiQueue.addToQueue(
+        async () => {
+          // Create timeout promise
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Request timeout')), REQUEST_TIMEOUT_MS);
+          });
 
-      const generatePromise = model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
-        generationConfig: GENERATION_CONFIG,
-      });
+          // Generate content with timeout
+          const generatePromise = model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+            generationConfig: GENERATION_CONFIG,
+          });
 
-      const result = await Promise.race([generatePromise, timeoutPromise]);
+          return await Promise.race([generatePromise, timeoutPromise]);
+        },
+        {
+          priority: 0, // Normal priority for help requests
+          metadata: {
+            conversationId,
+            userId,
+            type: 'help',
+            attempt,
+            isAuthenticated,
+          },
+        }
+      );
+
       const responseText = result.response.text();
 
       // Store assistant response
