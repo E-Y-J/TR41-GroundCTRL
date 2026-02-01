@@ -36,12 +36,13 @@ export async function loginWithFirebaseToken(firebaseToken) {
 /**
  * Register a new user via backend API
  * @param {object} userData - User registration data
- * @returns {Promise<object>} User data
+ * @returns {Promise<object>} User data with tokens
  */
 export async function registerUser(userData) {
   try {
-    const response = await api.post('/auth/register', userData, {}) // Uses standard API client configuration
-    return response.payload || response.user
+    const response = await api.post('/auth/register', userData, {}, false)
+    // Return full response including accessToken and refreshToken
+    return response.payload || response
   } catch (error) {
     console.error('Failed to register user:', error)
     throw new Error(error.message || 'Failed to register user')
