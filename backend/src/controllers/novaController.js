@@ -335,7 +335,7 @@ async function askHelpQuestion(req, res, _next) {
     let novaResponse;
     try {
       novaResponse = await Promise.race([novaPromise, timeoutPromise]);
-    } catch (_timeoutError) {
+    } catch {
       // Timeout occurred - return graceful fallback
       logger.warn('NOVA help request timed out', {
         content: content.substring(0, 100),
