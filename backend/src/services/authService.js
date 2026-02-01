@@ -71,6 +71,9 @@ async function syncOAuthProfile(uid, profileData = {}) {
       throw new AuthError('User email not found in Firebase Auth', 400);
     }
     
+    // Determine auth provider (google.com, facebook.com, etc.)
+    const authProvider = authUser.providerData[0]?.providerId || 'unknown';
+    
     // Check if user already exists in Firestore
     const userDoc = await db.collection('users').doc(uid).get();
     
@@ -112,6 +115,7 @@ async function syncOAuthProfile(uid, profileData = {}) {
       email,
       callSign: finalCallSign,
       displayName: displayName || finalCallSign,
+      authProvider, // Track auth provider (google.com, facebook.com, etc.)
       isAdmin: false,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -195,6 +199,7 @@ async function register(email, password, callSign = null, displayName = null) {
       email,
       callSign: finalCallSign,
       displayName: displayName || finalCallSign,
+      authProvider: 'password', // Password-based auth (not OAuth)
       isAdmin: false,
       createdAt: new Date(),
       updatedAt: new Date(),
