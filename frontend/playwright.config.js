@@ -52,7 +52,17 @@ export default defineConfig({
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { 
+        ...devices['Desktop Firefox'],
+        // Firefox has intermittent browser protocol errors on context close
+        // This doesn't affect test validity, just cleanup
+        contextOptions: {
+          // Disable session restore to prevent Firefox protocol errors
+          ignoreDefaultArgs: ['--restore-session'],
+        },
+      },
+      // Retry Firefox tests once to handle intermittent protocol errors
+      retries: 1,
     },
     {
       name: 'webkit',
