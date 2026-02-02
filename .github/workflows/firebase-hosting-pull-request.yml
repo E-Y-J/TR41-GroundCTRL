@@ -2,7 +2,12 @@
 # https://github.com/firebase/firebase-tools
 
 name: Deploy to Firebase Hosting on pull request
-on: pull_request
+on: 
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'firebase.json'
+      - '.github/workflows/firebase-hosting-pull-request.yml'
 permissions:
   checks: write        # Required for Firebase action to create check runs
   contents: read
@@ -11,17 +16,32 @@ permissions:
 
 # Cancel previous runs when new commits are pushed
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: firebase-deploy-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
+  # Wait for main E2E tests to complete first
+  wait_for_e2e_tests:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Wait for E2E Tests
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: 'E2E Tests (chromium)'  # Wait for at least one E2E test to complete
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          allowed-conclusions: success,failure,cancelled,skipped
+
   build_and_preview:
+    needs: wait_for_e2e_tests
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit, 'Mobile Chrome', 'Mobile Safari']
+        browser: [chromium, 'Mobile Chrome']  # Reduced matrix for deployment testing
     steps:
       - uses: actions/checkout@v4
       
