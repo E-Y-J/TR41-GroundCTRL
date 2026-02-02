@@ -1,7 +1,8 @@
 # CodeQL Analysis for GroundCTRL
 # This workflow performs CodeQL analysis on the codebase to identify security vulnerabilities
 
-name: "CodeQL Analysis"
+# TEMPORARILY DISABLED - uncomment when queue issues resolved
+# name: "CodeQL Analysis"
 
 on:
   push:

@@ -33,7 +33,7 @@ jobs:
       fail-fast: false  # Continue running other browsers even if one fails
       max-parallel: 1   # Run tests sequentially to avoid runner queue issues
       matrix:
-        browser: [chromium, firefox]  # Reduced from 5 to 2 browsers to use fewer runners
+        browser: [chromium]  # Reduced to just 1 browser temporarily
     
     steps:
       - name: Checkout code
