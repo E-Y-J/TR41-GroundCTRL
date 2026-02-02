@@ -123,15 +123,20 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 const corsOptions = {
   origin: (origin, callback) => {
+    // Reject explicit 'null' origin (security risk)
+    if (origin === 'null') {
+      return callback(new Error('Not allowed by CORS'));
+    }
+
     // Allow requests with no origin (like mobile apps, curl, or server-to-server)
     if (!origin) return callback(null, true);
-    
+
     // In test environment, be more permissive
     if (process.env.NODE_ENV === 'test') {
       return callback(null, true);
     }
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
