@@ -17,6 +17,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const swaggerUi = require('swagger-ui-express');
+const logger = require('./utils/logger');
 
 // Initialize Express app immediately
 const app = express();
@@ -47,9 +48,9 @@ try {
   // Set defaults for failed modules
   swaggerSpec = swaggerSpec || {};
   missionControl = missionControl || { version: 'unknown' };
-  auditLogger = auditLogger || ((req, res, next) => next());
-  apiLimiter = apiLimiter || ((req, res, next) => next());
-  authErrorNormalizer = authErrorNormalizer || ((req, res, next) => next());
+  auditLogger = auditLogger || ((req, res, _next) => _next());
+  apiLimiter = apiLimiter || ((req, res, _next) => _next());
+  authErrorNormalizer = authErrorNormalizer || ((req, res, _next) => _next());
   errorHandler = errorHandler || ((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
   });
@@ -73,7 +74,6 @@ try {
   console.error('    Error:', error.message);
   
   // Log for production debugging
-  const logger = require('./utils/logger');
   logger.error('Failed to initialize Firebase - server will start in degraded mode', { 
     error: error.message,
     stack: error.stack,
