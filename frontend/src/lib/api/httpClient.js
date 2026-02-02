@@ -90,15 +90,7 @@ export async function apiRequest(endpoint, options = {}, requiresAuth = true) {
         console.error('Failed to get token:', error)
         throw new APIError('Failed to get auth token', 401, { brief: error.message })
       }
-    // Use backend JWT token instead of Firebase token
-    const backendToken = getBackendAccessToken()
-    
-    if (!backendToken) {
-      throw new APIError('Not authenticated', 401, { brief: 'No backend token available. Please log in.' })
     }
-    
-    console.log('✅ Using backend JWT token')
-    headers['Authorization'] = `Bearer ${backendToken}`
   }
 
   try {

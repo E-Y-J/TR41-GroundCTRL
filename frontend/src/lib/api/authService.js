@@ -72,19 +72,9 @@ export async function registerUser(userData) {
   try {
     const response = await api.post('/auth/register', userData, {}, false)
     
-    // Extract tokens from nested structure
-    const payload = response.payload || response
-    const tokens = payload.tokens || {}
-    const user = payload.user || {}
-    
-    return {
-      ...payload,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      user
-    }
+
     // Registration doesn't require authentication (user doesn't exist yet)
-    const response = await api.post('/auth/register', userData, {}, false)
+
     return response.payload || response.user
   } catch (error) {
     console.error('Failed to register user:', error)
