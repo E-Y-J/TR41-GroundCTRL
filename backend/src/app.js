@@ -29,46 +29,6 @@ let appReady = false;
 app.locals.appReady = false;
 app.locals.firebaseInitialized = false;
 
-// Add a simple readiness check endpoint before other middleware
-app.get('/readiness', (req, res) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Cache-Control', 'no-cache');
-  
-  const isReady = app.locals.appReady && (app.locals.serverReady !== false);
-  
-  if (isReady) {
-    res.status(200).json({
-      status: 'ready',
-      message: 'Server is ready to accept traffic',
-      app: app.locals.appReady,
-      server: app.locals.serverReady || false,
-      firebase: app.locals.firebaseInitialized,
-      timestamp: new Date().toISOString()
-    });
-  } else {
-    res.status(503).json({
-      status: 'not-ready',
-      message: 'Server is still starting up',
-      app: app.locals.appReady,
-      server: app.locals.serverReady || false,
-      firebase: app.locals.firebaseInitialized,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// Add a simple liveness check endpoint
-app.get('/liveness', (req, res) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.status(200).json({
-    status: 'alive',
-    message: 'Server is running',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  });
-});
-
 // Initialize Firebase with graceful error handling
 // Don't exit process on failure - let server start for Cloud Run health checks
 let firebaseInitialized = false;
