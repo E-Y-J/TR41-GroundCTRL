@@ -59,12 +59,17 @@ describe('CI - ESLint Security', () => {
       const files = fs.readdirSync(srcDir);
 
       files.forEach(file => {
-        const filePath = `${srcDir}/${file}`;
-        if (fs.statSync(filePath).isFile()) {
+        const filePath = path.resolve(path.join(srcDir, file));
+        try {
           const content = fs.readFileSync(filePath, 'utf8');
 
           // Should not use eval()
           expect(content).not.toMatch(/\beval\s*\(/);
+        } catch (err) {
+          // Skip if not a file or cannot be read
+          if (err.code !== 'EISDIR' && err.code !== 'ENOENT') {
+            throw err;
+          }
         }
       });
     }
@@ -83,11 +88,16 @@ describe('CI - ESLint Security', () => {
         if (!filePath.startsWith(baseDir)) {
           throw new Error(`Path traversal detected: ${file}`);
         }
-        if (fs.statSync(filePath).isFile()) {
+        try {
           const content = fs.readFileSync(filePath, 'utf8');
 
           // Should avoid ReDoS patterns
-          expect(content).not.toMatch(/\^.*\$.*\(\.\*\)|\\w\+\\.\.\*\\w\+/);
+          expect(content).not.toMatch(/\^.*\$.*\(\.\*\)|\\w\+\\\.\.\*\\w\+/);
+        } catch (err) {
+          // Skip if not a file or cannot be read
+          if (err.code !== 'EISDIR' && err.code !== 'ENOENT') {
+            throw err;
+          }
         }
       });
     }
@@ -177,11 +187,16 @@ describe('CI - ESLint Security', () => {
         if (!filePath.startsWith(baseDir)) {
           throw new Error(`Path traversal detected: ${file}`);
         }
-        if (fs.statSync(filePath).isFile()) {
+        try {
           const content = fs.readFileSync(filePath, 'utf8');
 
           // Should not use dynamic requires with user input
           expect(content).not.toMatch(/require\(.*\+.*\)/);
+        } catch (err) {
+          // Skip if not a file or cannot be read
+          if (err.code !== 'EISDIR' && err.code !== 'ENOENT') {
+            throw err;
+          }
         }
       });
     }

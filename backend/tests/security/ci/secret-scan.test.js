@@ -92,12 +92,17 @@ describe('CI - Secret Scan', () => {
         if (!filePath.startsWith(baseDir)) {
           throw new Error(`Path traversal detected: ${file}`);
         }
-        if (fs.statSync(filePath).isFile()) {
+        try {
           const content = fs.readFileSync(filePath, 'utf8');
 
           // Should not contain database passwords
           expect(content).not.toMatch(/mongodb:\/\/[^:]*:[^@]*@/);
           expect(content).not.toMatch(/postgres:\/\/.*:.*@/);
+        } catch (err) {
+          // Skip if not a file or cannot be read
+          if (err.code !== 'EISDIR' && err.code !== 'ENOENT') {
+            throw err;
+          }
         }
       });
     }
@@ -117,13 +122,21 @@ describe('CI - Secret Scan', () => {
           if (!filePath.startsWith(baseDir)) {
             throw new Error(`Path traversal detected: ${file}`);
           }
-          if (fs.statSync(filePath).isDirectory()) {
-            checkForHardcodedCreds(filePath);
-          } else if (file.endsWith('.js')) {
-            const content = fs.readFileSync(filePath, 'utf8');
-            // Should not have service account JSON hardcoded
-            expect(content).not.toMatch(/"type":\s*"service_account"/);
-            expect(content).not.toMatch(/"private_key":\s*"-----BEGIN PRIVATE KEY-----/);
+          try {
+            const stat = fs.statSync(filePath);
+            if (stat.isDirectory()) {
+              checkForHardcodedCreds(filePath);
+            } else if (file.endsWith('.js')) {
+              const content = fs.readFileSync(filePath, 'utf8');
+              // Should not have service account JSON hardcoded
+              expect(content).not.toMatch(/"type":\s*"service_account"/);
+              expect(content).not.toMatch(/"private_key":\s*"-----BEGIN PRIVATE KEY-----/);
+            }
+          } catch (err) {
+            // Skip if file cannot be accessed
+            if (err.code !== 'ENOENT') {
+              throw err;
+            }
           }
         });
       };
@@ -176,11 +189,16 @@ describe('CI - Secret Scan', () => {
         if (!filePath.startsWith(baseDir)) {
           throw new Error(`Path traversal detected: ${file}`);
         }
-        if (fs.statSync(filePath).isFile()) {
+        try {
           const content = fs.readFileSync(filePath, 'utf8');
 
           // Should not have OAuth tokens hardcoded
           expect(content).not.toMatch(/ya29\.[a-zA-Z0-9_-]{25,}/);
+        } catch (err) {
+          // Skip if not a file or cannot be read
+          if (err.code !== 'EISDIR' && err.code !== 'ENOENT') {
+            throw err;
+          }
         }
       });
     }
