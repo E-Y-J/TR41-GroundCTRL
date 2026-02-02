@@ -33,7 +33,7 @@ Successfully automated unit, integration, and E2E tests for GroundCTRL with comp
 - ✅ Response envelope structure verification
 
 **Security Test Suite:**
-- 📁 `backend/tests/security/` - 50+ comprehensive security tests across 11 categories:
+- 📁 `backend/tests/security/` - 400+ comprehensive security tests across 52 test suites in 11 categories:
   - **Validation**: Input sanitization, injection prevention, ownership enforcement
   - **Rate Limiting**: Global limits, composite keys, AI endpoint protection
   - **Authentication**: JWT validation, token revocation, login flows
