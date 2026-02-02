@@ -123,18 +123,19 @@ describe('CI - Secret Scan', () => {
             throw new Error(`Path traversal detected: ${file}`);
           }
           try {
-            const stat = fs.statSync(filePath);
-            if (stat.isDirectory()) {
-              checkForHardcodedCreds(filePath);
-            } else if (file.endsWith('.js')) {
+            // Try to read as file first (most common case)
+            if (file.endsWith('.js')) {
               const content = fs.readFileSync(filePath, 'utf8');
               // Should not have service account JSON hardcoded
               expect(content).not.toMatch(/"type":\s*"service_account"/);
               expect(content).not.toMatch(/"private_key":\s*"-----BEGIN PRIVATE KEY-----/);
             }
           } catch (err) {
-            // Skip if file cannot be accessed
-            if (err.code !== 'ENOENT') {
+            // If it's a directory, recurse into it
+            if (err.code === 'EISDIR') {
+              checkForHardcodedCreds(filePath);
+            } else if (err.code !== 'ENOENT') {
+              // Skip if file doesn't exist, otherwise throw
               throw err;
             }
           }
