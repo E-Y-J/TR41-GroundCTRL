@@ -26,16 +26,8 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 }
 
-// Debug: log Firebase config (but mask API key for security)
-console.log('Frontend Firebase Config:', {
-  ...firebaseConfig,
-  apiKey: firebaseConfig.apiKey ? `${firebaseConfig.apiKey.substring(0, 10)}...` : 'NOT SET'
-})
-
 // Initialize Firebase (singleton pattern to prevent multiple instances)
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
-
-console.log('Frontend Firebase Project ID:', firebaseConfig.projectId)
 
 // Initialize Firebase services
 export const auth = getAuth(app)
