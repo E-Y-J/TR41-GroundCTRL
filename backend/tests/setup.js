@@ -6,6 +6,9 @@
 // Set test environment variables
 process.env.NODE_ENV = 'test';
 
+// Suppress verbose logging in tests to reduce output truncation
+process.env.LOG_LEVEL = 'error';
+
 // Always set emulator hosts for test environment (required for Firebase config validation)
 // Even though we use mocks, some tests validate these environment variables
 process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';

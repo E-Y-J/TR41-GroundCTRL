@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --runInBand",
+    "test": "node check-files.js && jest --runInBand",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
     "test:e2e": "jest tests/e2e",
@@ -16,6 +16,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:all": "jest tests/unit tests/integration tests/security tests/ci-cd",
+    "test:silent": "jest --runInBand --silent",
+    "test:debug": "node check-files.js && jest --runInBand --detectOpenHandles",
     "test:emulator": "firebase emulators:exec --only auth,firestore \"npm test\"",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js --fix",
