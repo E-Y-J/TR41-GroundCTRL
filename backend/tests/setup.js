@@ -21,13 +21,13 @@ process.env.FIREBASE_WEB_API_KEY = 'test-firebase-web-api-key'; // Mock API key 
 // Configure rate limits for testing - much more lenient to avoid test failures
 // Use shorter windows and REASONABLE limits (reduced to prevent socket exhaustion in tests)
 process.env.LOGIN_RATE_LIMIT_WINDOW_MS = '1000'; // 1 second
-process.env.LOGIN_RATE_LIMIT_MAX_REQUESTS = '100'; // 100 requests per second (was 1000)
+process.env.LOGIN_RATE_LIMIT_MAX_REQUESTS = '1000'; // 1000 requests per second
 process.env.AUTH_RATE_LIMIT_WINDOW_MS = '1000'; // 1 second
-process.env.AUTH_RATE_LIMIT_MAX_REQUESTS = '100'; // 100 requests per second (was 10000)
+process.env.AUTH_RATE_LIMIT_MAX_REQUESTS = '1000'; // 1000 requests per second
 process.env.API_RATE_LIMIT_WINDOW_MS = '1000'; // 1 second
-process.env.API_RATE_LIMIT_MAX_REQUESTS = '100'; // 100 requests per second (was 10000)
+process.env.API_RATE_LIMIT_MAX_REQUESTS = '1000'; // 1000 requests per second
 process.env.HELP_AI_RATE_LIMIT_WINDOW_MS = '1000'; // 1 second
-process.env.HELP_AI_RATE_LIMIT_MAX_REQUESTS = '100'; // 100 requests per second (was 1000)
+process.env.HELP_AI_RATE_LIMIT_MAX_REQUESTS = '1000'; // 1000 requests per second (increased for concurrent tests)
 
 // Store auth users in global scope BEFORE mocks (jest.mock is hoisted)
 // This must be initialized before jest.mock() calls
