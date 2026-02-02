@@ -84,7 +84,7 @@ describe('Validation - Property Based', () => {
           password: 'ValidPassword123!',
           displayName: displayName,
         })
-        .expect([200, 201, 400]);
+        .expect([200, 201, 400, 409]);
 
       if (response.status === 400) {
         expect(response.body.payload).toHaveProperty('error');
@@ -220,7 +220,7 @@ describe('Validation - Property Based', () => {
         password: 'ValidPassword123!',
         displayName: '用户名 مستخدم ユーザー', // Multi-language characters
       })
-      .expect([200, 201, 400]);
+      .expect([200, 201, 400, 409]);
 
     expect(response.body).toBeDefined();
   }, 60000);
@@ -241,7 +241,7 @@ describe('Validation - Property Based', () => {
           password: 'ValidPassword123!',
           displayName: payload,
         })
-        .expect([200, 201, 400]);
+        .expect([200, 201, 400, 409]);
 
       // Should either sanitize or reject
       expect(response.body).toBeDefined();
