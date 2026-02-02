@@ -3,7 +3,7 @@
  * Handles user authentication and profile operations via backend API
  */
 
-import api from './httpClient'
+import api, { setBackendTokens } from './httpClient'
 
 /**
  * Login with email and password via backend
@@ -40,7 +40,7 @@ export async function loginWithCredentials(email, password) {
  */
 export async function loginWithFirebaseToken(firebaseToken) {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1'}/auth/login`, {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1'}/auth/exchange-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,11 +50,13 @@ export async function loginWithFirebaseToken(firebaseToken) {
     
     if (!response.ok) {
       const error = await response.json()
-      throw new Error(error.message || 'Failed to login with backend')
+      throw new Error(error.brief || error.message || 'Failed to exchange token with backend')
     }
     
     const data = await response.json()
-    return data.payload || data
+    // Backend returns: { status: 'GO', payload: { data: { user, tokens: { accessToken, refreshToken } } } }
+    const result = data.payload?.data || data.payload || data
+    return result
   } catch (error) {
     console.error('Failed to exchange Firebase token:', error)
     throw new Error(error.message || 'Failed to authenticate with backend')
@@ -81,6 +83,9 @@ export async function registerUser(userData) {
       refreshToken: tokens.refreshToken,
       user
     }
+    // Registration doesn't require authentication (user doesn't exist yet)
+    const response = await api.post('/auth/register', userData, {}, false)
+    return response.payload || response.user
   } catch (error) {
     console.error('Failed to register user:', error)
     throw new Error(error.message || 'Failed to register user')
@@ -89,14 +94,33 @@ export async function registerUser(userData) {
 
 /**
  * Create/update user profile after Google sign-in
+ * Exchanges Firebase ID token for backend JWT tokens
  * @param {object} profileData - User profile data from Google
+ * @param {string} idToken - Firebase ID token for authentication
  * @returns {Promise<object>} User data
  */
-export async function syncGoogleProfile(profileData) {
+export async function syncGoogleProfile(profileData, idToken) {
   try {
-    // Register Google user via backend (no password for OAuth users)
-    const response = await api.post('/auth/register', profileData)
-    return response.payload || response.user
+    // Use dedicated OAuth profile sync endpoint with Firebase ID token for authentication
+    const response = await api.post('/auth/sync-oauth-profile', profileData, {
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      }
+    })
+    
+    // Extract response data
+    const data = response.payload?.data || response
+    
+    // Store backend JWT tokens for subsequent requests
+    if (data.accessToken && data.refreshToken) {
+      setBackendTokens(data.accessToken, data.refreshToken)
+      console.log('✅ Backend JWT tokens stored after OAuth sync')
+    } else {
+      console.warn('⚠️ No JWT tokens received from sync endpoint')
+    }
+    
+    // Return user data
+    return data.user || data
   } catch (error) {
     console.error('Failed to sync Google profile:', error)
     throw new Error(error.message || 'Failed to sync user profile')

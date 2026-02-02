@@ -253,6 +253,22 @@ export default function MissionBriefingPage() {
       // Create session via backend API
       // Only send fields expected by backend schema
       // Backend will set user_id from authenticated user
+      // Fetch the full scenario data
+      const scenario = await fetchScenarioById(id)
+      
+      if (!scenario) {
+        throw new Error('Scenario not found')
+      }
+      
+      console.log('Full scenario data:', scenario)
+      console.log('Scenario _firestore:', scenario._firestore)
+      
+      // Get steps from the right location - check both places
+      const scenarioSteps = scenario._firestore?.steps || scenario.steps || []
+      console.log('Scenario steps:', scenarioSteps)
+      
+      // Create session via backend API
+      // Backend schema expects only these fields (user_id is set from JWT token)
       const sessionData = {
         scenario_id: id,
         status: 'NOT_STARTED',
@@ -266,8 +282,12 @@ export default function MissionBriefingPage() {
       }
       
       console.log('Creating session with data:', sessionData)
+      // Create the session via backend API
       const newSessionId = await createSession(sessionData)
       console.log('Session created successfully with ID:', newSessionId)
+      
+      console.log('✅ Session created successfully:', newSessionId)
+      console.log('📋 Starting countdown sequence...')
       
       setSessionId(newSessionId)
       setPhase("countdown")
@@ -295,6 +315,18 @@ export default function MissionBriefingPage() {
     try {
       // Create session via backend API
       // Only send fields expected by backend schema
+      // Fetch the full scenario data
+      const scenario = await fetchScenarioById(id)
+      
+      if (!scenario) {
+        throw new Error('Scenario not found')
+      }
+      
+      // Get steps from the right location - check both places
+      const scenarioSteps = scenario._firestore?.steps || scenario.steps || []
+      
+      // Create session via backend API
+      // Backend schema expects only these fields (user_id is set from JWT token)
       const sessionData = {
         scenario_id: id,
         status: 'NOT_STARTED',
@@ -308,9 +340,14 @@ export default function MissionBriefingPage() {
       }
       
       console.log('Creating session (skip) with data:', sessionData)
+      // Create the session via backend API
       const newSessionId = await createSession(sessionData)
       console.log('Session created (skip) successfully with ID:', newSessionId)
       
+      console.log('✅ Session created successfully:', newSessionId)
+      console.log('🚀 Navigating to simulator with session:', newSessionId)
+      
+      setSessionData(sessionData) // Store session data
       navigate(`/simulator?session=${newSessionId}`)
     } catch (err) {
       console.error('Error creating session:', err)

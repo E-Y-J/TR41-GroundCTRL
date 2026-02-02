@@ -1,5 +1,3 @@
-"use client"
-
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -45,6 +43,24 @@ export async function signUp(email, password, displayName, callSign) {
   }
   
   return response
+  // Let backend handle everything: Firebase Auth user creation + Firestore document
+  // This ensures atomic operation and proper validation
+  try {
+    await apiAuthService.registerUser({
+      email,
+      password,
+      displayName: displayName || "",
+      callSign: callSign || ""
+    })
+    
+    // After backend creates user, sign in to get Firebase Auth session
+    const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    
+    return userCredential.user
+  } catch (error) {
+    console.error('Registration failed:', error)
+    throw new Error(error.message || 'Registration failed')
+  }
 }
 
 // Sign in with email and password
@@ -86,12 +102,15 @@ export async function signInWithGoogle() {
   // Sync user profile with backend (creates if new, updates if existing)
   if (userCredential.user) {
     try {
+      // Get Firebase ID token to send with request
+      const idToken = await userCredential.user.getIdToken()
+      
+      // SECURITY: Backend uses authenticated UID from token, not from request body
       await apiAuthService.syncGoogleProfile({
-        uid: userCredential.user.uid,
         email: userCredential.user.email,
         displayName: userCredential.user.displayName || "",
         photoURL: userCredential.user.photoURL || null
-      })
+      }, idToken)
     } catch (error) {
       // Log error but don't block sign-in
       console.error('Failed to sync Google profile with backend:', error)
