@@ -3,10 +3,10 @@
  * Multi-step wizard for creating training scenarios
  */
 
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { createScenario, createScenarioStep, getSatellites, getGroundStations } from '@/lib/api/scenarioService'
+import { createScenario, createScenarioStep, getSatellites, getGroundStations, getScenario, listScenarioSteps, updateScenario, updateScenarioStep } from '@/lib/api/scenarioService'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,11 +27,17 @@ export default function ScenarioCreator() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { toast } = useToast()
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('edit')
+  const viewId = searchParams.get('view')
+  const scenarioId = editId || viewId
 
   const [currentStep, setCurrentStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [satellites, setSatellites] = useState([])
   const [groundStations, setGroundStations] = useState([])
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isViewMode, setIsViewMode] = useState(false)
 
   // Form data
   const [scenarioData, setScenarioData] = useState({
@@ -65,6 +71,78 @@ export default function ScenarioCreator() {
       hint_suggestion: ''
     }
   ])
+
+  // Load existing scenario for editing or viewing
+  useEffect(() => {
+    if (scenarioId) {
+      loadExistingScenario(scenarioId)
+    }
+  }, [scenarioId])
+
+  const loadExistingScenario = async (id) => {
+    try {
+      setLoading(true)
+      
+      // Load scenario data
+      const scenarioResponse = await getScenario(id)
+      const scenario = scenarioResponse?.data || scenarioResponse
+      
+      setScenarioData({
+        code: scenario.code || '',
+        title: scenario.title || '',
+        description: scenario.description || '',
+        difficulty: scenario.difficulty || 'BEGINNER',
+        tier: scenario.tier || 'ROOKIE_PILOT',
+        type: scenario.type || 'GUIDED',
+        estimatedDurationMinutes: scenario.estimatedDurationMinutes || 30,
+        status: scenario.status || 'DRAFT',
+        isActive: scenario.isActive ?? true,
+        isCore: scenario.isCore ?? false,
+        isPublic: scenario.isPublic ?? false,
+        satellite_id: scenario.satellite_id || '',
+        ground_station_id: scenario.ground_station_id || '',
+        tags: scenario.tags || [],
+        objectives: scenario.objectives || [],
+        prerequisites: scenario.prerequisites || []
+      })
+      
+      // Load scenario steps
+      const stepsResponse = await listScenarioSteps(id)
+      const loadedSteps = stepsResponse?.data || stepsResponse
+      
+      if (Array.isArray(loadedSteps) && loadedSteps.length > 0) {
+        setSteps(loadedSteps.map(step => ({
+          id: step.id,
+          stepOrder: step.stepOrder,
+          title: step.title || '',
+          instructions: step.instructions || '',
+          objective: step.objective || '',
+          completionCondition: step.completionCondition || '',
+          isCheckpoint: step.isCheckpoint ?? false,
+          expectedDurationSeconds: step.expectedDurationSeconds || 300,
+          hint_suggestion: step.hint_suggestion || ''
+        })))
+      }
+      
+      setIsEditMode(!!editId)
+      setIsViewMode(!!viewId)
+      
+      toast({
+        title: viewId ? 'Viewing Scenario' : 'Loaded for Editing',
+        description: `${viewId ? 'Viewing' : 'Editing'} scenario "${scenario.title}"`,
+      })
+    } catch (error) {
+      console.error('Failed to load scenario:', error)
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to load scenario',
+        variant: 'destructive'
+      })
+      navigate('/admin/scenarios')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Load satellites when on satellite step
   const loadSatellites = async () => {
@@ -218,31 +296,63 @@ export default function ScenarioCreator() {
       console.log('Current user:', user)
       console.log('Scenario data to submit:', scenarioData)
       
-      // Create scenario
-      const createdScenario = await createScenario(scenarioData)
-      console.log('Scenario created:', createdScenario)
-      const scenarioId = createdScenario.data?.id || createdScenario.id
+      let finalScenarioId
       
-      if (!scenarioId) {
-        throw new Error('Failed to get scenario ID from response')
-      }
-      
-      console.log('Using scenario ID:', scenarioId)
-
-      // Create steps
-      for (const step of steps) {
-        const stepPayload = {
-          ...step,
-          scenario_id: scenarioId
+      if (isEditMode && editId) {
+        // Update existing scenario
+        await updateScenario(editId, scenarioData)
+        finalScenarioId = editId
+        
+        // Update or create steps
+        for (const step of steps) {
+          const stepPayload = {
+            ...step,
+            scenario_id: finalScenarioId
+          }
+          delete stepPayload.id // Remove id from payload
+          
+          if (step.id) {
+            // Update existing step
+            console.log('Updating step:', step.id, stepPayload)
+            await updateScenarioStep(step.id, stepPayload)
+          } else {
+            // Create new step
+            console.log('Creating new step:', stepPayload)
+            await createScenarioStep(stepPayload)
+          }
         }
-        console.log('Creating step:', stepPayload)
-        await createScenarioStep(stepPayload)
-      }
+        
+        toast({
+          title: 'Updated!',
+          description: `Scenario "${scenarioData.title}" updated successfully`,
+        })
+      } else {
+        // Create scenario
+        const createdScenario = await createScenario(scenarioData)
+        console.log('Scenario created:', createdScenario)
+        finalScenarioId = createdScenario.data?.id || createdScenario.id
+        
+        if (!finalScenarioId) {
+          throw new Error('Failed to get scenario ID from response')
+        }
+        
+        console.log('Using scenario ID:', finalScenarioId)
 
-      toast({
-        title: 'Success!',
-        description: `Scenario "${scenarioData.title}" created successfully`,
-      })
+        // Create steps
+        for (const step of steps) {
+          const stepPayload = {
+            ...step,
+            scenario_id: finalScenarioId
+          }
+          console.log('Creating step:', stepPayload)
+          await createScenarioStep(stepPayload)
+        }
+
+        toast({
+          title: 'Success!',
+          description: `Scenario "${scenarioData.title}" created successfully`,
+        })
+      }
 
       navigate('/admin/scenarios')
     } catch (error) {
@@ -272,10 +382,12 @@ export default function ScenarioCreator() {
           
           <div className="flex items-center gap-3 mb-2">
             <Rocket className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Create New Scenario</h1>
+            <h1 className="text-3xl font-bold">
+              {isViewMode ? 'View Scenario' : isEditMode ? 'Edit Scenario' : 'Create New Scenario'}
+            </h1>
           </div>
           <p className="text-muted-foreground">
-            Build a training mission for satellite operators
+            {isViewMode ? 'Review scenario details' : isEditMode ? 'Update scenario information' : 'Build a training mission for satellite operators'}
           </p>
         </div>
 
@@ -335,6 +447,7 @@ export default function ScenarioCreator() {
                     onChange={(e) => handleInputChange('code', e.target.value.toUpperCase())}
                     placeholder="ROOKIE_ORBIT_101"
                     className="font-mono"
+                    disabled={isViewMode}
                   />
                   <p className="text-xs text-muted-foreground mt-1.5">
                     Uppercase letters, numbers, and underscores only
@@ -348,6 +461,7 @@ export default function ScenarioCreator() {
                     value={scenarioData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder="Orbital Insertion Basics"
+                    disabled={isViewMode}
                   />
                 </div>
 
@@ -360,6 +474,7 @@ export default function ScenarioCreator() {
                     placeholder="Learn the fundamentals of orbital mechanics..."
                     rows={2}
                     className="w-full"
+                    disabled={isViewMode}
                   />
                 </div>
 
@@ -369,6 +484,7 @@ export default function ScenarioCreator() {
                     <Select
                       value={scenarioData.difficulty}
                       onValueChange={(value) => handleInputChange('difficulty', value)}
+                      disabled={isViewMode}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -386,6 +502,7 @@ export default function ScenarioCreator() {
                     <Select
                       value={scenarioData.tier}
                       onValueChange={(value) => handleInputChange('tier', value)}
+                      disabled={isViewMode}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -405,6 +522,7 @@ export default function ScenarioCreator() {
                     <Select
                       value={scenarioData.type}
                       onValueChange={(value) => handleInputChange('type', value)}
+                      disabled={isViewMode}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -426,6 +544,7 @@ export default function ScenarioCreator() {
                       onChange={(e) => handleInputChange('estimatedDurationMinutes', parseInt(e.target.value))}
                       min={5}
                       max={480}
+                      disabled={isViewMode}
                     />
                   </div>
                 </div>
@@ -437,6 +556,7 @@ export default function ScenarioCreator() {
                     value={scenarioData.tags.join(', ')}
                     onChange={(e) => handleArrayInput('tags', e.target.value)}
                     placeholder="orbital-mechanics, power-management"
+                    disabled={isViewMode}
                   />
                 </div>
 
@@ -449,6 +569,7 @@ export default function ScenarioCreator() {
                     placeholder="Understand orbital velocity, Calculate delta-v requirements"
                     rows={2}
                     className="w-full"
+                    disabled={isViewMode}
                   />
                 </div>
               </div>
@@ -463,7 +584,7 @@ export default function ScenarioCreator() {
                   <Select
                     value={scenarioData.satellite_id}
                     onValueChange={(value) => handleInputChange('satellite_id', value)}
-                    disabled={loading}
+                    disabled={loading || isViewMode}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={loading ? "Loading satellites..." : "Choose a satellite..."} />
@@ -491,7 +612,7 @@ export default function ScenarioCreator() {
                   <Select
                     value={scenarioData.ground_station_id || 'none'}
                     onValueChange={(value) => handleInputChange('ground_station_id', value === 'none' ? '' : value)}
-                    disabled={loading}
+                    disabled={loading || isViewMode}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={loading ? "Loading ground stations..." : "Choose a ground station..."} />
@@ -536,7 +657,7 @@ export default function ScenarioCreator() {
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-semibold">Step {step.stepOrder}</CardTitle>
-                        {steps.length > 1 && (
+                        {steps.length > 1 && !isViewMode && (
                           <Button
                             variant="destructive"
                             size="sm"
@@ -555,6 +676,7 @@ export default function ScenarioCreator() {
                           onChange={(e) => updateStep(index, 'title', e.target.value)}
                           placeholder="e.g., Check Current Attitude"
                           className="h-10"
+                          disabled={isViewMode}
                         />
                       </div>
 
@@ -566,6 +688,7 @@ export default function ScenarioCreator() {
                           placeholder="Provide detailed instructions for this step..."
                           rows={4}
                           className="resize-none w-full"
+                          disabled={isViewMode}
                         />
                       </div>
 
@@ -576,6 +699,7 @@ export default function ScenarioCreator() {
                           onChange={(e) => updateStep(index, 'objective', e.target.value)}
                           placeholder="e.g., Satellite orientation matches target within 2 degrees"
                           className="h-10"
+                          disabled={isViewMode}
                         />
                       </div>
 
@@ -587,6 +711,7 @@ export default function ScenarioCreator() {
                           placeholder="Hints to help NOVA guide the user..."
                           rows={3}
                           className="w-full resize-none"
+                          disabled={isViewMode}
                         />
                       </div>
 
@@ -600,6 +725,7 @@ export default function ScenarioCreator() {
                           rows={2}
                           className="w-full resize-none"
                           required
+                          disabled={isViewMode}
                         />
                       </div>
 
@@ -613,6 +739,7 @@ export default function ScenarioCreator() {
                             onChange={(e) => updateStep(index, 'expectedDurationSeconds', parseInt(e.target.value) || 300)}
                             min={1}
                             required
+                            disabled={isViewMode}
                           />
                         </div>
                         <div className="space-y-2 flex items-center">
@@ -622,6 +749,7 @@ export default function ScenarioCreator() {
                             checked={step.isCheckpoint}
                             onChange={(e) => updateStep(index, 'isCheckpoint', e.target.checked)}
                             className="mr-2"
+                            disabled={isViewMode}
                           />
                           <Label htmlFor={`checkpoint-${index}`} className="text-sm font-semibold cursor-pointer">Checkpoint (key milestone)</Label>
                         </div>
@@ -630,9 +758,11 @@ export default function ScenarioCreator() {
                   </Card>
                 ))}
 
-                <Button onClick={addStep} variant="outline" className="w-full h-11">
-                  Add Step
-                </Button>
+                {!isViewMode && (
+                  <Button onClick={addStep} variant="outline" className="w-full h-11">
+                    Add Step
+                  </Button>
+                )}
               </div>
             )}
 
@@ -657,6 +787,7 @@ export default function ScenarioCreator() {
                   <Select
                     value={scenarioData.status}
                     onValueChange={(value) => handleInputChange('status', value)}
+                    disabled={isViewMode}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -676,6 +807,7 @@ export default function ScenarioCreator() {
                       checked={scenarioData.isActive}
                       onChange={(e) => handleInputChange('isActive', e.target.checked)}
                       className="h-4 w-4"
+                      disabled={isViewMode}
                     />
                     <span className="text-sm">Active (visible to users)</span>
                   </label>
@@ -686,6 +818,7 @@ export default function ScenarioCreator() {
                       checked={scenarioData.isCore}
                       onChange={(e) => handleInputChange('isCore', e.target.checked)}
                       className="h-4 w-4"
+                      disabled={isViewMode}
                     />
                     <span className="text-sm">Core Training (required for tier advancement)</span>
                   </label>
@@ -696,6 +829,7 @@ export default function ScenarioCreator() {
                       checked={scenarioData.isPublic}
                       onChange={(e) => handleInputChange('isPublic', e.target.checked)}
                       className="h-4 w-4"
+                      disabled={isViewMode}
                     />
                     <span className="text-sm">Public (all users can access)</span>
                   </label>
@@ -728,19 +862,21 @@ export default function ScenarioCreator() {
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Create Scenario
-                </>
-              )}
-            </Button>
+            !isViewMode && (
+              <Button onClick={handleSubmit} disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {isEditMode ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    {isEditMode ? 'Update Scenario' : 'Create Scenario'}
+                  </>
+                )}
+              </Button>
+            )
           )}
         </div>
       </div>
