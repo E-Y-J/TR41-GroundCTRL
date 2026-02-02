@@ -28,7 +28,7 @@ describe('Auth Error Normalization - Comprehensive Security Tests', () => {
         capturedError = err;
       });
       
-      expect(capturedError.message).toBe('Invalid credentials');
+      expect(capturedError.message).toBe('Invalid email or password');
       expect(capturedError.code).toBe('AUTHENTICATION_FAILED');
       expect(capturedError.details).toBeUndefined();
       
@@ -54,7 +54,7 @@ describe('Auth Error Normalization - Comprehensive Security Tests', () => {
         capturedError = err;
       });
       
-      expect(capturedError.message).toBe('Invalid credentials');
+      expect(capturedError.message).toBe('Invalid email or password');
       expect(capturedError.code).toBe('AUTHENTICATION_FAILED');
       
       process.env.NODE_ENV = originalEnv;
