@@ -36,6 +36,10 @@ describe('CI - Secret Scan', () => {
           if (!filePath.startsWith(baseDir)) {
             throw new Error(`Path traversal detected: ${file}`);
           }
+          // Only check files, not directories
+          if (!fs.statSync(filePath).isFile()) {
+            return;
+          }
           const content = fs.readFileSync(filePath, 'utf8');
 
           // Should not contain common secret patterns
