@@ -20,22 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Wait for main E2E tests to complete first
-  wait_for_e2e_tests:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-    steps:
-      - name: Wait for E2E Tests
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          check-name: 'E2E Tests (chromium)'  # Wait for at least one E2E test to complete
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 30
-          allowed-conclusions: success,failure,cancelled,skipped
-
   build_and_preview:
-    needs: wait_for_e2e_tests
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     strategy:
