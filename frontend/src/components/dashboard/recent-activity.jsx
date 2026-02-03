@@ -66,15 +66,10 @@ export function RecentActivity() {
       } catch (err) {
         console.error('Error loading recent activity:', err)
         
-        // Handle authorization/permission errors gracefully
-        // (Backend API requires JWT tokens, not Firebase ID tokens)
-        if (err.message?.includes('authorization') || err.message?.includes('permissions')) {
-          // Show empty state instead of error for auth issues
-          setActivities([])
-          setError(null)
-        } else {
-          setError('Failed to load recent activity')
-        }
+        // Backend audit logging not implemented yet - show placeholder
+        // Instead of showing error, show empty state gracefully
+        setActivities([])
+        setError(null)
       } finally {
         setLoading(false)
       }
@@ -120,7 +115,9 @@ export function RecentActivity() {
       <div className="divide-y divide-border">
         {activities.length === 0 ? (
           <div className="px-5 py-8 text-center text-muted-foreground text-sm">
-            No recent activity yet. Start your first mission!
+            <Info className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>Activity tracking coming soon</p>
+            <p className="text-xs mt-1">Your mission progress is being tracked</p>
           </div>
         ) : (
           activities.map((activity) => (

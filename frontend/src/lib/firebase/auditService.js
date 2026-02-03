@@ -12,13 +12,17 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001
  */
 export async function fetchUserAuditLogs(userId, maxResults = 10) {
   try {
-    // Get current user's ID token for authentication
-    const user = auth.currentUser
-    if (!user) {
-      throw new Error('User not authenticated')
-    }
+    // Get backend JWT token from localStorage (preferred)
+    let authToken = localStorage.getItem('backend_access_token')
     
-    const idToken = await user.getIdToken()
+    // Fallback to Firebase token if no backend token
+    if (!authToken) {
+      const user = auth.currentUser
+      if (!user) {
+        throw new Error('User not authenticated')
+      }
+      authToken = await user.getIdToken()
+    }
     
     // Call backend API to fetch audit logs
     const response = await fetch(
@@ -26,7 +30,7 @@ export async function fetchUserAuditLogs(userId, maxResults = 10) {
       {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${idToken}`,
+          'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         }
       }
@@ -90,13 +94,25 @@ export function filterRelevantAuditLogs(auditLogs) {
     'AI_QUERY'
   ])
   
-  // Severity levels we want to show (no warnings/errors/critical)
+  // Severity levels we want to show (INFO only - no warnings/errors/critical)
   const relevantSeverities = new Set(['INFO'])
   
-  return auditLogs.filter(log => {
+  console.log('[AuditService] Filtering audit logs:', {
+    totalLogs: auditLogs.length,
+    actions: auditLogs.map(log => ({ action: log.action, severity: log.severity }))
+  })
+  
+  const filtered = auditLogs.filter(log => {
     // Filter by action and severity
     return relevantActions.has(log.action) && relevantSeverities.has(log.severity)
   })
+  
+  console.log('[AuditService] Filtered results:', {
+    filteredCount: filtered.length,
+    filtered: filtered.map(log => ({ action: log.action, severity: log.severity }))
+  })
+  
+  return filtered
 }
 
 /**
