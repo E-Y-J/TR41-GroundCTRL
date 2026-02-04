@@ -114,11 +114,22 @@ app.options('*', cors({
       callback(null, false);
     }
   },
-  credentials: true,
+  credentials: (req, callback) => {
+    const origin = req.headers.origin;
+    if (!origin) return callback(null, true);
+    if ((process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') && origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 204,
-  maxAge: 86400
+  maxAge: 3600
 }));
 
 // 2. Apply CORS to all routes
@@ -140,11 +151,22 @@ app.use(cors({
       callback(null, false);
     }
   },
-  credentials: true, // Allow cookies/credentials with allowed origins
+  credentials: (req, callback) => {
+    const origin = req.headers.origin;
+    if (!origin) return callback(null, true);
+    if ((process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') && origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  }, // Allow cookies/credentials with allowed origins
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 204, // Return 204 for successful OPTIONS requests
-  maxAge: 86400 // 24 hours
+  maxAge: 3600 // 24 hours
 }));
 
 // Expose Firebase status for health checks
