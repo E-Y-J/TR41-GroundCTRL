@@ -18,7 +18,7 @@ export function LeftDockColumn({ children }) {
   return (
     <div 
       className={cn(
-        "w-60 border-r border-border bg-card/30 backdrop-blur-sm flex flex-col overflow-y-auto transition-all duration-200",
+        "w-[320px] border-r border-border bg-card/30 backdrop-blur-sm flex flex-col overflow-hidden transition-all duration-200",
         isHighlighted && "bg-blue-500/10 border-blue-500/50 shadow-lg shadow-blue-500/20"
       )}
     >
@@ -37,7 +37,7 @@ export function RightDockColumn({ children }) {
   return (
     <div 
       className={cn(
-        "w-105 border-l border-border bg-card/30 backdrop-blur-sm flex flex-col overflow-y-auto transition-all duration-200",
+        "w-[320px] border-l border-border bg-card/30 backdrop-blur-sm flex flex-col overflow-hidden transition-all duration-200",
         isHighlighted && "bg-blue-500/10 border-blue-500/50 shadow-lg shadow-blue-500/20"
       )}
     >

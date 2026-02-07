@@ -16,7 +16,7 @@ export const DOCK_ZONES = {
     id: 'left',
     label: 'Left Dock',
     position: { x: 0, y: 150 },
-    size: { width: 240, maxHeight: 'calc(100vh - 300px)' },
+    size: { width: 320, maxHeight: 'calc(100vh - 300px)' },
     maxPanels: 4,
     orientation: 'vertical',
     allowedTypes: ['info', 'monitoring', 'chat']
@@ -24,8 +24,8 @@ export const DOCK_ZONES = {
   right: {
     id: 'right',
     label: 'Right Dock',
-    position: { x: 'calc(100vw - 420px)', y: 150 },
-    size: { width: 420, maxHeight: 'calc(100vh - 300px)' },
+    position: { x: 'calc(100vw - 320px)', y: 150 },
+    size: { width: 320, maxHeight: 'calc(100vh - 300px)' },
     maxPanels: 4,
     orientation: 'vertical',
     allowedTypes: ['control', 'logs', 'monitoring']
