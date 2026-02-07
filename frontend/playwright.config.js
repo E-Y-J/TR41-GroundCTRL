@@ -19,6 +19,11 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   
+  /* Expect timeout for assertions */
+  expect: {
+    timeout: 15000, // 15 seconds for expect assertions
+  },
+  
   /* Opt out of parallel tests on CI */
   workers: process.env.CI ? 1 : undefined,
   

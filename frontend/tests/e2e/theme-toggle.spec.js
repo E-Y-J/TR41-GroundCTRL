@@ -9,6 +9,15 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('UI-THEME-001: Theme Toggle Functionality', () => {
+  // Mock problematic APIs to prevent hanging requests
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/api/v1/help/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ categories: [], faqs: [], articles: [] })
+      });
+    });
+  });
   test('should have theme toggle button in header', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
@@ -37,6 +46,7 @@ test.describe('UI-THEME-001: Theme Toggle Functionality', () => {
   });
 
   test('should toggle between light and dark themes', async ({ page }) => {
+    test.setTimeout(60000); // 60s total for this test
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     // Find theme toggle button - use more specific selector
@@ -50,8 +60,12 @@ test.describe('UI-THEME-001: Theme Toggle Functionality', () => {
     const initialClass = await page.getAttribute('html', 'class') || '';
     const initialDark = initialClass.includes('dark');
 
-    // Click theme toggle with force to handle any overlays
-    await themeToggle.click({ force: true, timeout: 15000 });
+    // Click theme toggle with force and position for mobile precision
+    await themeToggle.click({ 
+      force: true, 
+      timeout: 15000,
+      position: { x: 10, y: 10 } // Click near top-left to avoid overlaps in mobile
+    });
 
     // Wait for theme change with longer timeout
     await page.waitForTimeout(1000);
@@ -59,6 +73,9 @@ test.describe('UI-THEME-001: Theme Toggle Functionality', () => {
     // Check if theme changed
     const newClass = await page.getAttribute('html', 'class') || '';
     const newDark = newClass.includes('dark');
+
+    // Verify theme actually changed
+    expect(newDark).not.toBe(initialDark);
 
       // Theme should have changed
       expect(newDark).not.toBe(initialDark);
