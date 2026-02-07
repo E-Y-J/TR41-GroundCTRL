@@ -6,6 +6,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listScenarios, deleteScenario, updateScenario } from '@/lib/api/scenarioService'
+import AppHeader from '@/components/app-header'
+import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -113,17 +115,23 @@ export default function AdminScenarios() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
-        <div className="text-center">
-          <Rocket className="h-12 w-12 text-primary animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading scenarios...</p>
+      <div className="min-h-screen flex flex-col bg-background">
+        <AppHeader />
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="text-center">
+            <Rocket className="h-12 w-12 text-primary animate-pulse mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading scenarios...</p>
+          </div>
         </div>
+        <Footer />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen flex flex-col bg-background">
+      <AppHeader />
+      <main className="flex-1 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -294,6 +302,8 @@ export default function AdminScenarios() {
           </div>
         )}
       </div>
+      </main>
+      <Footer />
     </div>
   )
 }

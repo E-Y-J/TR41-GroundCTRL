@@ -6,8 +6,8 @@ export default function PrivacyPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <AppHeader />
       
-      <main className="flex-1 py-12 px-6">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 py-12 px-6 overflow-y-auto">
+        <div className="max-w-4xl mx-auto pb-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Privacy Policy</h1>
             <p className="text-muted-foreground">Last updated, 2026</p>
