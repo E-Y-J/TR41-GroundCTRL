@@ -1,7 +1,15 @@
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    }
   },
   "hosting": {
     "public": "frontend/dist",
@@ -18,43 +26,41 @@
     ],
     "headers": [
       {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      },
+      {
+        "source": "**/*.css",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "text/css; charset=utf-8"
+          }
+        ]
+      },
+      {
         "source": "**",
         "headers": [
           {
-            "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com wss://*.firebaseapp.com wss://*.firebase.com https://*.socket.io wss://*.socket.io https://api.missionctrl.org wss://api.missionctrl.org; frame-ancestors 'self';"
-          },
-          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-          { "key": "X-Content-Type-Options", "value": "nosniff" },
-          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-          { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=(), payment=()" },
-          { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
-          { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
+            "key": "Content-Security-Policy-Report-Only",
+            "value": "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com 'wasm-unsafe-eval'; connect-src 'self' https://groundctrl--groundctrl-c8860.us-central1.hosted.app https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com https://*.firebaseio.com wss://*.firebaseio.com wss://*.firebaseapp.com https://*.socket.io wss://*.socket.io https://api.missionctrl.org wss://api.missionctrl.org; font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleapis.com https://firebasestorage.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;"
+          }
         ]
       }
     ]
-  },
-  "emulators": {
-    "auth": {
-      "host": "127.0.0.1",
-      "port": 9099
-    },
-    "firestore": {
-      "host": "127.0.0.1",
-      "port": 8080
-    },
-    "ui": {
-      "enabled": true,
-      "host": "127.0.0.1",
-      "port": 4000
-    },
-    "hub": {
-      "host": "127.0.0.1",
-      "port": 4400
-    },
-    "hosting": {
-      "port": 5000
-    },
-    "singleProjectMode": false
   }
 }
