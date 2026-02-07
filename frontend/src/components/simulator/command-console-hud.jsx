@@ -78,29 +78,21 @@ export function CommandConsoleHUD() {
   };
 
   if (!missionStarted) {
-    return (
-      <div className="w-105 bg-card border-l border-border flex items-center justify-center p-6">
-        <div className="text-center">
-          <Satellite className="w-12 h-12 text-muted-foreground mx-auto mb-3 animate-pulse" />
-          <p className="text-sm text-muted-foreground">Awaiting Mission Start</p>
-        </div>
-      </div>
-    );
+    return null; // Hide when mission not started
   }
 
   // Get all command groups
   const allGroups = Object.entries(COMMAND_GROUPS);
 
   return (
-    <div className="w-120 bg-card border-l border-border flex flex-col h-full overflow-hidden">
-      {/* Compact Header */}
-      <div className="p-2 border-b border-border bg-muted/30 shrink-0">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Simplified Header */}
+      <div className="p-2 border-b border-border shrink-0">
         <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
-            <Radio className="w-4 h-4 text-primary" />
-            <span className="font-bold text-sm text-foreground">CMD INTERFACE</span>
-          </div>
-          <Badge variant="default" className="text-xs h-5">LIVE</Badge>
+          <span className="font-semibold text-sm text-foreground">Commands</span>
+          <Badge variant="outline" className="text-xs h-5">
+            SAT-01
+          </Badge>
         </div>
 
         {/* Current Objective - Compact */}
@@ -131,7 +123,7 @@ export function CommandConsoleHUD() {
         </div>
       </div>
 
-      {/* Dense Command Grid - No Scroll */}
+      {/* Command Groups */}
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {allGroups.map(([groupKey, group]) => {
           const availableCommands = group.commands.filter(cmd => isCommandEnabled(cmd));
@@ -139,17 +131,14 @@ export function CommandConsoleHUD() {
 
           return (
             <div key={groupKey} className="border rounded bg-muted/10 overflow-hidden">
-              {/* Compact Group Header */}
-              <div className="px-2 py-1 bg-muted/30 border-b border-border/50 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">
+              {/* Group Header */}
+              <div className="px-2 py-1 bg-muted/30 border-b border-border/50">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">
                   {group.label}
                 </span>
-                <Badge variant="outline" className="text-[9px] h-4 px-1">
-                  {availableCommands.length}
-                </Badge>
               </div>
 
-              {/* Ultra-Compact Command Grid */}
+              {/* Command Grid */}
               <div className="p-1 grid grid-cols-2 gap-1">
                 {group.commands.map((command) => (
                   <div key={command.name} className="min-h-8">
@@ -160,17 +149,6 @@ export function CommandConsoleHUD() {
             </div>
           );
         })}
-      </div>
-
-      {/* Compact Footer */}
-      <div className="p-1.5 border-t border-border bg-muted/30 shrink-0">
-        <div className="flex items-center justify-between text-[10px]">
-          <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-muted-foreground">NOMINAL</span>
-          </div>
-          <span className="text-muted-foreground font-mono">{new Date().toLocaleTimeString()}</span>
-        </div>
       </div>
     </div>
   );
