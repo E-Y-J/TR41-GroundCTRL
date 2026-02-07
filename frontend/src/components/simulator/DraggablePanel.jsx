@@ -3,11 +3,14 @@
  * 
  * Provides a draggable, resizable panel with persistence to localStorage.
  * Used as the base for all floating mission control panels.
+ * 
+ * Phase 1.5: Now with magnetic docking to zones!
  */
 
 import { useState, useEffect, useCallback } from "react"
 import { Rnd } from "react-rnd"
-import { GripVertical, Minimize2, Maximize2, X } from "lucide-react"
+import { GripVertical, Minimize2, Maximize2, X, Pin, PinOff } from "lucide-react"
+import { useDocking } from "@/contexts/DockingContext"
 
 export function DraggablePanel({
   id,
@@ -21,11 +24,15 @@ export function DraggablePanel({
   onClose,
   showClose = true,
   showMinimize = true,
+  enableDocking = true,
+  dockType = "info", // for filtering which zones this panel can dock to
   className = "",
   headerClassName = "",
   contentClassName = "",
   dragHandleClassName = "drag-handle",
 }) {
+  const docking = enableDocking ? useDocking() : null
+  
   const [position, setPosition] = useState(() => {
     try {
       const saved = localStorage.getItem(`panel-position-${id}`)
@@ -38,6 +45,10 @@ export function DraggablePanel({
 
   const [isMinimized, setIsMinimized] = useState(false)
   const [preMinimizeHeight, setPreMinimizeHeight] = useState(defaultPosition.height)
+  const [isDragging, setIsDragging] = useState(false)
+  
+  // Check if this panel is docked
+  const dockedZone = docking ? docking.isPanelDocked(id) : null
 
   // Save position to localStorage whenever it changes
   useEffect(() => {
@@ -66,13 +77,88 @@ export function DraggablePanel({
     }
   }, [onClose])
 
+  // Handle drag start
+  const handleDragStart = useCallback(() => {
+    setIsDragging(true)
+    // If panel was docked, undock it
+    if (docking && dockedZone) {
+      docking.undockPanel(id, position)
+    }
+  }, [docking, dockedZone, id, position])
+
+  // Handle dragging (detect nearby zones)
+  const handleDrag = useCallback((e, d) => {
+    if (!docking) return
+    
+    const nearZone = docking.detectDockZone({ x: d.x, y: d.y })
+    if (nearZone !== docking.highlightedZone) {
+      docking.setHighlightedZone(nearZone)
+    }
+  }, [docking])
+
+  // Handle drag stop (snap to zone if near one)
+  const handleDragStop = useCallback((e, d) => {
+    setIsDragging(false)
+    
+    if (docking) {
+      const nearZone = docking.detectDockZone({ x: d.x, y: d.y })
+      docking.setHighlightedZone(null)
+      
+      if (nearZone) {
+        // Attempt to dock
+        const success = docking.dockPanel(id, nearZone, { dockType })
+        if (success) {
+          // Calculate and apply dock position
+          const dockPos = docking.calculateDockPosition(nearZone, id)
+          if (dockPos) {
+            setPosition({
+              x: dockPos.x,
+              y: dockPos.y,
+              width: dockPos.width,
+              height: dockPos.height
+            })
+            return
+          }
+        }
+      }
+    }
+    
+    // Normal position update (not docking)
+    setPosition(prev => ({ ...prev, x: d.x, y: d.y }))
+  }, [docking, id, dockType])
+
+  // Handle manual dock toggle
+  const handleDockToggle = useCallback(() => {
+    if (!docking) return
+    
+    if (dockedZone) {
+      // Undock
+      docking.undockPanel(id, position)
+    } else {
+      // Try to dock to nearest zone
+      const nearZone = docking.detectDockZone(position)
+      if (nearZone) {
+        docking.dockPanel(id, nearZone, { dockType })
+        const dockPos = docking.calculateDockPosition(nearZone, id)
+        if (dockPos) {
+          setPosition({
+            x: dockPos.x,
+            y: dockPos.y,
+            width: dockPos.width,
+            height: dockPos.height
+          })
+        }
+      }
+    }
+  }, [docking, dockedZone, id, position, dockType])
+
   return (
     <Rnd
       position={{ x: position.x, y: position.y }}
       size={{ width: position.width, height: position.height }}
-      onDragStop={(e, d) => {
-        setPosition(prev => ({ ...prev, x: d.x, y: d.y }))
-      }}
+      onDragStart={handleDragStart}
+      onDrag={handleDrag}
+      onDragStop={handleDragStop}
       onResizeStop={(e, direction, ref, delta, newPosition) => {
         setPosition({
           x: newPosition.x,
@@ -87,9 +173,11 @@ export function DraggablePanel({
       maxHeight={maxHeight}
       bounds="parent"
       dragHandleClassName={dragHandleClassName}
-      className={`bg-card border border-border rounded-lg shadow-xl ${className}`}
-      enableResizing={!isMinimized}
-      style={{ zIndex: 50 }}
+      className={`bg-card border border-border rounded-lg shadow-xl ${
+        dockedZone ? 'ring-2 ring-blue-500/50' : ''
+      } ${className}`}
+      enableResizing={!isMinimized && !dockedZone}
+      style={{ zIndex: isDragging ? 100 : 50 }}
     >
       {/* Header with drag handle */}
       <div
@@ -98,9 +186,27 @@ export function DraggablePanel({
         <div className="flex items-center gap-2">
           <GripVertical className="w-4 h-4 text-muted-foreground" />
           <span className="font-semibold text-sm text-foreground">{title}</span>
+          {dockedZone && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white font-bold">
+              DOCKED
+            </span>
+          )}
         </div>
         
         <div className="flex items-center gap-1">
+          {enableDocking && docking && (
+            <button
+              onClick={handleDockToggle}
+              className="hover:bg-muted p-1 rounded transition-colors"
+              title={dockedZone ? "Undock panel" : "Dock panel"}
+            >
+              {dockedZone ? (
+                <PinOff className="w-3.5 h-3.5 text-blue-500 hover:text-blue-600" />
+              ) : (
+                <Pin className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+              )}
+            </button>
+          )}
           {showMinimize && (
             <button
               onClick={handleMinimize}
