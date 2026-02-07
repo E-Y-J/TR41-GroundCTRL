@@ -41,6 +41,9 @@ build/
 .cache/
 .parcel-cache/
 
+# Lighthouse CI reports
+.lighthouseci/
+
 # Editor backup files
 *~
 *.bak
