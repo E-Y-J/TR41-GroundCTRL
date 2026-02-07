@@ -1,60 +1,14 @@
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "hosting": {
-    "public": "frontend/dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "**",
-        "headers": [
-          {
-            "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com wss://*.firebaseapp.com wss://*.firebase.com https://*.socket.io wss://*.socket.io https://api.missionctrl.org wss://api.missionctrl.org; frame-ancestors 'self';"
-          },
-          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-          { "key": "X-Content-Type-Options", "value": "nosniff" },
-          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-          { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=(), payment=()" },
-          { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
-          { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
-        ]
-      }
-    ]
-  },
   "emulators": {
     "auth": {
-      "host": "127.0.0.1",
       "port": 9099
     },
     "firestore": {
-      "host": "127.0.0.1",
       "port": 8080
     },
     "ui": {
       "enabled": true,
-      "host": "127.0.0.1",
       "port": 4000
-    },
-    "hub": {
-      "host": "127.0.0.1",
-      "port": 4400
-    },
-    "hosting": {
-      "port": 5000
-    },
-    "singleProjectMode": false
+    }
   }
 }
