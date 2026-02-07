@@ -15,6 +15,8 @@ import { PerformanceMetrics } from "@/components/simulator/performance-metrics"
 import { VisualizationSwitcher } from "@/components/simulator/views"
 import { FloatingTMTCConsole } from "@/components/simulator/FloatingTMTCConsole"
 import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel } from "@/components/simulator/panels"
+import { DockingProvider } from "@/contexts/DockingContext"
+import { DockZones } from "@/components/simulator/DockZone"
 import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
@@ -314,26 +316,29 @@ export default function Simulator() {
       <Helmet>
         <title>Simulator - GroundCTRL</title>
       </Helmet>
-      <div className="h-screen min-h-150 flex flex-col bg-background overflow-hidden">
-        <AppHeader />
-        
-        {/* Mission Steps Panel - Shows current objectives */}
-        {missionStarted && <MissionStepsPanel />}
-        
-        {/* Mission Control Enhancement - Ground Station Indicator + Controls */}
-        {missionStarted && (
-          <div className="px-4 py-2 border-b border-border bg-muted/30">
-            <div className="flex items-center justify-between">
-              <GroundStationIndicator />
-              <div className="flex items-center gap-2">
-                <TimeControlDisplay sessionId={contextSessionId || sessionIdParam} />
-                <PerformanceMetrics sessionId={contextSessionId || sessionIdParam} />
+      <DockingProvider>
+        <div className="h-screen min-h-150 flex flex-col bg-background overflow-hidden">
+          <AppHeader />
+          
+          {/* Mission Steps Panel - Shows current objectives */}
+          {missionStarted && <MissionStepsPanel />}
+          
+          {/* Mission Control Enhancement - Ground Station Indicator + Controls */}
+          {missionStarted && (
+            <div className="px-4 py-2 border-b border-border bg-muted/30">
+              <div className="flex items-center justify-between">
+                <GroundStationIndicator />
+                <div className="flex items-center gap-2">
+                  <TimeControlDisplay sessionId={contextSessionId || sessionIdParam} />
+                  <PerformanceMetrics sessionId={contextSessionId || sessionIdParam} />
+                </div>
               </div>
             </div>
-          </div>
-        )}
-        
-        <div className="flex-1 flex overflow-hidden min-h-0 relative">
+          )}
+          
+          <div className="flex-1 flex overflow-hidden min-h-0 relative">
+            {/* Phase 1.5 - Docking Zones (visual indicators) */}
+            {missionStarted && <DockZones />}
           {/* Advanced Satellite Visualization with 2D/3D Projection Switching - Now Full Width */}
           <div className="flex-1 flex flex-col min-w-0">
             <VisualizationSwitcher
@@ -432,7 +437,8 @@ export default function Simulator() {
             onClose={() => setShowPropulsionPanel(false)}
           />
         )}
-      </div>
+        </div>
+      </DockingProvider>
     </>
   )
 }
