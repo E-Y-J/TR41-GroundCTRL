@@ -11,18 +11,26 @@ import { cn } from '@/lib/utils'
 /**
  * Left Column - for NOVA, ADCS, EPS panels
  */
-export function LeftDockColumn({ children }) {
+export function LeftDockColumn({ children, dockedPanels = [] }) {
   const { highlightedZone } = useDocking()
   const isHighlighted = highlightedZone === 'left'
   
   return (
     <div 
       className={cn(
-        "w-[320px] border-r border-border bg-card/30 backdrop-blur-sm flex flex-col overflow-hidden transition-all duration-200",
+        "w-[320px] border-r border-border bg-card/30 backdrop-blur-sm flex flex-col transition-all duration-200",
         isHighlighted && "bg-blue-500/10 border-blue-500/50 shadow-lg shadow-blue-500/20"
       )}
     >
+      {/* Render children (like NOVA) */}
       {children}
+      
+      {/* Render docked panels inline */}
+      {dockedPanels.map((panel) => (
+        <div key={panel.panelId} className="w-full">
+          {panel.content}
+        </div>
+      ))}
     </div>
   )
 }
@@ -30,18 +38,26 @@ export function LeftDockColumn({ children }) {
 /**
  * Right Column - for Command Console, TM/TC, Comms panels
  */
-export function RightDockColumn({ children }) {
+export function RightDockColumn({ children, dockedPanels = [] }) {
   const { highlightedZone } = useDocking()
   const isHighlighted = highlightedZone === 'right'
   
   return (
     <div 
       className={cn(
-        "w-[320px] border-l border-border bg-card/30 backdrop-blur-sm flex flex-col overflow-hidden transition-all duration-200",
+        "w-[320px] border-l border-border bg-card/30 backdrop-blur-sm flex flex-col transition-all duration-200",
         isHighlighted && "bg-blue-500/10 border-blue-500/50 shadow-lg shadow-blue-500/20"
       )}
     >
+      {/* Render children (like CommandConsole) */}
       {children}
+      
+      {/* Render docked panels inline */}
+      {dockedPanels.map((panel) => (
+        <div key={panel.panelId} className="w-full">
+          {panel.content}
+        </div>
+      ))}
     </div>
   )
 }
