@@ -96,9 +96,13 @@ router.get(
       period = periodParam;
       const userId = req.user?.uid;
       
+      // Log incoming request for debugging
+      logger.debug('Global leaderboard request', { period, limit, includeUser, userId });
+      
       // Validate period
       const validPeriods = ['today', 'week', 'month', 'all-time'];
       if (!validPeriods.includes(period)) {
+        logger.warn('Invalid period provided', { period, validPeriods });
         const response = responseFactory.createErrorResponse(
           {
             statusCode: httpStatus.BAD_REQUEST,
@@ -113,8 +117,16 @@ router.get(
         return res.status(httpStatus.BAD_REQUEST).json(response);
       }
       
-      // Validate and cap limit
-      limitNum = Math.min(Math.max(parseInt(limit) || 100, 1), 500);
+      // Validate and cap limit - ensure it's a valid number
+      const parsedLimit = parseInt(limit);
+      if (isNaN(parsedLimit)) {
+        logger.warn('Invalid limit provided, using default', { limit });
+        limitNum = 100;
+      } else {
+        limitNum = Math.min(Math.max(parsedLimit, 1), 500);
+      }
+      
+      logger.debug('Validated parameters', { period, limitNum, includeUser });
       
       // Fetch leaderboard data
       let leaderboard;
@@ -234,8 +246,36 @@ router.get(
       const { scenarioId } = req.params;
       const { limit = '100' } = req.query;
       
-      // Validate and cap limit
-      limitNum = Math.min(Math.max(parseInt(limit) || 100, 1), 500);
+      // Log incoming request for debugging
+      logger.debug('Scenario leaderboard request', { scenarioId, limit });
+      
+      // Validate scenarioId
+      if (!scenarioId || typeof scenarioId !== 'string') {
+        logger.warn('Invalid scenarioId provided', { scenarioId });
+        const response = responseFactory.createErrorResponse(
+          {
+            statusCode: httpStatus.BAD_REQUEST,
+            code: 'INVALID_SCENARIO_ID',
+            message: 'Valid scenario ID required'
+          },
+          {
+            callSign: req.callSign || 'SYSTEM',
+            requestId: req.id
+          }
+        );
+        return res.status(httpStatus.BAD_REQUEST).json(response);
+      }
+      
+      // Validate and cap limit - ensure it's a valid number
+      const parsedLimit = parseInt(limit);
+      if (isNaN(parsedLimit)) {
+        logger.warn('Invalid limit provided, using default', { limit });
+        limitNum = 100;
+      } else {
+        limitNum = Math.min(Math.max(parsedLimit, 1), 500);
+      }
+      
+      logger.debug('Validated parameters', { scenarioId, limitNum });
       
       // Fetch scenario leaderboard
       const leaderboard = await leaderboardService.getScenarioLeaderboard(scenarioId, {

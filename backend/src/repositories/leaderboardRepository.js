@@ -39,6 +39,12 @@ async function getTopOperators(options = {}) {
   try {
     logger.debug('Fetching top operators', { limit, period });
     
+    // Validate inputs
+    if (typeof limit !== 'number' || limit < 1) {
+      logger.warn('Invalid limit provided, using default', { limit });
+      return [];
+    }
+    
     // Calculate date threshold based on period
     const dateThreshold = getDateThreshold(period);
     
@@ -51,6 +57,12 @@ async function getTopOperators(options = {}) {
     }
     
     const snapshot = await query.get();
+    
+    // Handle empty results gracefully
+    if (snapshot.empty) {
+      logger.info('No completed sessions found for leaderboard', { period });
+      return [];
+    }
     
     // Aggregate scores by user
     const userStats = {};
