@@ -16,6 +16,7 @@ const satelliteRoutes = require("./satellites");
 const scenarioRoutes = require("./scenarios");
 const scenarioStepRoutes = require("./scenarioSteps");
 const scenarioSessionRoutes = require("./scenarioSessions");
+const tutorialRoutes = require("./tutorials");
 const aiRoutes = require("./ai");
 const commandRoutes = require("./commands");
 const helpRoutes = require("./help");
@@ -36,6 +37,7 @@ router.use("/satellites", authMiddleware, satelliteRoutes);
 router.use("/scenarios", authMiddleware, scenarioRoutes);
 router.use("/scenario-steps", authMiddleware, scenarioStepRoutes);
 router.use("/scenario-sessions", authMiddleware, scenarioSessionRoutes);
+router.use("/tutorials", authMiddleware, tutorialRoutes);
 // AI routes handle their own auth (some endpoints use optionalAuth)
 router.use("/ai", aiRoutes);
 router.use("/commands", authMiddleware, commandRoutes);
@@ -96,6 +98,11 @@ router.get("/", (req, res) => {
 					path: "/scenario-sessions",
 					methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 					description: "Scenario sessions",
+				},
+				{
+					path: "/tutorials",
+					methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+					description: "Interactive tutorials",
 				},
 				{ path: "/ai", methods: ["GET"], description: "AI-powered features" },
 				{

@@ -120,6 +120,34 @@ const createScenarioSessionSchema = z
 						"Runtime simulation state including rendering and tutorial progress",
 					),
 
+				// Tutorials snapshot - captures tutorial definitions at session start
+				tutorialsSnapshot: z
+					.array(
+						z.object({
+							id: z.string(),
+							code: z.string(),
+							title: z.string(),
+							description: z.string(),
+							icon: z.string().optional(),
+							estimatedDurationMinutes: z.number(),
+							triggerType: z.enum([
+								"ON_SCENARIO_START",
+								"ON_PANEL_OPEN",
+								"ON_COMMAND",
+								"MANUAL",
+							]),
+							triggerConditions: z.object({}).passthrough().optional(),
+							steps: z.array(z.object({}).passthrough()),
+							priority: z.number(),
+							tags: z.array(z.string()).optional(),
+						}),
+					)
+					.optional()
+					.default([])
+					.describe(
+						"Snapshot of tutorials attached to scenario at session start time",
+					),
+
 				// Ground station configuration (future: scenario-specific)
 				enabledGroundStations: z
 					.array(z.string())
