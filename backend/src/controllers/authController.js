@@ -125,13 +125,29 @@ async function register(req, res, next) {
 		res.status(httpStatus.CREATED).json(response);
 	} catch (error) {
 		// Handle Firebase auth errors specifically
-		if (error.code === 'auth/email-already-in-use') {
-			return res.status(400).json({ payload: { error: { message: 'Email already in use' } } });
-		} else if (error.code === 'auth/invalid-email' || error.code === 'auth/weak-password') {
-			return res.status(400).json({ payload: { error: { message: 'Invalid email or weak password' } } });
-		} else if (error.message && error.message.includes('Firebase not initialized')) {
-			logger.error('Firebase unavailable during registration', { error: error.message });
-			return res.status(503).json({ payload: { error: { message: 'Service unavailable - try again later' } } });
+		if (error.code === "auth/email-already-in-use") {
+			return res
+				.status(400)
+				.json({ payload: { error: { message: "Email already in use" } } });
+		} else if (
+			error.code === "auth/invalid-email" ||
+			error.code === "auth/weak-password"
+		) {
+			return res.status(400).json({
+				payload: { error: { message: "Invalid email or weak password" } },
+			});
+		} else if (
+			error.message &&
+			error.message.includes("Firebase not initialized")
+		) {
+			logger.error("Firebase unavailable during registration", {
+				error: error.message,
+			});
+			return res.status(503).json({
+				payload: {
+					error: { message: "Service unavailable - try again later" },
+				},
+			});
 		}
 
 		if (req.body?.callSign) {
@@ -267,7 +283,10 @@ async function login(req, res, next) {
 							}
 						}
 					} catch (firebaseError) {
-						logger.debug("Failed login attempt for unknown user", { email, firebaseError: firebaseError.message });
+						logger.debug("Failed login attempt for unknown user", {
+							email,
+							firebaseError: firebaseError.message,
+						});
 
 						// Audit: Failed login for unknown user
 						logger.audit("Login failed - unknown user", {
@@ -279,7 +298,10 @@ async function login(req, res, next) {
 					}
 				} else {
 					// Firebase not initialized - skip Firebase-based logging
-					logger.debug("Firebase not initialized - skipping Firebase-based login attempt logging", { email });
+					logger.debug(
+						"Firebase not initialized - skipping Firebase-based login attempt logging",
+						{ email },
+					);
 				}
 
 				// Audit: Failed login
@@ -297,11 +319,22 @@ async function login(req, res, next) {
 		}
 	} catch (error) {
 		// Handle Firebase auth errors specifically
-		if (error.code && error.code.startsWith('auth/')) {
-			return res.status(401).json({ payload: { error: { message: 'Invalid email or password' } } });
-		} else if (error.message && error.message.includes('Firebase not initialized')) {
-			logger.error('Firebase unavailable during login', { error: error.message });
-			return res.status(503).json({ payload: { error: { message: 'Service unavailable - try again later' } } });
+		if (error.code && error.code.startsWith("auth/")) {
+			return res
+				.status(401)
+				.json({ payload: { error: { message: "Invalid email or password" } } });
+		} else if (
+			error.message &&
+			error.message.includes("Firebase not initialized")
+		) {
+			logger.error("Firebase unavailable during login", {
+				error: error.message,
+			});
+			return res.status(503).json({
+				payload: {
+					error: { message: "Service unavailable - try again later" },
+				},
+			});
 		}
 
 		next(error);

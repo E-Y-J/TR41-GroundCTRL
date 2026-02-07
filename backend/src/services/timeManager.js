@@ -314,7 +314,7 @@ class TimeManager {
 	 * @param {number} orbitalElements.trueAnomaly - Current true anomaly (degrees)
 	 */
 	registerOrbitalEvents(currentSimTime, orbitalElements) {
-		const { a, e, trueAnomaly } = orbitalElements;
+		const { a, _e, trueAnomaly } = orbitalElements;
 		const MU = 398600.4418; // Earth's gravitational parameter (km³/s²)
 
 		// Calculate orbital period

@@ -96,15 +96,12 @@ function initializeFirebase() {
 
 		// Skip credential validation when emulators are enabled (for any environment)
 		if (hasEmulators) {
-			logger.info(
-				"Using Firebase emulators (no credentials required)",
-				{
-					projectId: process.env.FIREBASE_PROJECT_ID || "test-project",
-					firestoreEmulator: process.env.FIRESTORE_EMULATOR_HOST,
-					authEmulator: process.env.FIREBASE_AUTH_EMULATOR_HOST,
-					nodeEnv: process.env.NODE_ENV,
-				},
-			);
+			logger.info("Using Firebase emulators (no credentials required)", {
+				projectId: process.env.FIREBASE_PROJECT_ID || "test-project",
+				firestoreEmulator: process.env.FIRESTORE_EMULATOR_HOST,
+				authEmulator: process.env.FIREBASE_AUTH_EMULATOR_HOST,
+				nodeEnv: process.env.NODE_ENV,
+			});
 
 			admin.initializeApp({
 				projectId: process.env.FIREBASE_PROJECT_ID || "test-project",

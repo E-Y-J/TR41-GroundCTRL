@@ -138,7 +138,7 @@ class CommandHandler {
 		});
 
 		// 4. Power check (burns require power)
-		const powerRequired = 100; // Watts
+		const _powerRequired = 100; // Watts
 		const powerAvailable = (satellite.power_percent || 100) > 20;
 		checks.push({
 			name: "power_available",
@@ -464,8 +464,8 @@ class CommandHandler {
 	) {
 		const { a, e, trueAnomaly } = currentElements;
 
-		const periapsis = a * (1 - e) - CONSTANTS.EARTH_RADIUS;
-		const apoapsis = a * (1 + e) - CONSTANTS.EARTH_RADIUS;
+		const _periapsis = a * (1 - e) - CONSTANTS.EARTH_RADIUS;
+		const _apoapsis = a * (1 + e) - CONSTANTS.EARTH_RADIUS;
 
 		if (phase === "raise_apoapsis") {
 			// Burn at periapsis (true anomaly = 0)
