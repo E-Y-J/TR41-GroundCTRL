@@ -63,11 +63,13 @@ jobs:
       - name: Deploy to Firebase Hosting Preview
         id: firebase_deploy
         if: steps.check_secret.outputs.secret_configured == 'true'
-        uses: w9jds/firebase-action@v12.8.0
+        continue-on-error: true  # Known issue: action fails to parse expireTime even when deployment succeeds
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          args: hosting:channel:deploy pr-${{ github.event.pull_request.number }}-fix --project groundctrl-c8860
-        env:
-          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: groundctrl-c8860
+          channelId: pr-${{ github.event.pull_request.number }}-fix
       
       - name: Extract deployment URL
         id: extract_url
