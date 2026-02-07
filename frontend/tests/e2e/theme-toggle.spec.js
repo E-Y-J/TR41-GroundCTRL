@@ -20,20 +20,26 @@ test.describe('UI-009: Theme Toggle', () => {
 
     // Get initial theme from html element class
     const initialTheme = await page.locator('html').getAttribute('class') || '';
+    const initialThemeValue = initialTheme.includes('dark') ? 'dark' : 'light';
     
     // Click to toggle theme
     await themeToggle.click();
     
-    // Wait for theme change - check that class has changed
-    await page.waitForFunction(() => {
-      const htmlClass = document.documentElement.className;
-      return htmlClass !== '' && htmlClass.includes('dark') || htmlClass.includes('light');
-    }, { timeout: 2000 });
+    // Wait for theme to actually change - wait for opposite theme
+    const expectedTheme = initialThemeValue === 'dark' ? 'light' : 'dark';
+    await page.waitForFunction(
+      (expected) => {
+        const htmlClass = document.documentElement.className;
+        return htmlClass && htmlClass.includes(expected);
+      }, 
+      expectedTheme,
+      { timeout: 3000 }
+    );
 
     // Theme should have changed
     const newTheme = await page.locator('html').getAttribute('class');
     expect(newTheme).not.toBe(initialTheme);
-    expect(newTheme).toMatch(/(dark|light)/);
+    expect(newTheme).toContain(expectedTheme);
   });
 
   test('should persist theme across navigation', async ({ page }) => {
