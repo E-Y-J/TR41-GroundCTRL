@@ -35,6 +35,7 @@ const SUBSYSTEMS = ["ALL", "ADCS", "EPS", "COMMS", "PROP", "SYSTEM"]
 export function FloatingTMTCConsole({
   sessionId,
   onCommandSubmit,
+  onClose,
   defaultPosition = { x: window.innerWidth - 450, y: 100, width: 400, height: 500 },
   maxMessages = 500,
 }) {
@@ -169,6 +170,8 @@ export function FloatingTMTCConsole({
       minWidth={350}
       minHeight={300}
       contentClassName="p-0"
+      onClose={onClose}
+      showClose={true}
     >
       <div className="flex flex-col h-full">
         {/* Controls Bar */}
