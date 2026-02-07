@@ -10,13 +10,13 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 
-// Dock zone definitions based on wireframe analysis
+// Dock zone definitions - match the visible dock containers
 export const DOCK_ZONES = {
   left: {
     id: 'left',
     label: 'Left Dock',
     position: { x: 0, y: 150 },
-    size: { width: 380, maxHeight: 'calc(100vh - 300px)' },
+    size: { width: 240, maxHeight: 'calc(100vh - 300px)' },
     maxPanels: 4,
     orientation: 'vertical',
     allowedTypes: ['info', 'monitoring', 'chat']
@@ -33,8 +33,8 @@ export const DOCK_ZONES = {
   top: {
     id: 'top',
     label: 'Top Dock',
-    position: { x: 400, y: 80 },
-    size: { width: 'calc(100vw - 820px)', maxHeight: 120 },
+    position: { x: 240, y: 80 },
+    size: { width: 'calc(100vw - 660px)', maxHeight: 100 },
     maxPanels: 2,
     orientation: 'horizontal',
     allowedTypes: ['status', 'timeline']
@@ -42,8 +42,8 @@ export const DOCK_ZONES = {
   bottom: {
     id: 'bottom',
     label: 'Bottom Dock',
-    position: { x: 400, y: 'calc(100vh - 180px)' },
-    size: { width: 'calc(100vw - 820px)', maxHeight: 150 },
+    position: { x: 240, y: 'calc(100vh - 150px)' },
+    size: { width: 'calc(100vw - 660px)', maxHeight: 150 },
     maxPanels: 3,
     orientation: 'horizontal',
     allowedTypes: ['resources', 'queue', 'status']

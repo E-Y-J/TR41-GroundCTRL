@@ -16,7 +16,7 @@ import { VisualizationSwitcher } from "@/components/simulator/views"
 import { FloatingTMTCConsole } from "@/components/simulator/FloatingTMTCConsole"
 import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel } from "@/components/simulator/panels"
 import { DockingProvider } from "@/contexts/DockingContext"
-import { DockZones } from "@/components/simulator/DockZone"
+import { DockContainerLayout } from "@/components/simulator/DockContainer"
 import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
@@ -336,38 +336,53 @@ export default function Simulator() {
             </div>
           )}
           
-          <div className="flex-1 flex overflow-hidden min-h-0 relative">
-            {/* Phase 1.5 - Docking Zones (visual indicators) */}
-            {missionStarted && <DockZones />}
-          {/* Advanced Satellite Visualization with 2D/3D Projection Switching - Now Full Width */}
-          <div className="flex-1 flex flex-col min-w-0">
-            <VisualizationSwitcher
-              altitude={sessionData?.satellite?.orbit?.altitude_km || 415}
-              inclination={sessionData?.satellite?.orbit?.inclination_degrees || 51.6}
-              eccentricity={sessionData?.satellite?.orbit?.eccentricity || 0.0001}
-              raan={sessionData?.satellite?.orbit?.raan_degrees || 0}
-              defaultView="2d"
-              showToggle={true}
-              className="h-full w-full"
-            />
-          </div>
-          
-          <CommandConsoleHUD />
-          
-          {/* Mission Control Enhancement - Command Queue Status Overlay */}
-          {missionStarted && (
-            <div className="absolute top-4 right-4 z-10 w-80">
-              <CommandQueueStatus />
+          {/* Phase 1.5 - Dock Container Layout with visible columns */}
+          {missionStarted ? (
+            <DockContainerLayout
+              leftContent={
+                <>
+                  {/* NOVA Chat docked in left column */}
+                  <Suspense fallback={null}>
+                    <FloatingNovaChat 
+                      sessionId={contextSessionId || sessionIdParam} 
+                      stepId={sessionData?.scenario_id}
+                      context="simulator"
+                      position="left"
+                    />
+                  </Suspense>
+                </>
+              }
+              rightContent={
+                <>
+                  {/* Command Console docked in right column */}
+                  <CommandConsoleHUD />
+                </>
+              }
+            >
+              {/* Center: 3D/2D Visualization */}
+              <VisualizationSwitcher
+                altitude={sessionData?.satellite?.orbit?.altitude_km || 415}
+                inclination={sessionData?.satellite?.orbit?.inclination_degrees || 51.6}
+                eccentricity={sessionData?.satellite?.orbit?.eccentricity || 0.0001}
+                raan={sessionData?.satellite?.orbit?.raan_degrees || 0}
+                defaultView="2d"
+                showToggle={true}
+                className="h-full w-full"
+              />
+            </DockContainerLayout>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-muted-foreground">Waiting for mission start...</p>
             </div>
           )}
+          
+          {/* Mission Control Enhancement - Enhanced Footer (Full Width) */}
+          <SimulatorFooter 
+            missionStarted={missionStarted} 
+            sessionId={contextSessionId || sessionIdParam}
+            satellite={sessionData?.satellite}
+          />
         </div>
-        
-        {/* Mission Control Enhancement - Enhanced Footer (Full Width) */}
-        <SimulatorFooter 
-          missionStarted={missionStarted} 
-          sessionId={contextSessionId || sessionIdParam}
-          satellite={sessionData?.satellite}
-        />
         
         {/* Alert Panel - displays system alerts */}
         <AlertPanel />
@@ -383,18 +398,6 @@ export default function Simulator() {
             missionId={sessionData.scenario_id} 
             onStart={handleStartMission}
           />
-        )}
-        
-        {/* Floating NOVA Chat - Only show when mission started */}
-        {missionStarted && (
-          <Suspense fallback={null}>
-            <FloatingNovaChat 
-              sessionId={contextSessionId || sessionIdParam} 
-              stepId={sessionData?.scenario_id}
-              context="simulator"
-              position="left"
-            />
-          </Suspense>
         )}
         
         {/* HUD Enhancement - Floating TM/TC Console */}
