@@ -5,19 +5,19 @@
  * Provides efficient queries for rankings and statistics
  */
 
-const { db } = require('../config/firebase');
-const logger = require('../utils/logger');
+const { db } = require("../config/firebase");
+const logger = require("../utils/logger");
 
 /**
  * Validate Firebase emulator configuration in test/CI environments
  */
 function validateEmulatorConfig() {
-  if (process.env.NODE_ENV === 'test' || process.env.CI) {
+  if (process.env.NODE_ENV === "test" || process.env.CI) {
     if (!process.env.FIRESTORE_EMULATOR_HOST) {
-      logger.warn('FIRESTORE_EMULATOR_HOST not set in test/CI environment');
+      logger.warn("FIRESTORE_EMULATOR_HOST not set in test/CI environment");
     }
     if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-      logger.warn('FIREBASE_AUTH_EMULATOR_HOST not set in test/CI environment');
+      logger.warn("FIREBASE_AUTH_EMULATOR_HOST not set in test/CI environment");
     }
   }
 }
@@ -34,14 +34,14 @@ validateEmulatorConfig();
  * @returns {Promise<Array>} Array of operator data with rankings
  */
 async function getTopOperators(options = {}) {
-  const { limit = 100, period = 'all-time' } = options;
+  const { limit = 100, period = "all-time" } = options;
   
   try {
-    logger.debug('Fetching top operators', { limit, period });
+    logger.debug("Fetching top operators", { limit, period });
     
     // Validate inputs
-    if (typeof limit !== 'number' || limit < 1) {
-      logger.warn('Invalid limit provided, using default', { limit });
+    if (typeof limit !== "number" || limit < 1) {
+      logger.warn("Invalid limit provided, using default", { limit });
       return [];
     }
     
@@ -49,18 +49,19 @@ async function getTopOperators(options = {}) {
     const dateThreshold = getDateThreshold(period);
     
     // Query scenario sessions for completed missions
-    let query = db.collection('scenarioSessions')
-      .where('status', '==', 'completed');
+    let query = db
+      .collection("scenarioSessions")
+      .where("status", "==", "completed");
     
     if (dateThreshold) {
-      query = query.where('endTime', '>=', dateThreshold.toISOString());
+      query = query.where("endTime", ">=", dateThreshold.toISOString());
     }
     
     const snapshot = await query.get();
     
     // Handle empty results gracefully
     if (snapshot.empty) {
-      logger.info('No completed sessions found for leaderboard', { period });
+      logger.info("No completed sessions found for leaderboard", { period });
       return [];
     }
     
@@ -76,7 +77,7 @@ async function getTopOperators(options = {}) {
       if (!userStats[userId]) {
         userStats[userId] = {
           userId,
-          callSign: session.userCallSign || 'Operator',
+          callSign: session.userCallSign || "Operator",
           totalScore: 0,
           totalMissions: 0,
           scores: []
@@ -110,11 +111,11 @@ async function getTopOperators(options = {}) {
     return operators;
     
   } catch (error) {
-    logger.error('Error fetching top operators', { 
+    logger.error("Error fetching top operators", {
       error: error.message,
       stack: error.stack,
       limit,
-      period
+      period,
     });
     // Return empty array instead of throwing to prevent cascade failures
     return [];
