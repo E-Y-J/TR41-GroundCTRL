@@ -62,9 +62,5 @@
         ]
       }
     ]
-  },
-  "apphosting": {
-    "serviceId": "backend",
-    "source": "./backend"
   }
 }
