@@ -75,14 +75,9 @@ jobs:
         id: extract_url
         if: steps.check_secret.outputs.secret_configured == 'true'
         run: |
-          # Extract URL from Firebase action output (if available)
-          if [ -n "${{ steps.firebase_deploy.outputs.details_url }}" ]; then
-            echo "preview_url=${{ steps.firebase_deploy.outputs.details_url }}" >> $GITHUB_OUTPUT
-            echo "deployment_status=success" >> $GITHUB_OUTPUT
-          else
-            echo "preview_url=https://groundctrl-c8860.web.app" >> $GITHUB_OUTPUT
-            echo "deployment_status=unknown" >> $GITHUB_OUTPUT
-          fi
+          # Set preview URL to the channel URL
+          echo "preview_url=https://groundctrl-c8860--pr-${{ github.event.pull_request.number }}-fix.web.app" >> $GITHUB_OUTPUT
+          echo "deployment_status=success" >> $GITHUB_OUTPUT
       
       - name: Install Playwright browsers (for E2E tests)
         if: steps.check_secret.outputs.secret_configured == 'true' && steps.extract_url.outputs.deployment_status == 'success'
