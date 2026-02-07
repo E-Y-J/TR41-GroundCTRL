@@ -81,75 +81,10 @@ export function CommandConsoleHUD() {
     return null; // Hide when mission not started
   }
 
-  // Get all command groups
-  const allGroups = Object.entries(COMMAND_GROUPS);
-
+  // Empty right dock column - content cleared per user request
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Simplified Header */}
-      <div className="p-2 border-b border-border shrink-0">
-        <div className="flex items-center justify-between mb-1">
-          <span className="font-semibold text-sm text-foreground">Commands</span>
-          <Badge variant="outline" className="text-xs h-5">
-            SAT-01
-          </Badge>
-        </div>
-
-        {/* Current Objective - Compact */}
-        {currentStep && (
-          <div className="mt-2 p-1.5 bg-blue-950/20 border border-blue-500/30 rounded">
-            <div className="flex items-center gap-1 mb-0.5">
-              <Target className="w-3 h-3 text-blue-400" />
-              <span className="text-[10px] font-semibold text-blue-400 uppercase">OBJECTIVE</span>
-            </div>
-            <p className="text-xs text-foreground leading-tight">{currentStep.text}</p>
-          </div>
-        )}
-
-        {/* Compact Resource Bar */}
-        <div className="mt-2 grid grid-cols-3 gap-1 text-[10px]">
-          <div className="text-center py-0.5 rounded bg-background/50 border border-border/50">
-            <div className="text-muted-foreground uppercase">Fuel</div>
-            <div className="font-bold text-orange-500">{satellite?.propellantMass_kg?.toFixed(1) || '0'}</div>
-          </div>
-          <div className="text-center py-0.5 rounded bg-background/50 border border-border/50">
-            <div className="text-muted-foreground uppercase">Δv</div>
-            <div className="font-bold text-purple-500">{satellite?.deltaVRemaining_ms?.toFixed(0) || '0'}</div>
-          </div>
-          <div className="text-center py-0.5 rounded bg-background/50 border border-border/50">
-            <div className="text-muted-foreground uppercase">Pwr</div>
-            <div className="font-bold text-yellow-500">{satellite?.power_percent?.toFixed(0) || '0'}%</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Command Groups */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
-        {allGroups.map(([groupKey, group]) => {
-          const availableCommands = group.commands.filter(cmd => isCommandEnabled(cmd));
-          if (availableCommands.length === 0) return null;
-
-          return (
-            <div key={groupKey} className="border rounded bg-muted/10 overflow-hidden">
-              {/* Group Header */}
-              <div className="px-2 py-1 bg-muted/30 border-b border-border/50">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">
-                  {group.label}
-                </span>
-              </div>
-
-              {/* Command Grid */}
-              <div className="p-1 grid grid-cols-2 gap-1">
-                {group.commands.map((command) => (
-                  <div key={command.name} className="min-h-8">
-                    {getCommandComponent(command)}
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* Empty column - ready for future content */}
     </div>
   );
 }
