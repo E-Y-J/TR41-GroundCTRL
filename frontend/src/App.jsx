@@ -11,6 +11,8 @@ import { AdminRoute } from '@/components/admin/AdminRoute.jsx'
 // Tutorial System
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay'
 
+console.log('App.jsx loaded')
+
 // Pages
 const HomePage = lazy(() => import('@/pages/Index.jsx'))
 const DashboardPage = lazy(() => import('@/pages/Dashboard.jsx'))
@@ -58,6 +60,7 @@ function PageLoader() {
 }
 
 function App() {
+  console.log('App rendering')
   return (
     <Providers>
       <Suspense fallback={<PageLoader />}>

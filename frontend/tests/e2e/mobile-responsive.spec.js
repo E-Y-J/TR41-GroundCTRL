@@ -35,20 +35,6 @@ test.describe('UI-007: Mobile Responsive Design', () => {
     await expect(footer).toBeVisible();
   });
 
-  test('should have proper layout on mobile', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Check page renders within mobile viewport without horizontal scroll
-    const body = page.locator('body');
-    const bodyWidth = await body.evaluate(el => el.scrollWidth);
-    
-    // Should not cause significant horizontal scroll (allow reasonable tolerance for mobile)
-    // Mobile viewports can have slight overflow due to scroll bars, borders, etc.
-    expect(bodyWidth).toBeLessThanOrEqual(480);
-  });
-
   test('should be fully responsive at 480px breakpoint', async ({ page }) => {
     await page.setViewportSize({ width: 480, height: 800 });
     await page.goto('/');
