@@ -27,6 +27,9 @@ const helpCategories = require('./data/helpCategories');
 const helpArticles = require('./data/helpArticles');
 const helpFaqs = require('./data/helpFaqs');
 
+// Import tutorial seeder
+const { seedTutorials } = require('./seedTutorials');
+
 const CREATED_BY_UID = '5usOQ3eOm7OjXmDOFjEmKSQovs42';
 
 // Initialize Firebase Admin
@@ -321,6 +324,7 @@ async function runSeed() {
       commands: args.includes('--commands'),
       groundStations: args.includes('--ground-stations'),
       help: args.includes('--help-system'),
+      tutorials: args.includes('--tutorials'),
       all: args.includes('--all') || args.length === 0,
     };
     
@@ -331,6 +335,7 @@ async function runSeed() {
       flags.commands = true;
       flags.groundStations = true;
       flags.help = true;
+      flags.tutorials = true;
     }
     
     console.log('\n🚀 GroundCTRL Database Seeder\n');
@@ -390,6 +395,18 @@ async function runSeed() {
       counts.helpSystem = await seedHelpSystem();
     }
     
+    // Seed tutorials (requires scenarios)
+    if (flags.tutorials) {
+      if (Object.keys(scenarioMap).length === 0) {
+        console.log('⚠️  Fetching existing scenarios for tutorials...');
+        scenarioMap = await fetchExistingScenarios();
+        console.log(`   Found ${Object.keys(scenarioMap).length} scenarios\n`);
+      }
+      // Use first scenario for all tutorials
+      const firstScenarioId = Object.values(scenarioMap)[0];
+      counts.tutorials = await seedTutorials(firstScenarioId);
+    }
+    
     // Summary
     console.log('\n✅ Seeding complete!\n');
     console.log('Summary:');
@@ -402,6 +419,9 @@ async function runSeed() {
       console.log(`   📚 ${counts.helpSystem.categories} help categories`);
       console.log(`   📄 ${counts.helpSystem.articles} help articles`);
       console.log(`   ❓ ${counts.helpSystem.faqs} FAQs`);
+    }
+    if (counts.tutorials) {
+      console.log(`   🎓 ${counts.tutorials.created} tutorials (${counts.tutorials.skipped} skipped)`);
     }
     console.log('');
     
@@ -429,6 +449,7 @@ Flags:
   --commands         Seed commands only
   --ground-stations  Seed ground stations only
   --help-system      Seed help center (categories, articles, FAQs)
+  --tutorials        Seed tutorials (fetches existing scenarios if needed)
   --help             Show this help message
 
 Examples:
@@ -448,6 +469,7 @@ What Gets Seeded (--all):
   📚 7 Help Categories
   📄 50+ Help Articles (comprehensive guides)
   ❓ 35 FAQs
+  🎓 5 Interactive Tutorials (2D/3D rendering, mission control, power, attitude)
 
 Notes:
   - Scenarios require satellites (will fetch from DB if not seeding)
