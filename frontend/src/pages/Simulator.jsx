@@ -13,6 +13,8 @@ import { TimeControlDisplay } from "@/components/simulator/time-control-display"
 import { OperatorPrompt } from "@/components/simulator/operator-prompt"
 import { PerformanceMetrics } from "@/components/simulator/performance-metrics"
 import { VisualizationSwitcher } from "@/components/simulator/views"
+import { FloatingTMTCConsole } from "@/components/simulator/FloatingTMTCConsole"
+import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel } from "@/components/simulator/panels"
 import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
@@ -32,6 +34,13 @@ export default function Simulator() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [sessionError, setSessionError] = useState(null)
   const [sessionData, setSessionData] = useState(null)
+  
+  // HUD Enhancement - Panel visibility state
+  const [showTMTCConsole, setShowTMTCConsole] = useState(true)
+  const [showADCSPanel, setShowADCSPanel] = useState(true)
+  const [showEPSPanel, setShowEPSPanel] = useState(true)
+  const [showCommsPanel, setShowCommsPanel] = useState(true)
+  const [showPropulsionPanel, setShowPropulsionPanel] = useState(false)
   
   // Use simulator state context
   const { 
@@ -381,6 +390,47 @@ export default function Simulator() {
               position="left"
             />
           </Suspense>
+        )}
+        
+        {/* HUD Enhancement - Floating TM/TC Console */}
+        {missionStarted && showTMTCConsole && (
+          <FloatingTMTCConsole
+            sessionId={contextSessionId || sessionIdParam}
+            onClose={() => setShowTMTCConsole(false)}
+          />
+        )}
+        
+        {/* HUD Enhancement - Subsystem Panels */}
+        {missionStarted && showADCSPanel && (
+          <ADCSPanel
+            telemetry={sessionData?.telemetry}
+            status="nominal"
+            onClose={() => setShowADCSPanel(false)}
+          />
+        )}
+        
+        {missionStarted && showEPSPanel && (
+          <EPSPanel
+            telemetry={sessionData?.telemetry}
+            status="nominal"
+            onClose={() => setShowEPSPanel(false)}
+          />
+        )}
+        
+        {missionStarted && showCommsPanel && (
+          <CommsPanel
+            telemetry={sessionData?.telemetry}
+            status="nominal"
+            onClose={() => setShowCommsPanel(false)}
+          />
+        )}
+        
+        {missionStarted && showPropulsionPanel && (
+          <PropulsionPanel
+            telemetry={sessionData?.telemetry}
+            status="nominal"
+            onClose={() => setShowPropulsionPanel(false)}
+          />
         )}
       </div>
     </>
