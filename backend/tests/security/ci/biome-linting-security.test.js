@@ -40,11 +40,10 @@ describe('CI - Biome Linting Security', () => {
   }, 60000);
 
   it('should flag insecure practices', () => {
-    // ESLint should catch common issues
-    // This is implicit if eslint-plugin-security is configured
+    // Biome should catch common security issues
+    // This is implicit if biome linter rules are configured
 
-    expect(fs.existsSync('.eslintrc.js') || fs.existsSync('.eslintrc.json') || 
-            fs.existsSync('eslint.config.js')).toBe(true);
+    expect(fs.existsSync('biome.json')).toBe(true);
   }, 60000);
 
   it('should enforce no-eval rule', () => {
