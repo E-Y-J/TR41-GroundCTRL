@@ -206,7 +206,8 @@ async function getTutorialsByScenario(req, res, next) {
 		});
 
 		const tutorials = await tutorialRepository.getByScenarioId(scenarioId, {
-			isActive: isActive === "true" ? true : isActive === "false" ? false : undefined,
+			isActive:
+				isActive === "true" ? true : isActive === "false" ? false : undefined,
 			status: status || "PUBLISHED",
 		});
 

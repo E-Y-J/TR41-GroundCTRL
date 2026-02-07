@@ -55,7 +55,9 @@ const tutorialStepSchema = z
 		action: z
 			.string()
 			.optional()
-			.describe("Expected user action to proceed (e.g., click-button, enter-value)"),
+			.describe(
+				"Expected user action to proceed (e.g., click-button, enter-value)",
+			),
 
 		completionCriteria: z
 			.object({
@@ -135,7 +137,10 @@ const createTutorialSchema = z
 
 				triggerConditions: z
 					.object({
-						panelId: z.string().optional().describe("For ON_PANEL_OPEN trigger"),
+						panelId: z
+							.string()
+							.optional()
+							.describe("For ON_PANEL_OPEN trigger"),
 						commandId: z.string().optional().describe("For ON_COMMAND trigger"),
 						customCondition: z
 							.string()
@@ -174,7 +179,9 @@ const createTutorialSchema = z
 				tags: z
 					.array(z.string())
 					.optional()
-					.describe("Tags for filtering (e.g., power, attitude, communications)"),
+					.describe(
+						"Tags for filtering (e.g., power, attitude, communications)",
+					),
 
 				prerequisites: z
 					.array(z.string())
@@ -223,7 +230,8 @@ const patchTutorialSchema = z
 				icon: z.string().optional(),
 				estimatedDurationMinutes: z.number().positive().max(60).optional(),
 				triggerType: triggerTypeEnum.optional(),
-				triggerConditions: createTutorialSchema.shape.body.shape.triggerConditions,
+				triggerConditions:
+					createTutorialSchema.shape.body.shape.triggerConditions,
 				steps: z.array(tutorialStepSchema).min(1).max(20).optional(),
 				status: tutorialStatusEnum.optional(),
 				isActive: z.boolean().optional(),
@@ -280,10 +288,7 @@ const listTutorialsSchema = z
 					.default("desc")
 					.describe("Sort order (default: desc)"),
 
-				scenario_id: z
-					.string()
-					.optional()
-					.describe("Filter by scenario ID"),
+				scenario_id: z.string().optional().describe("Filter by scenario ID"),
 
 				status: tutorialStatusEnum.optional().describe("Filter by status"),
 
