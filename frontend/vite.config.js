@@ -60,12 +60,10 @@ export default defineConfig({
             '@radix-ui/react-slot'
           ],
           
-          // Tier 3: Firebase & heavy dependencies
-          'vendor-firebase': [
-            'firebase/app',
-            'firebase/auth',
-            'firebase/firestore'
-          ],
+          // Tier 3: Firebase (split for better caching)
+          'vendor-firebase-app': ['firebase/app'],
+          'vendor-firebase-auth': ['firebase/auth'],
+          'vendor-firebase-firestore': ['firebase/firestore'],
           
           // Tier 3b: Socket.io (large, separate)
           'vendor-socket': [

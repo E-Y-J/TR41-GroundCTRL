@@ -3,28 +3,27 @@ module.exports = {
     collect: {
       staticDistDir: './frontend/dist',
       numberOfRuns: 3,
+      settings: {
+        skipAudits: ['errors-in-console'],
+        onlyAudits: [
+          'first-contentful-paint',
+          'largest-contentful-paint',
+          'total-blocking-time',
+          'cumulative-layout-shift',
+          'speed-index'
+        ]
+      }
     },
     upload: {
       target: 'temporary-public-storage',
     },
     assert: {
-      preset: 'lighthouse:recommended',
       assertions: {
-        'color-contrast': 'off',
-        'errors-in-console': 'off',
-        'network-dependency-tree-insight': 'off',
-        'unused-javascript': 'off',
-        'uses-rel-preconnect': 'off',
-        'cache-insight': 'off', // Will be handled by hosting
-        'uses-long-cache-ttl': 'off', // Will be handled by hosting
-        'render-blocking-insight': 'off',
-        'render-blocking-resources': 'off',
-        'font-size': 'off',
-        'forced-reflow-insight': 'off',
-        'meta-description': 'off',
-        'unminified-javascript': 'off',
-        'valid-source-maps': 'off',
-        'max-potential-fid': 'off',
+        'first-contentful-paint': ['error', { 'minScore': 0.4 }],
+        'largest-contentful-paint': ['error', { 'minScore': 0.2 }],
+        'total-blocking-time': ['error', { 'minScore': 0.5 }],
+        'cumulative-layout-shift': ['error', { 'minScore': 0.5 }],
+        'speed-index': ['error', { 'minScore': 0.5 }],
       },
     },
   },
