@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import AppHeader from '@/components/app-header'
 import { Footer } from '@/components/footer'
 import { useAuth } from '@/hooks/use-auth'
-import { auth } from '@/lib/firebase/config'
+import { getGlobalLeaderboard } from '@/lib/api/leaderboardService'
 import { 
   Trophy, Medal, TrendingUp, TrendingDown, Minus,
   Loader2, Info, AlertCircle
@@ -45,41 +45,27 @@ export default function Leaderboard() {
     }
   }, [user, authLoading, navigate])
 
-  // Attempt to fetch leaderboard data
+  // Fetch leaderboard data
   useEffect(() => {
     async function loadLeaderboard() {
-      if (!user || !auth.currentUser) return
+      if (!user) return
       
       try {
         setLoading(true)
         setError(null)
         
-        // Get Firebase ID token from the current authenticated user
-        const idToken = await auth.currentUser.getIdToken()
-        
-        // Attempt to fetch from backend leaderboard API
-        const response = await fetch(`/api/leaderboard/global?period=${timePeriod}`, {
-          headers: {
-            'Authorization': `Bearer ${idToken}`
-          }
+        // Fetch from backend leaderboard API using service
+        const data = await getGlobalLeaderboard({
+          period: timePeriod,
+          limit: 100,
+          includeUser: true
         })
         
-        if (response.status === 404) {
-          // Backend service not implemented yet
-          setError('SERVICE_NOT_IMPLEMENTED')
-          return
-        }
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch leaderboard')
-        }
-        
-        const data = await response.json()
         setLeaderboardData(data)
       } catch (err) {
         console.error('Error loading leaderboard:', err)
-        // Check if it's a network error or endpoint doesn't exist
-        if (err.message.includes('Failed to fetch') || err.message.includes('404')) {
+        // Check if it's a 404 or connection error
+        if (err.message.includes('404') || err.status === 404) {
           setError('SERVICE_NOT_IMPLEMENTED')
         } else {
           setError('FETCH_ERROR')
