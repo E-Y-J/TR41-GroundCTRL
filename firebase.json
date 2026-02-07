@@ -56,5 +56,11 @@
       "port": 5000
     },
     "singleProjectMode": false
+  },
+  "apphosting": {
+    "source": "backend",
+    "environmentVariables": {
+      "NODE_ENV": "production"
+    }
   }
 }
