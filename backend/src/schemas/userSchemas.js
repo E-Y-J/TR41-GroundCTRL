@@ -5,6 +5,32 @@
 
 const { z } = require('zod');
 
+// Tutorial preferences schema
+const tutorialPreferencesSchema = z.object({
+  enabled: z.boolean().default(true),
+  completedFlows: z.array(z.string()).default([]),
+  dismissedFlows: z.array(z.string()).default([]),
+  scenarioPreferences: z.record(z.boolean()).optional(),
+  lastActiveFlow: z.string().nullable().default(null),
+  lastActiveStepIndex: z.number().int().min(0).default(0),
+  lastUpdated: z.number().optional()
+}).strict().optional();
+
+// Rendering preferences schema
+const renderingPreferencesSchema = z.object({
+  defaultViewMode: z.enum(['2d-advanced', '3d-globe']).default('2d-advanced'),
+  autoSwitchProjections: z.boolean().default(true),
+  showGroundStations: z.boolean().default(true),
+  showTerminator: z.boolean().default(true),
+  performanceMode: z.enum(['high', 'balanced', 'low']).default('balanced')
+}).strict().optional();
+
+// Combined preferences schema
+const preferencesSchema = z.object({
+  tutorials: tutorialPreferencesSchema,
+  rendering: renderingPreferencesSchema
+}).strict().optional();
+
 /**
  * Schema for creating a new user (admin only)
  */
@@ -32,7 +58,8 @@ const createUserSchema = z.object({
   isActive: z.boolean()
     .default(true),
   isAdmin: z.boolean()
-    .default(false)
+    .default(false),
+  preferences: preferencesSchema
 }).strict();
 
 /**
@@ -52,7 +79,8 @@ const updateUserSchema = z.object({
     .optional(),
   role: z.enum(['operator', 'admin', 'viewer']),
   isActive: z.boolean(),
-  isAdmin: z.boolean()
+  isAdmin: z.boolean(),
+  preferences: preferencesSchema
 }).strict();
 
 /**
@@ -83,7 +111,8 @@ const patchUserSchema = z.object({
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[@$!%*?&#^()_+\-=[\]{}|;:,.<>/]/, 'Password must contain at least one special character')
-    .optional()
+    .optional(),
+  preferences: preferencesSchema
 }).strict().refine(
   data => Object.keys(data).length > 0,
   {
@@ -122,5 +151,8 @@ module.exports = {
   createUserSchema,
   updateUserSchema,
   patchUserSchema,
-  userQuerySchema
+  userQuerySchema,
+  tutorialPreferencesSchema,
+  renderingPreferencesSchema,
+  preferencesSchema
 };
