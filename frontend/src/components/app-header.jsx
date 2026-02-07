@@ -104,7 +104,6 @@ export default function AppHeader({ onAuthViewChange }) {
         <DropdownMenu>
           <DropdownMenuTrigger 
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none"
-            aria-label={user ? "Account menu" : "Authentication menu"}
           >
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
               <User className="h-4 w-4 text-primary" />

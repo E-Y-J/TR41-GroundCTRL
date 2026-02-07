@@ -78,7 +78,6 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^25.2.1",
