@@ -5,7 +5,7 @@
 
 import { auth } from '../firebase/config'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.missionctrl.org/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://groundctrl--groundctrl-c8860.us-central1.hosted.app/api/v1'
 
 // Store backend JWT tokens
 let backendAccessToken = null
