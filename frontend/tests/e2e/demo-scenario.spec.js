@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI-DEMO-001: Demo Scenario Workflow', () => {
   test('should load demo scenarios on scenarios page', async ({ page }) => {
-    await page.goto('/scenarios', { waitUntil: 'networkidle' });
+    await page.goto('/missions', { waitUntil: 'networkidle' });
 
     // Look for demo scenarios
     const demoScenarios = page.locator('[data-testid*="demo"], .scenario-card:has-text("Demo"), .scenario-card:has-text("demo")');
@@ -18,7 +18,7 @@ test.describe('UI-DEMO-001: Demo Scenario Workflow', () => {
   });
 
   test('should start demo scenario session', async ({ page }) => {
-    await page.goto('/scenarios', { waitUntil: 'networkidle' });
+    await page.goto('/missions', { waitUntil: 'networkidle' });
 
     // Click on a demo scenario
     const demoScenario = page.locator('[data-testid*="demo"], .scenario-card').first();
@@ -26,7 +26,7 @@ test.describe('UI-DEMO-001: Demo Scenario Workflow', () => {
     await demoScenario.click();
 
     // Should navigate to scenario detail or start session
-    await page.waitForURL(/\/scenarios\/|\/session\//, { timeout: 10000 });
+    await page.waitForURL(/\/missions\/|\/session\//, { timeout: 10000 });
 
     const currentUrl = page.url();
     expect(currentUrl).toMatch(/\/scenarios\/|\/session\//);
