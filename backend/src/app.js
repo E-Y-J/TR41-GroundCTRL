@@ -12,7 +12,7 @@ const helmet = require("helmet");
 const swaggerUi = require("swagger-ui-express");
 const { initializeFirebase } = require("./config/firebase");
 const swaggerSpec = require("./config/swagger");
-const OpenApiValidator = require("express-openapi-validator");
+const _OpenApiValidator = require("express-openapi-validator");
 const missionControl = require("./config/missionControl");
 const auditLogger = require("./middleware/auditLogger");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
@@ -252,7 +252,10 @@ try {
 	// );
 	console.log("✅ OpenAPI validation middleware disabled (schema issues)");
 } catch (error) {
-	console.warn("⚠️  OpenAPI validation middleware failed to initialize:", error.message);
+	console.warn(
+		"⚠️  OpenAPI validation middleware failed to initialize:",
+		error.message,
+	);
 	console.warn("    API validation will be skipped");
 	// Comment out the middleware for now
 	// app.use(OpenApiValidator.middleware({...}));
