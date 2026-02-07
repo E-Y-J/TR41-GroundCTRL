@@ -14,7 +14,7 @@ import { OperatorPrompt } from "@/components/simulator/operator-prompt"
 import { PerformanceMetrics } from "@/components/simulator/performance-metrics"
 import { VisualizationSwitcher } from "@/components/simulator/views"
 import { FloatingTMTCConsole } from "@/components/simulator/FloatingTMTCConsole"
-import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel } from "@/components/simulator/panels"
+import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel, TimeControlPanel } from "@/components/simulator/panels"
 import { DockingProvider } from "@/contexts/DockingContext"
 import { DockContainerLayout } from "@/components/simulator/DockContainer"
 import { useAuth } from "@/hooks/use-auth"
@@ -43,6 +43,7 @@ export default function Simulator() {
   const [showEPSPanel, setShowEPSPanel] = useState(true)
   const [showCommsPanel, setShowCommsPanel] = useState(true)
   const [showPropulsionPanel, setShowPropulsionPanel] = useState(false)
+  const [showTimeControlPanel, setShowTimeControlPanel] = useState(true)
   
   // Use simulator state context
   const { 
@@ -323,13 +324,12 @@ export default function Simulator() {
           {/* Mission Steps Panel - Shows current objectives */}
           {missionStarted && <MissionStepsPanel />}
           
-          {/* Mission Control Enhancement - Ground Station Indicator + Controls */}
+          {/* Mission Control Enhancement - Ground Station Indicator */}
           {missionStarted && (
             <div className="px-4 py-2 border-b border-border bg-muted/30">
               <div className="flex items-center justify-between">
                 <GroundStationIndicator />
                 <div className="flex items-center gap-2">
-                  <TimeControlDisplay sessionId={contextSessionId || sessionIdParam} />
                   <PerformanceMetrics sessionId={contextSessionId || sessionIdParam} />
                 </div>
               </div>
@@ -438,6 +438,14 @@ export default function Simulator() {
             telemetry={sessionData?.telemetry}
             status="nominal"
             onClose={() => setShowPropulsionPanel(false)}
+          />
+        )}
+        
+        {/* HUD Enhancement - Time Control Panel */}
+        {missionStarted && showTimeControlPanel && (
+          <TimeControlPanel
+            sessionId={contextSessionId || sessionIdParam}
+            onClose={() => setShowTimeControlPanel(false)}
           />
         )}
       </DockingProvider>
