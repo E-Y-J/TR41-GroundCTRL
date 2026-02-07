@@ -20,6 +20,7 @@ const aiRoutes = require("./ai");
 const commandRoutes = require("./commands");
 const helpRoutes = require("./help");
 const websocketLogsRoutes = require("./websocket-logs");
+const leaderboardRoutes = require("./leaderboard");
 
 /**
  * API v1 Routes
@@ -40,6 +41,7 @@ router.use("/ai", aiRoutes);
 router.use("/commands", authMiddleware, commandRoutes);
 router.use("/help", authMiddleware, helpRoutes);
 router.use("/websocket-logs", authMiddleware, websocketLogsRoutes);
+router.use("/leaderboard", leaderboardRoutes); // Leaderboard routes handle their own auth
 
 // Root API endpoint
 router.get("/", (req, res) => {
@@ -105,6 +107,11 @@ router.get("/", (req, res) => {
 					path: "/help",
 					methods: ["GET"],
 					description: "Help documentation and knowledge base",
+				},
+				{
+					path: "/leaderboard",
+					methods: ["GET"],
+					description: "Global and scenario leaderboards",
 				},
 			],
 		},
