@@ -138,6 +138,7 @@ export function DockingProvider({ children }) {
 
   /**
    * Calculate optimal position for a panel in a dock zone
+   * Panels match container width and use content height, stacking vertically
    */
   const calculateDockPosition = useCallback((zoneId, panelId) => {
     const zone = DOCK_ZONES[zoneId]
@@ -148,25 +149,26 @@ export function DockingProvider({ children }) {
     const actualIndex = panelIndex >= 0 ? panelIndex : zonePanels.length
     
     if (zone.orientation === 'vertical') {
-      // Stack vertically
-      const totalHeight = zone.size.maxHeight
-      const panelHeight = typeof totalHeight === 'string' 
-        ? (window.innerHeight - 300) / (zonePanels.length + 1)
-        : totalHeight / (zonePanels.length + 1)
-      
-      const yOffset = actualIndex * panelHeight
+      // Stack vertically - panels use full width and auto height
+      // Calculate Y offset by summing heights of previous panels
+      let yOffset = 0
+      for (let i = 0; i < actualIndex; i++) {
+        // Get stored height from panel data, or use default
+        const prevPanel = zonePanels[i]
+        yOffset += prevPanel.height || 200 // default height if not set
+      }
       
       return {
         x: zone.position.x,
         y: typeof zone.position.y === 'number' ? zone.position.y + yOffset : yOffset,
-        width: zone.size.width,
-        height: panelHeight
+        width: zone.size.width, // Full container width
+        height: 'auto' // Content-based height
       }
     } else {
       // Stack horizontally
       const totalWidth = zone.size.width
       const panelWidth = typeof totalWidth === 'string'
-        ? (window.innerWidth - 820) / (zonePanels.length + 1)
+        ? (window.innerWidth - 640) / (zonePanels.length + 1)
         : totalWidth / (zonePanels.length + 1)
       
       const xOffset = actualIndex * panelWidth
@@ -175,7 +177,7 @@ export function DockingProvider({ children }) {
         x: typeof zone.position.x === 'number' ? zone.position.x + xOffset : xOffset,
         y: zone.position.y,
         width: panelWidth,
-        height: zone.size.maxHeight
+        height: 'auto' // Content-based height
       }
     }
   }, [dockedPanels])
