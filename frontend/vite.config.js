@@ -42,9 +42,10 @@ export default defineConfig({
       // Allow serving files from one level up to the project root
       allow: ['..']
     },
-    // Fix MIME type issues for CSS files in Firefox/WebKit
+    // Fix MIME type issues for CSS files - ensure proper content type
     mimeTypes: {
-      '.css': 'text/css'
+      '.css': 'text/css',
+      'text/css': 'text/css'
     }
   },
   build: {
