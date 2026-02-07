@@ -15,7 +15,19 @@ export default defineConfig({
       open: false,
       gzipSize: true,
       brotliSize: true,
-    })
+    }),
+    // Fix MIME type issues for CSS files
+    {
+      name: 'fix-css-mime-type',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url && req.url.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css')
+          }
+          next()
+        })
+      }
+    }
   ],
   root: __dirname,
   resolve: {
@@ -26,6 +38,14 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: ['..']
+    },
+    // Fix MIME type issues for CSS files in Firefox/WebKit
+    mimeTypes: {
+      '.css': 'text/css'
+    }
   },
   build: {
     rollupOptions: {
