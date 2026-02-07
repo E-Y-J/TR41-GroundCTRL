@@ -33,6 +33,7 @@ export function TutorialToggle({ compact = false, className = "" }) {
           variant="ghost"
           size={compact ? "icon" : "sm"}
           className={`relative ${className}`}
+          aria-label="Tutorial menu"
         >
           <GraduationCap className="h-4 w-4" />
           {!compact && <span className="ml-2">Tutorial</span>}

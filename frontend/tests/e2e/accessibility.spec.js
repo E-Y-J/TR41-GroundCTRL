@@ -20,9 +20,13 @@ test.describe('Accessibility Tests', () => {
       accessibilityScanResults.violations.forEach((violation, index) => {
         console.log(`${index + 1}. ${violation.id}: ${violation.description}`);
         console.log(`   Impact: ${violation.impact}`);
-        console.log(`   Help: ${violation.help}`);
-        console.log(`   Help URL: ${violation.helpUrl}`);
         console.log(`   Elements: ${violation.nodes.length}`);
+        if (violation.id === 'button-name') {
+          violation.nodes.forEach((node, nodeIndex) => {
+            console.log(`   Button ${nodeIndex + 1} HTML: ${node.html}`);
+            console.log(`   Button ${nodeIndex + 1} Target: ${node.target}`);
+          });
+        }
         console.log('---');
       });
     }

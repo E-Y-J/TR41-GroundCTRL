@@ -1462,6 +1462,110 @@ All timestamps use ISO 8601 format. Telemetry includes:
 						},
 					},
 				},
+				HealthStatus: {
+					type: "object",
+					properties: {
+						status: {
+							type: "string",
+							enum: ["GO", "NO-GO", "HOLD", "ABORT"],
+							description: "Overall health status",
+							example: "GO",
+						},
+						statusDetail: {
+							type: "string",
+							description: "Detailed status description",
+							example: "All systems operational",
+						},
+						service: {
+							type: "string",
+							description: "Service name",
+							example: "GroundCTRL API",
+						},
+						version: {
+							type: "string",
+							description: "Service version",
+							example: "1.4.0",
+						},
+						station: {
+							type: "string",
+							description: "Ground station identifier",
+							example: "GROUNDCTRL-01",
+						},
+						uptime: {
+							type: "integer",
+							description: "Service uptime in seconds",
+							example: 3600,
+						},
+						uptimeFormatted: {
+							type: "string",
+							description: "Human-readable uptime",
+							example: "1h 0m 0s",
+						},
+						timestamp: {
+							type: "string",
+							format: "date-time",
+							description: "Health check timestamp",
+							example: "2026-01-10T20:00:00.000Z",
+						},
+						environment: {
+							type: "string",
+							description: "Deployment environment",
+							example: "development",
+						},
+					},
+				},
+				DatabaseHealthStatus: {
+					type: "object",
+					properties: {
+						status: {
+							type: "string",
+							enum: ["GO", "NO-GO", "HOLD", "ABORT"],
+							description: "Database health status",
+							example: "GO",
+						},
+						statusDetail: {
+							type: "string",
+							description: "Detailed database status",
+							example: "Database responding normally",
+						},
+						database: {
+							type: "string",
+							description: "Database type",
+							example: "Firebase Firestore",
+						},
+						service: {
+							type: "string",
+							description: "Service name",
+							example: "GroundCTRL API",
+						},
+						station: {
+							type: "string",
+							description: "Ground station identifier",
+							example: "GROUNDCTRL-01",
+						},
+						latency: {
+							type: "object",
+							properties: {
+								ms: {
+									type: "integer",
+									description: "Response latency in milliseconds",
+									example: 45,
+								},
+								threshold: {
+									type: "integer",
+									description: "Acceptable latency threshold in milliseconds",
+									example: 100,
+								},
+							},
+						},
+						timestamp: {
+							type: "string",
+							format: "date-time",
+							description: "Database health check timestamp",
+							example: "2026-01-10T20:00:00.000Z",
+						},
+					},
+				},
 			},
 		},
 	},
