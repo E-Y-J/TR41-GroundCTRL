@@ -67,7 +67,7 @@ jobs:
         with:
           args: hosting:channel:deploy pr-${{ github.event.pull_request.number }}-fix --project groundctrl-c8860
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
       
       - name: Extract deployment URL
         id: extract_url
