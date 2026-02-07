@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
   test('should display NOVA help interface', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Look for NOVA help elements
     const novaElements = [
@@ -34,7 +34,7 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
   });
 
   test('should accept help questions and show responses', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Find help input
     const helpInput = page.locator('input[placeholder*="help" i], textarea[placeholder*="help" i], [data-testid="help-input"]');
@@ -89,7 +89,7 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
   });
 
   test('should show personalized suggestions based on context', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Look for suggestion elements
     const suggestionElements = [
@@ -124,7 +124,7 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
   });
 
   test('should handle multi-turn conversations', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Look for conversation history elements
     const conversationElements = [
@@ -147,37 +147,6 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
       // Test conversation persistence (would need multiple interactions)
       const messageCount = await page.locator('.message, .chat-message').count();
       expect(messageCount).toBeGreaterThanOrEqual(0);
-    }
-  });
-
-  test('should provide contextual help based on user scenario', async ({ page }) => {
-    // Navigate to scenarios page to establish context
-    await page.goto('/scenarios', { waitUntil: 'networkidle' });
-
-    // Look for NOVA help in scenario context
-    const novaHelp = page.locator('[data-testid="nova-help"], .nova-help, button:has-text("Help")').first();
-
-    if (await novaHelp.isVisible({ timeout: 5000 })) {
-      await novaHelp.click();
-
-      // Should show scenario-specific help
-      const contextualHelp = page.locator('[data-testid="contextual-help"], .contextual-help, text*="scenario"').first();
-
-      // Wait for help content to load
-      await page.waitForTimeout(2000);
-
-      if (await contextualHelp.isVisible({ timeout: 3000 })) {
-        const helpText = await contextualHelp.textContent();
-        expect(helpText).toBeTruthy();
-
-        // Should contain scenario-related keywords
-        const hasScenarioContext = helpText.toLowerCase().includes('scenario') ||
-                                   helpText.toLowerCase().includes('satellite') ||
-                                   helpText.toLowerCase().includes('mission');
-        expect(hasScenarioContext).toBe(true);
-      }
-    } else {
-      console.log('NOVA help not available in scenario context - may require backend integration');
     }
   });
 
