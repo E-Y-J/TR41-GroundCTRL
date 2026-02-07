@@ -5,24 +5,72 @@
  * Based on frontend tutorial configuration
  */
 
-const { getFirestore } = require("../src/config/firebase");
-const logger = require("../src/utils/logger");
+require("dotenv").config();
+const admin = require("firebase-admin");
+
+const CREATED_BY_UID = "5usOQ3eOm7OjXmDOFjEmKSQovs42";
+
+// Initialize Firebase Admin with credentials from .env
+if (!admin.apps.length) {
+	try {
+		const privateKey = process.env.FIREBASE_PRIVATE_KEY
+			? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+			: undefined;
+
+		if (
+			!privateKey ||
+			!process.env.FIREBASE_PROJECT_ID ||
+			!process.env.FIREBASE_CLIENT_EMAIL
+		) {
+			console.error("Missing Firebase credentials in .env file");
+			console.error(
+				"Please ensure FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY, and FIREBASE_CLIENT_EMAIL are set",
+			);
+			process.exit(1);
+		}
+
+		admin.initializeApp({
+			credential: admin.credential.cert({
+				projectId: process.env.FIREBASE_PROJECT_ID,
+				clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+				privateKey: privateKey,
+			}),
+		});
+
+		console.log("✅ Firebase Admin initialized successfully");
+	} catch (error) {
+		console.error("❌ Failed to initialize Firebase Admin:", error.message);
+		process.exit(1);
+	}
+}
 
 /**
  * Seed tutorial data
  * @param {string} scenarioId - ID of the scenario to attach tutorial to (optional for testing)
  */
 async function seedTutorials(scenarioId = null) {
-	const db = getFirestore();
+	const db = admin.firestore();
 	const tutorialsCollection = db.collection("tutorials");
 
-	// If no scenario ID provided, we'll need to fetch a scenario
+	// If no scenario ID provided, fetch first available scenario
 	let targetScenarioId = scenarioId;
 	if (!targetScenarioId) {
-		logger.warn(
-			"No scenario ID provided for tutorial seeding. Tutorials will need scenario_id updated.",
+		console.log(
+			"⚠️  No scenario ID provided. Fetching first available scenario...",
 		);
-		targetScenarioId = "UPDATE_ME"; // Placeholder
+		const scenariosSnapshot = await db
+			.collection("scenarios")
+			.limit(1)
+			.get();
+		if (!scenariosSnapshot.empty) {
+			targetScenarioId = scenariosSnapshot.docs[0].id;
+			console.log(`   Using scenario: ${targetScenarioId}`);
+		} else {
+			console.warn(
+				"   No scenarios found. Tutorials will need scenario_id updated.",
+			);
+			targetScenarioId = "UPDATE_ME"; // Placeholder
+		}
 	}
 
 	const tutorials = [
@@ -298,7 +346,7 @@ async function seedTutorials(scenarioId = null) {
 		},
 	];
 
-	logger.info(`🚀 Starting tutorial seeding for scenario: ${targetScenarioId}`);
+	console.log(`🚀 Starting tutorial seeding for scenario: ${targetScenarioId}`);
 
 	const results = {
 		created: 0,
@@ -315,33 +363,34 @@ async function seedTutorials(scenarioId = null) {
 				.get();
 
 			if (!existingQuery.empty) {
-				logger.info(`⏭️  Tutorial ${tutorial.code} already exists, skipping`);
+				console.log(`⏭️  Tutorial ${tutorial.code} already exists, skipping`);
 				results.skipped++;
 				continue;
 			}
 
 			// Add timestamps and metadata
+			const now = new Date().toISOString();
 			const tutorialDoc = {
 				...tutorial,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				createdBy: "SEEDER",
+				createdAt: now,
+				updatedAt: now,
+				createdBy: CREATED_BY_UID,
 				createdByCallSign: "GROUNDCTRL-SEEDER",
 			};
 
 			const docRef = await tutorialsCollection.add(tutorialDoc);
 
-			logger.info(`✅ Created tutorial: ${tutorial.code} (${docRef.id})`);
+			console.log(`✅ Created tutorial: ${tutorial.code} (${docRef.id})`);
 			results.created++;
 		} catch (error) {
-			logger.error(`❌ Failed to create tutorial ${tutorial.code}:`, {
+			console.error(`❌ Failed to create tutorial ${tutorial.code}:`, {
 				error: error.message,
 			});
 			results.errors++;
 		}
 	}
 
-	logger.info("📊 Tutorial seeding complete:", results);
+	console.log("📊 Tutorial seeding complete:", results);
 	return results;
 }
 
@@ -350,20 +399,20 @@ async function seedTutorials(scenarioId = null) {
  */
 async function main() {
 	try {
-		logger.info("🌱 Tutorial Seeder Started");
+		console.log("🌱 Tutorial Seeder Started\n");
 
 		// Get scenario ID from command line args if provided
 		const scenarioId = process.argv[2] || null;
 
 		const results = await seedTutorials(scenarioId);
 
-		logger.info(
-			`✨ Tutorial seeding finished: ${results.created} created, ${results.skipped} skipped, ${results.errors} errors`,
+		console.log(
+			`\n✨ Tutorial seeding finished: ${results.created} created, ${results.skipped} skipped, ${results.errors} errors`,
 		);
 
 		process.exit(results.errors > 0 ? 1 : 0);
 	} catch (error) {
-		logger.error("💥 Tutorial seeding failed:", { error: error.message });
+		console.error("💥 Tutorial seeding failed:", error.message);
 		process.exit(1);
 	}
 }
