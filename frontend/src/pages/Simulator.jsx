@@ -440,7 +440,6 @@ export default function Simulator() {
             onClose={() => setShowPropulsionPanel(false)}
           />
         )}
-        </div>
       </DockingProvider>
     </>
   )
