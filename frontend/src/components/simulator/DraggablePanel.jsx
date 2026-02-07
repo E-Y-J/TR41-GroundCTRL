@@ -152,6 +152,68 @@ export function DraggablePanel({
     }
   }, [docking, dockedZone, id, position, dockType])
 
+  // Render inline when docked (no react-rnd)
+  if (dockedZone) {
+    return (
+      <div className={`bg-card border border-border rounded-lg shadow-md w-full ${className}`}>
+        {/* Header with drag handle */}
+        <div
+          className={`p-2 border-b border-border bg-muted/30 flex items-center justify-between rounded-t-lg ${headerClassName}`}
+        >
+          <div className="flex items-center gap-2">
+            <GripVertical className="w-4 h-4 text-muted-foreground" />
+            <span className="font-semibold text-sm text-foreground">{title}</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white font-bold">
+              DOCKED
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            {enableDocking && docking && (
+              <button
+                onClick={handleDockToggle}
+                className="hover:bg-muted p-1 rounded transition-colors"
+                title="Undock panel"
+              >
+                <PinOff className="w-3.5 h-3.5 text-blue-500 hover:text-blue-600" />
+              </button>
+            )}
+            {showMinimize && (
+              <button
+                onClick={handleMinimize}
+                className="hover:bg-muted p-1 rounded transition-colors"
+                title={isMinimized ? "Maximize" : "Minimize"}
+              >
+                {isMinimized ? (
+                  <Maximize2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                ) : (
+                  <Minimize2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                )}
+              </button>
+            )}
+            {showClose && onClose && (
+              <button
+                onClick={handleClose}
+                className="hover:bg-destructive/20 hover:text-destructive p-1 rounded transition-colors"
+                title="Close"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Content (hidden when minimized) */}
+        {!isMinimized && (
+          <div className={`p-4 ${contentClassName}`}>
+            {children}
+          </div>
+        )}
+      </div>
+    )
+  }
+  
+  // Render with react-rnd when floating
   return (
     <Rnd
       position={{ x: position.x, y: position.y }}
@@ -173,10 +235,8 @@ export function DraggablePanel({
       maxHeight={maxHeight}
       bounds="parent"
       dragHandleClassName={dragHandleClassName}
-      className={`bg-card border border-border rounded-lg shadow-xl ${
-        dockedZone ? 'ring-2 ring-blue-500/50' : ''
-      } ${className}`}
-      enableResizing={!isMinimized && !dockedZone}
+      className={`bg-card border border-border rounded-lg shadow-xl ${className}`}
+      enableResizing={!isMinimized}
       style={{ zIndex: isDragging ? 100 : 50 }}
     >
       {/* Header with drag handle */}
