@@ -103,7 +103,7 @@ export function BottomDockBar({ children }) {
 /**
  * DockContainerLayout - Main layout with all dock containers
  */
-export function DockContainerLayout({ children, leftContent, rightContent, topContent, bottomContent }) {
+export function DockContainerLayout({ children, leftContent, rightContent, topContent, bottomContent, leftDockedPanels, rightDockedPanels }) {
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Top Dock Bar */}
@@ -112,7 +112,11 @@ export function DockContainerLayout({ children, leftContent, rightContent, topCo
       {/* Middle section with columns */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Column */}
-        {leftContent && <LeftDockColumn>{leftContent}</LeftDockColumn>}
+        {leftContent && (
+          <LeftDockColumn dockedPanels={leftDockedPanels}>
+            {leftContent}
+          </LeftDockColumn>
+        )}
         
         {/* Center Content (3D/2D View) */}
         <div className="flex-1 min-w-0 relative">
@@ -120,7 +124,11 @@ export function DockContainerLayout({ children, leftContent, rightContent, topCo
         </div>
         
         {/* Right Column */}
-        {rightContent && <RightDockColumn>{rightContent}</RightDockColumn>}
+        {rightContent && (
+          <RightDockColumn dockedPanels={rightDockedPanels}>
+            {rightContent}
+          </RightDockColumn>
+        )}
       </div>
       
       {/* Bottom Dock Bar */}

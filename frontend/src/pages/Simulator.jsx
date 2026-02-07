@@ -26,9 +26,9 @@ import { Loader2, AlertCircle, Satellite, Radio } from "lucide-react"
 // Lazy load heavy components
 const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat").then(module => ({ default: module.FloatingNovaChat })))
 
-// SimulatorContent - Has access to docking context
+// SimulatorContent - Renders all panels (they decide where to render based on docked state)
 function SimulatorContent({ 
-  sessionData, 
+  sessionData,
   contextSessionId, 
   sessionIdParam, 
   missionStarted,
@@ -45,27 +45,17 @@ function SimulatorContent({
   setShowPropulsionPanel,
   setShowTimeControlPanel
 }) {
-  const { isPanelDocked } = useDocking()
-  
-  // Check which panels are docked
-  const isTMTCDocked = isPanelDocked('tmtc-console')
-  const isADCSDocked = isPanelDocked('subsystem-adcs')
-  const isEPSDocked = isPanelDocked('subsystem-eps')
-  const isCommsDocked = isPanelDocked('subsystem-comms')
-  const isPropulsionDocked = isPanelDocked('subsystem-propulsion')
-  const isTimeControlDocked = isPanelDocked('time-control-panel')
-  
   return (
     <>
-      {/* Only render panels that are NOT docked (floating panels) */}
-      {missionStarted && showTMTCConsole && !isTMTCDocked && (
+      {/* Render all panels - they handle docked/floating internally */}
+      {missionStarted && showTMTCConsole && (
         <FloatingTMTCConsole
           sessionId={contextSessionId || sessionIdParam}
           onClose={() => setShowTMTCConsole(false)}
         />
       )}
       
-      {missionStarted && showADCSPanel && !isADCSDocked && (
+      {missionStarted && showADCSPanel && (
         <ADCSPanel
           telemetry={sessionData?.telemetry}
           status="nominal"
@@ -73,7 +63,7 @@ function SimulatorContent({
         />
       )}
       
-      {missionStarted && showEPSPanel && !isEPSDocked && (
+      {missionStarted && showEPSPanel && (
         <EPSPanel
           telemetry={sessionData?.telemetry}
           status="nominal"
@@ -81,7 +71,7 @@ function SimulatorContent({
         />
       )}
       
-      {missionStarted && showCommsPanel && !isCommsDocked && (
+      {missionStarted && showCommsPanel && (
         <CommsPanel
           telemetry={sessionData?.telemetry}
           status="nominal"
@@ -89,7 +79,7 @@ function SimulatorContent({
         />
       )}
       
-      {missionStarted && showPropulsionPanel && !isPropulsionDocked && (
+      {missionStarted && showPropulsionPanel && (
         <PropulsionPanel
           telemetry={sessionData?.telemetry}
           status="nominal"
@@ -97,7 +87,7 @@ function SimulatorContent({
         />
       )}
       
-      {missionStarted && showTimeControlPanel && !isTimeControlDocked && (
+      {missionStarted && showTimeControlPanel && (
         <TimeControlPanel
           sessionId={contextSessionId || sessionIdParam}
           onClose={() => setShowTimeControlPanel(false)}
