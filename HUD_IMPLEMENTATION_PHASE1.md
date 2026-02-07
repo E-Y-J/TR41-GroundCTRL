@@ -276,6 +276,253 @@ On component mount, the panel loads its saved position or uses the default.
 
 ---
 
+## Phase 1.5: Panel Docking System (Immediate Next Step)
+
+**Goal:** Add magnetic docking zones where draggable panels can snap into predefined areas for optimal layout management.
+
+### Docking Zone Architecture
+
+Based on the wireframe analysis, implement the following docking zones:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Top Dock Zone                             │
+│  (Above 2D/3D View - Mission Steps, Pass Timeline, Orbit Params)│
+├────────┬──────────────────────────────────────────┬─────────────┤
+│        │                                          │             │
+│  Left  │                                          │    Right    │
+│  Dock  │         Central 2D/3D View              │    Dock     │
+│  Zone  │         (No Docking Here)                │    Zone     │
+│        │                                          │             │
+│ (NOVA, │                                          │  (Command   │
+│  ADCS, │                                          │   Console,  │
+│  EPS)  │                                          │   TM/TC,    │
+│        │                                          │   Comms)    │
+│        │                                          │             │
+├────────┴──────────────────────────────────────────┴─────────────┤
+│                      Bottom Dock Zone                            │
+│  (Below View - Resource Bars, Command Queue, System Status)     │
+├─────────────────────────────────────────────────────────────────┤
+│                        Footer Dock                               │
+│  (Mission Time, Hints, Performance Metrics)                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Docking Zone Specifications
+
+#### 1. Left Column Dock (Primary: Information Panels)
+**Location:** Left side of 2D/3D view  
+**Width:** 300-400px  
+**Optimal for:**
+- NOVA AI Chat (default pinned)
+- ADCS Panel (attitude monitoring)
+- EPS Panel (power monitoring)
+- Propulsion Panel
+
+**Layout Strategy:**
+- Vertical stacking
+- Auto-resize to fit available height
+- Collapsible headers to maximize space
+- Maximum 3-4 panels before scrolling
+
+#### 2. Right Column Dock (Primary: Control & Logs)
+**Location:** Right side of 2D/3D view  
+**Width:** 350-450px  
+**Optimal for:**
+- Command Console (default pinned)
+- TM/TC Console (telemetry/command log)
+- Comms Panel (signal strength, ground station)
+- Command Queue Status
+
+**Layout Strategy:**
+- Vertical stacking
+- Prioritize active command interface at top
+- Scrollable log panels in lower section
+- Maximum 3-4 panels before scrolling
+
+#### 3. Top Dock Zone (Primary: Mission Status)
+**Location:** Above 2D/3D view, below mission steps  
+**Height:** 60-120px (auto-adjusts)  
+**Optimal for:**
+- Pass Contact Timeline (horizontal bar)
+- Orbit Parameters (compact horizontal display)
+- Mission Phase Indicators
+- Alert/Alarm Banner
+
+**Layout Strategy:**
+- Horizontal layout
+- Compact, info-dense display
+- Auto-collapse when panels docked
+- Maximum 2 rows
+
+#### 4. Bottom Dock Zone (Primary: Resources & Queues)
+**Location:** Below 2D/3D view, above footer  
+**Height:** 80-150px (auto-adjusts)  
+**Optimal for:**
+- Resource Bars (Fuel, Battery, Solar, Thermal) - default
+- Command Queue Dock (pipeline view)
+- System Health Dashboard
+- Quick Action Buttons
+
+**Layout Strategy:**
+- Horizontal or grid layout
+- Always visible (pinned by default)
+- Compact visualization
+- Maximum 2 rows
+
+#### 5. Footer Dock (Secondary: Metadata)
+**Location:** Bottom of screen  
+**Height:** 40-60px (fixed)  
+**Optimal for:**
+- Mission Elapsed Time (MET)
+- Performance Metrics
+- Orbit Status Badge
+- Communication Link Status
+- Hints Counter
+
+**Layout Strategy:**
+- Single horizontal row
+- Always visible
+- Compact text/badges
+- No panel docking (informational only)
+
+### Docking Behavior Implementation
+
+#### Snap-to-Dock Logic
+```javascript
+// Pseudo-code for docking detection
+const DOCK_ZONES = {
+  left: { x: 0, y: 150, width: 400, height: 'calc(100vh - 300px)' },
+  right: { x: 'calc(100vw - 400px)', y: 150, width: 400, height: 'calc(100vh - 300px)' },
+  top: { x: 400, y: 80, width: 'calc(100vw - 800px)', height: 120 },
+  bottom: { x: 400, y: 'calc(100vh - 200px)', width: 'calc(100vw - 800px)', height: 150 }
+}
+
+function detectDockZone(panelPosition) {
+  const SNAP_THRESHOLD = 50 // pixels from zone edge
+  
+  for (const [zone, bounds] of Object.entries(DOCK_ZONES)) {
+    if (isNearZone(panelPosition, bounds, SNAP_THRESHOLD)) {
+      return zone
+    }
+  }
+  return null
+}
+
+function snapToZone(panel, zone) {
+  const dockedPanels = getDockedPanels(zone)
+  const position = calculateOptimalPosition(zone, dockedPanels, panel)
+  
+  // Animate panel to docked position
+  animatePanel(panel, position)
+  
+  // Mark as docked
+  panel.docked = true
+  panel.dockZone = zone
+  
+  // Adjust other panels in same zone
+  rearrangeDockedPanels(zone)
+}
+```
+
+#### Auto-Layout Adjustment
+When a panel docks:
+1. **Calculate available space** in that zone
+2. **Resize existing panels** to accommodate new panel
+3. **Reorder panels** by priority (user-defined or default)
+4. **Animate transitions** smoothly (300ms)
+5. **Save dock configuration** to localStorage
+
+#### Undocking Behavior
+When a panel is dragged away from dock zone:
+1. **Detect drag distance** > 100px from zone
+2. **Switch to free-floating mode**
+3. **Restore original size** (pre-dock dimensions)
+4. **Rearrange remaining docked panels**
+5. **Update saved configuration**
+
+### Technical Implementation
+
+#### New Components Needed
+
+**1. DockZone Component**
+```javascript
+<DockZone
+  zone="left"
+  maxPanels={4}
+  allowedPanelTypes={['info', 'monitoring']}
+  onPanelDock={handleDock}
+  onPanelUndock={handleUndock}
+>
+  {dockedPanels.map(panel => (
+    <DockedPanel key={panel.id} {...panel} />
+  ))}
+</DockZone>
+```
+
+**2. Update DraggablePanel**
+Add docking detection:
+- `onDragMove`: Check proximity to dock zones
+- `onDragEnd`: Snap if within threshold
+- `docked` prop: Toggle docked vs. floating state
+- `dockZone` prop: Current dock location
+
+**3. DockingManager Context**
+```javascript
+const DockingContext = {
+  dockedPanels: {},
+  dockPanel: (panelId, zone) => {},
+  undockPanel: (panelId) => {},
+  getDockZoneLayout: (zone) => {},
+  saveDockConfig: () => {}
+}
+```
+
+### User Experience Features
+
+#### Visual Indicators
+- **Dock zones highlight** when panel is dragged near (blue glow)
+- **Snap preview ghost** shows where panel will land
+- **Dock icon** appears in panel header when docked
+- **Undock button** in panel header (drag or click to undock)
+
+#### Keyboard Shortcuts
+- `Ctrl+D`: Dock panel to suggested zone
+- `Ctrl+Shift+D`: Undock panel
+- `Ctrl+1-4`: Dock to specific zone (1=left, 2=right, 3=top, 4=bottom)
+
+#### Preset Layouts
+- **Mission Control Default**: Command right, NOVA left, TM/TC right-bottom
+- **Engineering View**: All subsystem panels docked left, logs right
+- **Compact View**: Minimal panels, maximize 3D view
+- **Custom**: User-defined, saved per-user
+
+### Configuration Storage
+
+```javascript
+// localStorage schema
+{
+  "dockConfig": {
+    "left": [
+      { "panelId": "nova-chat", "order": 0, "height": 400 },
+      { "panelId": "adcs-panel", "order": 1, "height": 380 }
+    ],
+    "right": [
+      { "panelId": "command-console", "order": 0, "height": 500 },
+      { "panelId": "tmtc-console", "order": 1, "height": 400 }
+    ],
+    "bottom": [
+      { "panelId": "command-queue", "order": 0, "height": 120 }
+    ]
+  },
+  "floatingPanels": [
+    { "panelId": "propulsion-panel", "x": 100, "y": 200, "width": 300, "height": 400 }
+  ]
+}
+```
+
+---
+
 ## Next Steps (Future Phases)
 
 ### Phase 2: Enhanced 3D Visualization (Week 2-3)
