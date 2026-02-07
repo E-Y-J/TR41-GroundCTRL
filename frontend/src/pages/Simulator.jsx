@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
 import { fetchSessionById, markSessionInProgress } from "@/lib/firebase/sessionService"
-import { Loader2, AlertCircle, Satellite, Radio } from "lucide-react"
+import { Loader2, AlertCircle, Satellite, Radio, Clock } from "lucide-react"
 
 // Lazy load heavy components
 const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat").then(module => ({ default: module.FloatingNovaChat })))
@@ -395,11 +395,61 @@ export default function Simulator() {
           {/* Mission Steps Panel - Shows current objectives */}
           {missionStarted && <MissionStepsPanel />}
           
-          {/* Mission Control Enhancement - Ground Station Indicator */}
+          {/* Mission Control Enhancement - Ground Station Indicator + Panel Controls */}
           {missionStarted && (
             <div className="px-4 py-2 border-b border-border bg-muted/30">
               <div className="flex items-center justify-between">
                 <GroundStationIndicator />
+                
+                {/* Panel Toggle Icons - Centered */}
+                <div className="flex items-center gap-2">
+                  {!showTimeControlPanel && (
+                    <button
+                      onClick={() => setShowTimeControlPanel(true)}
+                      className="p-2 hover:bg-muted rounded transition-colors"
+                      title="Show Time Control"
+                    >
+                      <Clock className="w-4 h-4" />
+                    </button>
+                  )}
+                  {!showTMTCConsole && (
+                    <button
+                      onClick={() => setShowTMTCConsole(true)}
+                      className="p-2 hover:bg-muted rounded transition-colors"
+                      title="Show TM/TC Console"
+                    >
+                      <Radio className="w-4 h-4" />
+                    </button>
+                  )}
+                  {!showADCSPanel && (
+                    <button
+                      onClick={() => setShowADCSPanel(true)}
+                      className="p-2 hover:bg-muted rounded transition-colors"
+                      title="Show ADCS Panel"
+                    >
+                      <Satellite className="w-4 h-4" />
+                    </button>
+                  )}
+                  {!showEPSPanel && (
+                    <button
+                      onClick={() => setShowEPSPanel(true)}
+                      className="p-2 hover:bg-muted rounded transition-colors"
+                      title="Show EPS Panel"
+                    >
+                      <Loader2 className="w-4 h-4" />
+                    </button>
+                  )}
+                  {!showCommsPanel && (
+                    <button
+                      onClick={() => setShowCommsPanel(true)}
+                      className="p-2 hover:bg-muted rounded transition-colors"
+                      title="Show Comms Panel"
+                    >
+                      <Radio className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                
                 <div className="flex items-center gap-2">
                   <PerformanceMetrics sessionId={contextSessionId || sessionIdParam} />
                 </div>
