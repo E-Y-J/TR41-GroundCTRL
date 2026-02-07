@@ -25,12 +25,8 @@ export function LeftDockColumn({ children, dockedPanels = [] }) {
       {/* Render children (like NOVA) */}
       {children}
       
-      {/* Render docked panels inline */}
-      {dockedPanels.map((panel) => (
-        <div key={panel.panelId} className="w-full">
-          {panel.content}
-        </div>
-      ))}
+      {/* Portal target for docked panels */}
+      <div id="dock-left-portal" className="flex flex-col gap-2" />
     </div>
   )
 }
@@ -52,12 +48,8 @@ export function RightDockColumn({ children, dockedPanels = [] }) {
       {/* Render children (like CommandConsole) */}
       {children}
       
-      {/* Render docked panels inline */}
-      {dockedPanels.map((panel) => (
-        <div key={panel.panelId} className="w-full">
-          {panel.content}
-        </div>
-      ))}
+      {/* Portal target for docked panels */}
+      <div id="dock-right-portal" className="flex flex-col gap-2" />
     </div>
   )
 }

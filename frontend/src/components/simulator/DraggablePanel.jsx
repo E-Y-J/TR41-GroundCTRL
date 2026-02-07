@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
+import { createPortal } from "react-dom"
 import { Rnd } from "react-rnd"
 import { GripVertical, Minimize2, Maximize2, X, Pin, PinOff } from "lucide-react"
 import { useDocking } from "@/contexts/DockingContext"
@@ -152,9 +153,12 @@ export function DraggablePanel({
     }
   }, [docking, dockedZone, id, position, dockType])
 
-  // Render inline when docked (no react-rnd)
+  // Render inline when docked (use portal to teleport into dock container)
   if (dockedZone) {
-    return (
+    const portalTargetId = `dock-${dockedZone}-portal`
+    const portalTarget = document.getElementById(portalTargetId)
+    
+    const dockedContent = (
       <div className={`bg-card border border-border rounded-lg shadow-md w-full ${className}`}>
         {/* Header with drag handle */}
         <div
@@ -211,6 +215,9 @@ export function DraggablePanel({
         )}
       </div>
     )
+    
+    // Use portal if target exists, otherwise render normally
+    return portalTarget ? createPortal(dockedContent, portalTarget) : dockedContent
   }
   
   // Render with react-rnd when floating
