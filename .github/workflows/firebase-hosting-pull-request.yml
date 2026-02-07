@@ -75,8 +75,8 @@ jobs:
         id: extract_url
         if: steps.check_secret.outputs.secret_configured == 'true'
         run: |
-          if [ "${{ steps.firebase_deploy.outputs.result }}" == "success" ]; then
-            echo "preview_url=https://groundctrl-c8860--pr-${{ github.event.pull_request.number }}-fix.web.app" >> $GITHUB_OUTPUT
+          if [ -n "${{ steps.firebase_deploy.outputs.details_url }}" ]; then
+            echo "preview_url=${{ steps.firebase_deploy.outputs.details_url }}" >> $GITHUB_OUTPUT
             echo "deployment_status=success" >> $GITHUB_OUTPUT
           else
             echo "deployment_status=failed" >> $GITHUB_OUTPUT
