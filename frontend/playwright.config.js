@@ -42,6 +42,15 @@ export default defineConfig({
     
     /* Video on failure */
     video: 'retain-on-failure',
+    
+    /* Global timeout for actions (click, fill, etc.) - helps with slow API responses */
+    actionTimeout: 10000, // 10 seconds for individual actions
+    
+    /* Navigation timeout - generous timeout for page loads during API delays */
+    navigationTimeout: 30000, // 30 seconds for page navigation
+    
+    /* Wait for at least some network activity to settle before considering page loaded */
+    waitForLoadState: 'domcontentloaded', // More lenient than 'networkidle' for slow APIs
   },
 
   /* Configure projects for major browsers */

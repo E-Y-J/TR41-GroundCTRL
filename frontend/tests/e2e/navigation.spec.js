@@ -106,20 +106,51 @@ test.describe('UI-011: Navigation and Routing', () => {
 
   test('should have working footer links', async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Check footer has links
-    const footerLinks = page.locator('footer a');
-    const count = await footerLinks.count();
     
+    // Wait for page to load with generous timeout for slow API responses
+    try {
+      await page.waitForLoadState('networkidle', { timeout: 30000 });
+    } catch (e) {
+      console.log('networkidle timeout - continuing with DOM check');
+    }
+
+    // Wait for footer to be fully rendered and attached to DOM
+    await page.waitForSelector('footer', { 
+      state: 'attached',
+      timeout: 10000 
+    });
+
+    // Check footer has links with explicit wait
+    const footerLinks = page.locator('footer a');
+    await expect(footerLinks.first()).toBeAttached({ timeout: 5000 });
+    
+    const count = await footerLinks.count();
     expect(count).toBeGreaterThan(0);
 
-    // Test one footer link (Privacy)
+    // Test one footer link (Privacy) with robust waiting
     const privacyLink = page.locator('footer a[href="/privacy"]');
+    
     if (await privacyLink.count() > 0) {
-      await privacyLink.click();
-      await page.waitForLoadState('networkidle');
+      // Ensure link is visible, attached, and enabled before clicking
+      await expect(privacyLink).toBeVisible({ timeout: 10000 });
+      await expect(privacyLink).toBeAttached();
+      await expect(privacyLink).toBeEnabled();
+      
+      console.log('Privacy link found and ready, clicking...');
+      
+      // Use Promise.all to wait for navigation to start before clicking
+      await Promise.all([
+        page.waitForURL('**/privacy', { timeout: 10000 }),
+        privacyLink.click()
+      ]);
+      
+      // Give page time to render after navigation
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+      
       await expect(page).toHaveURL('/privacy');
+      console.log('Successfully navigated to privacy page');
+    } else {
+      console.log('Privacy link not found in footer');
     }
   });
 });
