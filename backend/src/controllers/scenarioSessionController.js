@@ -6,6 +6,7 @@
  */
 
 const scenarioSessionRepository = require("../repositories/scenarioSessionRepository");
+const tutorialRepository = require("../repositories/tutorialRepository");
 const { createCrudHandlers } = require("../factories/crudFactory");
 const logger = require("../utils/logger");
 const {
@@ -31,11 +32,45 @@ const hooks = {
 		// This is required for Firestore security rules
 		data.user_id = req.user?.uid;
 
-		logger.debug("Session pre-create validation", {
-			scenario_id: data.scenario_id,
-			userId: req.user?.uid,
-			user_id: data.user_id,
-		});
+		// Snapshot tutorials for this scenario at session start
+		try {
+			const tutorials = await tutorialRepository.getByScenarioId(
+				data.scenario_id,
+				{
+					isActive: true,
+					status: "PUBLISHED",
+				},
+			);
+
+			// Add tutorials snapshot to session data
+			data.tutorialsSnapshot = tutorials.map((tutorial) => ({
+				id: tutorial.id,
+				code: tutorial.code,
+				title: tutorial.title,
+				description: tutorial.description,
+				icon: tutorial.icon,
+				estimatedDurationMinutes: tutorial.estimatedDurationMinutes,
+				triggerType: tutorial.triggerType,
+				triggerConditions: tutorial.triggerConditions,
+				steps: tutorial.steps,
+				priority: tutorial.priority,
+				tags: tutorial.tags,
+			}));
+
+			logger.debug("Session pre-create validation with tutorials snapshot", {
+				scenario_id: data.scenario_id,
+				userId: req.user?.uid,
+				user_id: data.user_id,
+				tutorialsCount: tutorials.length,
+			});
+		} catch (error) {
+			logger.warn("Failed to snapshot tutorials for session", {
+				scenario_id: data.scenario_id,
+				error: error.message,
+			});
+			// Continue without tutorials snapshot - non-critical error
+			data.tutorialsSnapshot = [];
+		}
 	},
 
 	afterCreate: async (req, doc) => {
