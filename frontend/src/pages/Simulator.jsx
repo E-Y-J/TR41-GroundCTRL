@@ -15,7 +15,7 @@ import { PerformanceMetrics } from "@/components/simulator/performance-metrics"
 import { VisualizationSwitcher } from "@/components/simulator/views"
 import { FloatingTMTCConsole } from "@/components/simulator/FloatingTMTCConsole"
 import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel, TimeControlPanel } from "@/components/simulator/panels"
-import { DockingProvider } from "@/contexts/DockingContext"
+import { DockingProvider, useDocking } from "@/contexts/DockingContext"
 import { DockContainerLayout } from "@/components/simulator/DockContainer"
 import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
@@ -25,6 +25,87 @@ import { Loader2, AlertCircle, Satellite, Radio } from "lucide-react"
 
 // Lazy load heavy components
 const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat").then(module => ({ default: module.FloatingNovaChat })))
+
+// SimulatorContent - Has access to docking context
+function SimulatorContent({ 
+  sessionData, 
+  contextSessionId, 
+  sessionIdParam, 
+  missionStarted,
+  showTMTCConsole, 
+  showADCSPanel, 
+  showEPSPanel, 
+  showCommsPanel, 
+  showPropulsionPanel, 
+  showTimeControlPanel,
+  setShowTMTCConsole,
+  setShowADCSPanel,
+  setShowEPSPanel,
+  setShowCommsPanel,
+  setShowPropulsionPanel,
+  setShowTimeControlPanel
+}) {
+  const { isPanelDocked } = useDocking()
+  
+  // Check which panels are docked
+  const isTMTCDocked = isPanelDocked('tmtc-console')
+  const isADCSDocked = isPanelDocked('subsystem-adcs')
+  const isEPSDocked = isPanelDocked('subsystem-eps')
+  const isCommsDocked = isPanelDocked('subsystem-comms')
+  const isPropulsionDocked = isPanelDocked('subsystem-propulsion')
+  const isTimeControlDocked = isPanelDocked('time-control-panel')
+  
+  return (
+    <>
+      {/* Only render panels that are NOT docked (floating panels) */}
+      {missionStarted && showTMTCConsole && !isTMTCDocked && (
+        <FloatingTMTCConsole
+          sessionId={contextSessionId || sessionIdParam}
+          onClose={() => setShowTMTCConsole(false)}
+        />
+      )}
+      
+      {missionStarted && showADCSPanel && !isADCSDocked && (
+        <ADCSPanel
+          telemetry={sessionData?.telemetry}
+          status="nominal"
+          onClose={() => setShowADCSPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showEPSPanel && !isEPSDocked && (
+        <EPSPanel
+          telemetry={sessionData?.telemetry}
+          status="nominal"
+          onClose={() => setShowEPSPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showCommsPanel && !isCommsDocked && (
+        <CommsPanel
+          telemetry={sessionData?.telemetry}
+          status="nominal"
+          onClose={() => setShowCommsPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showPropulsionPanel && !isPropulsionDocked && (
+        <PropulsionPanel
+          telemetry={sessionData?.telemetry}
+          status="nominal"
+          onClose={() => setShowPropulsionPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showTimeControlPanel && !isTimeControlDocked && (
+        <TimeControlPanel
+          sessionId={contextSessionId || sessionIdParam}
+          onClose={() => setShowTimeControlPanel(false)}
+        />
+      )}
+    </>
+  )
+}
 
 export default function Simulator() {
   const navigate = useNavigate()
@@ -400,54 +481,25 @@ export default function Simulator() {
           />
         )}
         
-        {/* HUD Enhancement - Floating TM/TC Console */}
-        {missionStarted && showTMTCConsole && (
-          <FloatingTMTCConsole
-            sessionId={contextSessionId || sessionIdParam}
-            onClose={() => setShowTMTCConsole(false)}
-          />
-        )}
-        
-        {/* HUD Enhancement - Subsystem Panels */}
-        {missionStarted && showADCSPanel && (
-          <ADCSPanel
-            telemetry={sessionData?.telemetry}
-            status="nominal"
-            onClose={() => setShowADCSPanel(false)}
-          />
-        )}
-        
-        {missionStarted && showEPSPanel && (
-          <EPSPanel
-            telemetry={sessionData?.telemetry}
-            status="nominal"
-            onClose={() => setShowEPSPanel(false)}
-          />
-        )}
-        
-        {missionStarted && showCommsPanel && (
-          <CommsPanel
-            telemetry={sessionData?.telemetry}
-            status="nominal"
-            onClose={() => setShowCommsPanel(false)}
-          />
-        )}
-        
-        {missionStarted && showPropulsionPanel && (
-          <PropulsionPanel
-            telemetry={sessionData?.telemetry}
-            status="nominal"
-            onClose={() => setShowPropulsionPanel(false)}
-          />
-        )}
-        
-        {/* HUD Enhancement - Time Control Panel */}
-        {missionStarted && showTimeControlPanel && (
-          <TimeControlPanel
-            sessionId={contextSessionId || sessionIdParam}
-            onClose={() => setShowTimeControlPanel(false)}
-          />
-        )}
+        {/* HUD Enhancement - All Panels (only renders floating ones, docked are in containers) */}
+        <SimulatorContent
+          sessionData={sessionData}
+          contextSessionId={contextSessionId}
+          sessionIdParam={sessionIdParam}
+          missionStarted={missionStarted}
+          showTMTCConsole={showTMTCConsole}
+          showADCSPanel={showADCSPanel}
+          showEPSPanel={showEPSPanel}
+          showCommsPanel={showCommsPanel}
+          showPropulsionPanel={showPropulsionPanel}
+          showTimeControlPanel={showTimeControlPanel}
+          setShowTMTCConsole={setShowTMTCConsole}
+          setShowADCSPanel={setShowADCSPanel}
+          setShowEPSPanel={setShowEPSPanel}
+          setShowCommsPanel={setShowCommsPanel}
+          setShowPropulsionPanel={setShowPropulsionPanel}
+          setShowTimeControlPanel={setShowTimeControlPanel}
+        />
       </DockingProvider>
     </>
   )
