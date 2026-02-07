@@ -14,9 +14,6 @@ module.exports = {
         ]
       }
     },
-    upload: {
-      target: 'temporary-public-storage',
-    },
     assert: {
       assertions: {
         'first-contentful-paint': ['error', { 'minScore': 0.4 }],
