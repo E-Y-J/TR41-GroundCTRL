@@ -27,6 +27,23 @@ const PrivacyPage = lazy(() => import('@/pages/Privacy.jsx'))
 const TermsPage = lazy(() => import('@/pages/Terms.jsx'))
 const NotFoundPage = lazy(() => import('@/pages/NotFound.jsx'))
 
+// New Pages
+const AboutPage = lazy(() => import('@/pages/About.jsx'))
+const LeaderboardPage = lazy(() => import('@/pages/Leaderboard.jsx'))
+const SatellitesPage = lazy(() => import('@/pages/Satellites.jsx'))
+const GroundStationsPage = lazy(() => import('@/pages/GroundStations.jsx'))
+const CommunityPage = lazy(() => import('@/pages/Community.jsx'))
+const NewsPage = lazy(() => import('@/pages/News.jsx'))
+const ResourcesPage = lazy(() => import('@/pages/Resources.jsx'))
+const TutorialsPage = lazy(() => import('@/pages/Tutorials.jsx'))
+const AchievementsPage = lazy(() => import('@/pages/Achievements.jsx'))
+const CertificatesPage = lazy(() => import('@/pages/Certificates.jsx'))
+const HistoryPage = lazy(() => import('@/pages/History.jsx'))
+const ReplayPage = lazy(() => import('@/pages/Replay.jsx'))
+const AnalyticsPage = lazy(() => import('@/pages/Analytics.jsx'))
+const OperatorProfilePage = lazy(() => import('@/pages/OperatorProfile.jsx'))
+const SupportTicketsPage = lazy(() => import('@/pages/SupportTickets.jsx'))
+
 // Admin Pages
 const ScenarioCreatorPage = lazy(() => import('@/pages/admin/ScenarioCreator.jsx'))
 const AdminScenariosPage = lazy(() => import('@/pages/admin/AdminScenarios.jsx'))
@@ -58,6 +75,23 @@ function App() {
           <Route path="/websocket-test" element={<WebSocketTestPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
+          
+          {/* New Routes */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/satellites" element={<SatellitesPage />} />
+          <Route path="/ground-stations" element={<GroundStationsPage />} />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/tutorials" element={<TutorialsPage />} />
+          <Route path="/achievements" element={<AchievementsPage />} />
+          <Route path="/certificates" element={<CertificatesPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/replay/:sessionId" element={<ReplayPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/profile/:userId" element={<OperatorProfilePage />} />
+          <Route path="/support" element={<SupportTicketsPage />} />
           
           {/* Admin Routes */}
           <Route 
