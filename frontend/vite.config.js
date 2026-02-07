@@ -22,10 +22,12 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
           if (req.url && req.url.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css')
+            // Force the content type for CSS files
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
+            res.setHeader('X-Content-Type-Options', 'nosniff');
           }
-          next()
-        })
+          next();
+        });
       }
     }
   ],
