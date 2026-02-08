@@ -29,7 +29,8 @@ export async function getGlobalLeaderboard(options = {}) {
     })
 
     const response = await api.get(`/leaderboard/global?${params.toString()}`)
-    return response.payload || response
+    // The response is nested: response.payload.data contains the actual leaderboard
+    return response.payload?.data || response.payload || response
   } catch (error) {
     console.error('Failed to fetch global leaderboard:', error)
     throw new Error(error.message || 'Failed to fetch leaderboard data')
