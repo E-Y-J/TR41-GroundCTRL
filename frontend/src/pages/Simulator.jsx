@@ -401,60 +401,66 @@ export default function Simulator() {
               <div className="flex items-center justify-between">
                 <GroundStationIndicator />
                 
-                {/* Panel Toggle Icons - Show icons for closed panels */}
+                {/* Panel Toggle Icons - Show icons for closed panels with circular style */}
                 <div className="flex items-center gap-2">
                   {!showTimeControlPanel && (
                     <button
                       onClick={() => setShowTimeControlPanel(true)}
-                      className="p-2 hover:bg-muted rounded transition-colors"
+                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
                       title="Show Time Control"
+                      aria-label="Show Time Control"
                     >
-                      <Clock className="w-4 h-4" />
+                      <Clock className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                   {!showTMTCConsole && (
                     <button
                       onClick={() => setShowTMTCConsole(true)}
-                      className="p-2 hover:bg-muted rounded transition-colors"
+                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
                       title="Show TM/TC Console"
+                      aria-label="Show TM/TC Console"
                     >
-                      <Radio className="w-4 h-4" />
+                      <Radio className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                   {!showADCSPanel && (
                     <button
                       onClick={() => setShowADCSPanel(true)}
-                      className="p-2 hover:bg-muted rounded transition-colors"
+                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
                       title="Show ADCS Panel"
+                      aria-label="Show ADCS Panel"
                     >
-                      <Satellite className="w-4 h-4" />
+                      <Satellite className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                   {!showEPSPanel && (
                     <button
                       onClick={() => setShowEPSPanel(true)}
-                      className="p-2 hover:bg-muted rounded transition-colors"
+                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
                       title="Show EPS Panel"
+                      aria-label="Show EPS Panel"
                     >
-                      <Battery className="w-4 h-4" />
+                      <Battery className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                   {!showCommsPanel && (
                     <button
                       onClick={() => setShowCommsPanel(true)}
-                      className="p-2 hover:bg-muted rounded transition-colors"
+                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
                       title="Show Comms Panel"
+                      aria-label="Show Comms Panel"
                     >
-                      <Antenna className="w-4 h-4" />
+                      <Antenna className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                   {!showPropulsionPanel && (
                     <button
                       onClick={() => setShowPropulsionPanel(true)}
-                      className="p-2 hover:bg-muted rounded transition-colors"
+                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
                       title="Show Propulsion Panel"
+                      aria-label="Show Propulsion Panel"
                     >
-                      <Zap className="w-4 h-4" />
+                      <Zap className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                 </div>
