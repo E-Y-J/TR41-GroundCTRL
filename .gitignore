@@ -49,6 +49,10 @@ build/
 *.bak
 *.backup
 
+# HUD implementation documentation (work in progress, not committed)
+HUD_IMPLEMENTATION_PHASE1.md
+HUD_IMPLEMENTATION_PHASE2.md
+
 # Specific hidden files/folders to ignore (but allow .github/)
 .firebase/
 .vscode/
