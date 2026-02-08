@@ -126,7 +126,11 @@ export default function Simulator() {
   } = useSimulatorState()
   
   // Import WebSocket context to manually connect
-  const { connect: connectWebSocket, disconnect: disconnectWebSocket } = useWebSocket()
+  const { 
+    connect: connectWebSocket, 
+    disconnect: disconnectWebSocket,
+    groundStations // Ground station data from WebSocket
+  } = useWebSocket()
 
   const handleStartMission = async () => {
     try {
@@ -505,6 +509,7 @@ export default function Simulator() {
                   raan={sessionData?.satellite?.orbit?.raan_degrees || 0}
                   defaultView="2d"
                   showToggle={true}
+                  groundStationsData={groundStations}
                   className="h-full w-full"
                 />
               </DockContainerLayout>
