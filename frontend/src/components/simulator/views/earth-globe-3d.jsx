@@ -44,9 +44,8 @@ import {
 } from "./components/CommLink"
 import {
   createSatelliteLabel,
-  updateSatelliteLabel,
   createStationLabel,
-  updateStationLabel,
+  updateTextLabel,
   createCardinalLabels
 } from "./components/HUDLabels"
 // Phase 3 components not yet integrated - components exist but full integration pending
@@ -739,12 +738,8 @@ export function EarthGlobe3D({
 
         // Update satellite label (Phase 3)
         if (satLabelRef.current && showLabels) {
-          updateSatelliteLabel(satLabelRef.current, {
-            altitude,
-            velocity: calculateOrbitalVelocity(),
-            lat: pos.lat,
-            lon: pos.lon
-          })
+          const newText = `ALT: ${altitude.toFixed(0)}km\nVEL: ${calculateOrbitalVelocity().toFixed(1)}km/s\nLAT: ${pos.lat.toFixed(2)}°\nLON: ${pos.lon.toFixed(2)}°`
+          updateTextLabel(satLabelRef.current, newText)
         }
 
         // Update orbit gradient
@@ -796,11 +791,8 @@ export function EarthGlobe3D({
               if (showLabels && marker.children.length > 0) {
                 const labelIndex = marker.children.findIndex(child => child.isCSS2DObject)
                 if (labelIndex !== -1) {
-                  updateStationLabel(
-                    marker.children[labelIndex],
-                    GROUND_STATIONS[index].name,
-                    visibility.elevation
-                  )
+                  const newText = `${GROUND_STATIONS[index].name}\nEL: ${visibility.elevation.toFixed(1)}°`
+                  updateTextLabel(marker.children[labelIndex], newText)
                 }
               }
             } else {
