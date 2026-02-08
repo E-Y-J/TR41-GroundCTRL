@@ -36,6 +36,7 @@ export function FloatingNovaChat({
   const [conversationId, setConversationId] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const messagesEndRef = useRef(null)
+  const draggableRef = useRef(null) // For react-draggable
 
   const isAuthenticated = !!user
   const hasActiveSession = isAuthenticated && !!sessionId
@@ -260,8 +261,10 @@ export function FloatingNovaChat({
           handle=".drag-handle"
           defaultPosition={initialPanelPosition}
           bounds="parent"
+          nodeRef={draggableRef}
         >
           <div 
+            ref={draggableRef}
             className={`fixed z-50 w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
               isMinimized ? 'h-16' : 'h-150'
             } ${className}`}
