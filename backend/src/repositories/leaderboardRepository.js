@@ -50,7 +50,7 @@ async function getTopOperators(options = {}) {
 
 		// Query scenario sessions for completed missions
 		let query = db
-			.collection("scenarioSessions")
+			.collection("scenario_sessions")
 			.where("status", "==", "completed");
 
 		if (dateThreshold) {
@@ -180,7 +180,7 @@ async function getScenarioLeaderboard(scenarioId, options = {}) {
 
 		// Query sessions for specific scenario
 		const snapshot = await db
-			.collection("scenarioSessions")
+			.collection("scenario_sessions")
 			.where("scenarioId", "==", scenarioId)
 			.where("status", "==", "completed")
 			.get();

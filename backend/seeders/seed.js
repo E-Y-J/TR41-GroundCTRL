@@ -410,7 +410,7 @@ async function seedLeaderboard(scenarioMap) {
     sessionData.createdBy = CREATED_BY_UID;
     sessionData.createdByCallSign = 'GROUNDCTRL-SEEDER';
     
-    await db.collection('scenarioSessions').add(sessionData);
+    await db.collection('scenario_sessions').add(sessionData);
     count++;
   }
   
