@@ -108,13 +108,13 @@ export default function Simulator() {
   const [sessionError, setSessionError] = useState(null)
   const [sessionData, setSessionData] = useState(null)
   
-  // HUD Enhancement - Panel visibility state
-  const [showTMTCConsole, setShowTMTCConsole] = useState(true)
-  const [showADCSPanel, setShowADCSPanel] = useState(true)
-  const [showEPSPanel, setShowEPSPanel] = useState(true)
-  const [showCommsPanel, setShowCommsPanel] = useState(true)
+  // HUD Enhancement - Panel visibility state (all start closed, user opens via icon toggles)
+  const [showTMTCConsole, setShowTMTCConsole] = useState(false)
+  const [showADCSPanel, setShowADCSPanel] = useState(false)
+  const [showEPSPanel, setShowEPSPanel] = useState(false)
+  const [showCommsPanel, setShowCommsPanel] = useState(false)
   const [showPropulsionPanel, setShowPropulsionPanel] = useState(false)
-  const [showTimeControlPanel, setShowTimeControlPanel] = useState(true)
+  const [showTimeControlPanel, setShowTimeControlPanel] = useState(false)
   
   // Use simulator state context
   const { 
