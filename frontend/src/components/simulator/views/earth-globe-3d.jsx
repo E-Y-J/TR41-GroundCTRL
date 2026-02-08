@@ -454,8 +454,8 @@ export function EarthGlobe3D({
 
     // Scene
     const scene = new THREE.Scene()
-    const isDarkMode = document.documentElement.classList.contains('dark')
-    scene.background = new THREE.Color(isDarkMode ? 0x000510 : 0xffffff)
+    // Always use dark space background for star visibility
+    scene.background = new THREE.Color(0x000510)
     sceneRef.current = scene
 
     // Camera
