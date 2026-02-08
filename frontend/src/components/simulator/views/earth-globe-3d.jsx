@@ -10,6 +10,10 @@
 import { useRef, useEffect, useState, useCallback } from "react"
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import { 
+  atmosphereVertexShader, 
+  atmosphereFragmentShader 
+} from "./shaders/atmosphereShader"
 
 // ============================================================================
 // Constants
@@ -180,28 +184,23 @@ function createEarthMesh(onLoad) {
   return earth
 }
 
-/** Create atmosphere glow effect */
-function createAtmosphere() {
-  const geometry = new THREE.SphereGeometry(EARTH_RADIUS * 1.015, 64, 64)
+/** Create enhanced atmosphere glow effect with Fresnel-based scattering */
+function createAtmosphere(cameraPosition) {
+  const geometry = new THREE.SphereGeometry(EARTH_RADIUS * 1.018, 64, 64)
   
   const material = new THREE.ShaderMaterial({
-    vertexShader: `
-      varying vec3 vNormal;
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vNormal;
-      void main() {
-        float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-        gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
-      }
-    `,
+    vertexShader: atmosphereVertexShader,
+    fragmentShader: atmosphereFragmentShader,
+    uniforms: {
+      glowColor: { value: new THREE.Vector3(0.3, 0.6, 1.0) },
+      glowIntensity: { value: 1.3 },
+      atmosphereThickness: { value: 0.85 },
+      cameraPosition: { value: cameraPosition || new THREE.Vector3(0, 1.5, 4.5) }
+    },
     blending: THREE.AdditiveBlending,
     side: THREE.BackSide,
     transparent: true,
+    depthWrite: false
   })
 
   return new THREE.Mesh(geometry, material)
@@ -349,6 +348,7 @@ export function EarthGlobe3D({
   const earthRef = useRef(null)
   const satelliteRef = useRef(null)
   const orbitLineRef = useRef(null)
+  const atmosphereRef = useRef(null)
   const animationRef = useRef(0)
   
   // State
@@ -433,7 +433,9 @@ export function EarthGlobe3D({
 
     // Create atmosphere
     if (showAtmosphere) {
-      scene.add(createAtmosphere())
+      const atmosphere = createAtmosphere(camera.position)
+      scene.add(atmosphere)
+      atmosphereRef.current = atmosphere
     }
 
     // Create stars
@@ -585,6 +587,14 @@ export function EarthGlobe3D({
       // Rotate Earth (only if not paused)
       if (earthRef.current && !isPaused) {
         earthRef.current.rotation.y += deltaTime * 0.02
+      }
+
+      // Update atmosphere camera position for Fresnel effect
+      if (atmosphereRef.current && camera) {
+        const material = atmosphereRef.current.material
+        if (material.uniforms && material.uniforms.cameraPosition) {
+          material.uniforms.cameraPosition.value.copy(camera.position)
+        }
       }
 
       // Update satellite position
