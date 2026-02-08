@@ -25,6 +25,8 @@ export const orbitGradientVertexShader = `
 `
 
 export const orbitGradientFragmentShader = `
+  precision highp float;
+  
   uniform float satelliteProgress;
   uniform vec3 pastColor;
   uniform vec3 presentColor;

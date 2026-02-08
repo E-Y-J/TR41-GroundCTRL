@@ -24,6 +24,8 @@ export const atmosphereVertexShader = `
 `
 
 export const atmosphereFragmentShader = `
+  precision highp float;
+  
   uniform vec3 glowColor;
   uniform float glowIntensity;
   uniform float atmosphereThickness;
