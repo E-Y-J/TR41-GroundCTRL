@@ -65,6 +65,19 @@ async function getTopOperators(options = {}) {
 			return [];
 		}
 
+		// DEBUG: Log what we found
+		logger.info(`Found ${snapshot.size} scenario sessions in database`);
+		if (snapshot.size > 0) {
+			const firstDoc = snapshot.docs[0].data();
+			logger.info("Sample session data:", {
+				userId: firstDoc.userId,
+				userCallSign: firstDoc.userCallSign,
+				status: firstDoc.status,
+				hasPerformance: !!firstDoc.performance,
+				overallScore: firstDoc.performance?.overallScore
+			});
+		}
+
 		// Aggregate scores by user
 		const userStats = {};
 
