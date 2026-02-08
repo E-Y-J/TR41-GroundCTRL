@@ -14,7 +14,8 @@ import { GripVertical, Minimize2, Maximize2, X, Pin, PinOff } from "lucide-react
 import { useDocking } from "@/contexts/DockingContext"
 
 // Footer height to exclude from draggable area
-const FOOTER_HEIGHT = 60
+// Increased to ensure panels cannot overlap footer controls
+const FOOTER_HEIGHT = 80
 
 export function DraggablePanel({
   id,
@@ -55,12 +56,18 @@ export function DraggablePanel({
   const dockedZone = docking ? docking.isPanelDocked(id) : null
   
   // Calculate bounds to exclude footer area
-  const dragBounds = useMemo(() => ({
-    left: 0,
-    top: 0,
-    right: window.innerWidth - (position.width || defaultPosition.width),
-    bottom: window.innerHeight - FOOTER_HEIGHT - (position.height || defaultPosition.height)
-  }), [position.width, position.height, defaultPosition.width, defaultPosition.height])
+  // Recalculates whenever position/size changes to ensure footer stays protected
+  const dragBounds = useMemo(() => {
+    const panelWidth = position.width || defaultPosition.width
+    const panelHeight = isMinimized ? 40 : (position.height || defaultPosition.height)
+    
+    return {
+      left: 0,
+      top: 0,
+      right: Math.max(0, window.innerWidth - panelWidth),
+      bottom: Math.max(0, window.innerHeight - FOOTER_HEIGHT - panelHeight)
+    }
+  }, [position.width, position.height, defaultPosition.width, defaultPosition.height, isMinimized])
 
   // Save position to localStorage whenever it changes
   useEffect(() => {
