@@ -457,52 +457,54 @@ export default function Simulator() {
             </div>
           )}
           
-          {/* Phase 1.5 - Dock Container Layout with visible columns */}
+          {/* Fixed Grid Layout - Always visible with locked columns */}
           {missionStarted ? (
-            <DockContainerLayout
-              leftContent={
-                <>
-                  {/* NOVA Chat docked in left column */}
-                  <Suspense fallback={null}>
-                    <FloatingNovaChat 
-                      sessionId={contextSessionId || sessionIdParam} 
-                      stepId={sessionData?.scenario_id}
-                      context="simulator"
-                      position="left"
-                    />
-                  </Suspense>
-                </>
-              }
-              rightContent={
-                <>
-                  {/* Command Console docked in right column */}
-                  <CommandConsoleHUD />
-                </>
-              }
-            >
-              {/* Center: 3D/2D Visualization */}
-              <VisualizationSwitcher
-                altitude={sessionData?.satellite?.orbit?.altitude_km || 415}
-                inclination={sessionData?.satellite?.orbit?.inclination_degrees || 51.6}
-                eccentricity={sessionData?.satellite?.orbit?.eccentricity || 0.0001}
-                raan={sessionData?.satellite?.orbit?.raan_degrees || 0}
-                defaultView="2d"
-                showToggle={true}
-                className="h-full w-full"
+            <>
+              <DockContainerLayout
+                leftContent={
+                  <>
+                    {/* NOVA Chat docked in left column */}
+                    <Suspense fallback={null}>
+                      <FloatingNovaChat 
+                        sessionId={contextSessionId || sessionIdParam} 
+                        stepId={sessionData?.scenario_id}
+                        context="simulator"
+                        position="left"
+                      />
+                    </Suspense>
+                  </>
+                }
+                rightContent={
+                  <>
+                    {/* Command Console docked in right column */}
+                    <CommandConsoleHUD />
+                  </>
+                }
+              >
+                {/* Center: 3D/2D Visualization - Always visible in grid */}
+                <VisualizationSwitcher
+                  altitude={sessionData?.satellite?.orbit?.altitude_km || 415}
+                  inclination={sessionData?.satellite?.orbit?.inclination_degrees || 51.6}
+                  eccentricity={sessionData?.satellite?.orbit?.eccentricity || 0.0001}
+                  raan={sessionData?.satellite?.orbit?.raan_degrees || 0}
+                  defaultView="2d"
+                  showToggle={true}
+                  className="h-full w-full"
+                />
+              </DockContainerLayout>
+              
+              {/* Enhanced Footer (outside grid, full width at bottom) */}
+              <SimulatorFooter 
+                missionStarted={missionStarted} 
+                sessionId={contextSessionId || sessionIdParam}
+                satellite={sessionData?.satellite}
               />
-            </DockContainerLayout>
+            </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <p className="text-muted-foreground">Waiting for mission start...</p>
             </div>
           )}
-          
-          {/* Mission Control Enhancement - Enhanced Footer (Full Width) */}
-          <SimulatorFooter 
-            missionStarted={missionStarted} 
-            sessionId={contextSessionId || sessionIdParam}
-            satellite={sessionData?.satellite}
-          />
         </div>
         
         {/* Alert Panel - displays system alerts */}

@@ -26,7 +26,7 @@ export function LeftDockColumn({ children, dockedPanels = [] }) {
       {children}
       
       {/* Portal target for docked panels */}
-      <div id="dock-left-portal" className="flex flex-col gap-2 flex-shrink-0" />
+      <div id="dock-left-portal" className="flex flex-col gap-2 shrink-0" />
     </div>
   )
 }
@@ -49,7 +49,7 @@ export function RightDockColumn({ children, dockedPanels = [] }) {
       {children}
       
       {/* Portal target for docked panels */}
-      <div id="dock-right-portal" className="flex flex-col gap-2 flex-shrink-0" />
+      <div id="dock-right-portal" className="flex flex-col gap-2 shrink-0" />
     </div>
   )
 }
@@ -74,57 +74,34 @@ export function TopDockBar({ children }) {
 }
 
 /**
- * Bottom Bar - for resource monitoring
- */
-export function BottomDockBar({ children }) {
-  const { highlightedZone } = useDocking()
-  const isHighlighted = highlightedZone === 'bottom'
-  
-  return (
-    <div 
-      className={cn(
-        "h-auto border-t border-border bg-card/30 backdrop-blur-sm transition-all duration-200",
-        isHighlighted && "bg-blue-500/10 border-blue-500/50 shadow-lg shadow-blue-500/20"
-      )}
-    >
-      {children}
-    </div>
-  )
-}
-
-/**
  * DockContainerLayout - Main layout with all dock containers
+ * Grid is always visible and locked - no bottom dock bar
  */
-export function DockContainerLayout({ children, leftContent, rightContent, topContent, bottomContent, leftDockedPanels, rightDockedPanels }) {
+export function DockContainerLayout({ children, leftContent, rightContent, topContent, leftDockedPanels, rightDockedPanels }) {
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Top Dock Bar */}
+      {/* Top Dock Bar (optional) */}
       {topContent && <TopDockBar>{topContent}</TopDockBar>}
       
-      {/* Middle section with columns */}
+      {/* Middle section with columns - FIXED GRID LAYOUT */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Left Column */}
-        {leftContent && (
-          <LeftDockColumn dockedPanels={leftDockedPanels}>
-            {leftContent}
-          </LeftDockColumn>
-        )}
+        {/* Left Column - Always visible with border */}
+        <LeftDockColumn dockedPanels={leftDockedPanels}>
+          {leftContent}
+        </LeftDockColumn>
         
-        {/* Center Content (3D/2D View) */}
-        <div className="flex-1 min-w-0 relative">
-          {children}
+        {/* Center Content (3D/2D View) - Locked in grid, always visible */}
+        <div className="flex-1 min-w-0 relative flex items-center justify-center bg-background/50 border-l border-r border-border">
+          <div className="w-full h-full p-4">
+            {children}
+          </div>
         </div>
         
-        {/* Right Column */}
-        {rightContent && (
-          <RightDockColumn dockedPanels={rightDockedPanels}>
-            {rightContent}
-          </RightDockColumn>
-        )}
+        {/* Right Column - Always visible with border */}
+        <RightDockColumn dockedPanels={rightDockedPanels}>
+          {rightContent}
+        </RightDockColumn>
       </div>
-      
-      {/* Bottom Dock Bar */}
-      {bottomContent && <BottomDockBar>{bottomContent}</BottomDockBar>}
     </div>
   )
 }
