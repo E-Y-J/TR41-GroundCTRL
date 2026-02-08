@@ -266,6 +266,7 @@ export function FloatingNovaChat({
             right: window.innerWidth - 384, // 384px = panel width
             bottom: window.innerHeight - (isMinimized ? 64 : 600) // Adjust for panel height
           }}
+          cancel="button, input, .messages-area"
           nodeRef={draggableRef}
         >
           <div 
@@ -273,6 +274,13 @@ export function FloatingNovaChat({
             className={`fixed z-50 w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
               isMinimized ? 'h-16' : 'h-150'
             } ${className}`}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => {
+              // Only stop propagation if not clicking the drag handle
+              if (!e.target.closest('.drag-handle')) {
+                e.stopPropagation()
+              }
+            }}
           >
           {/* Header - Draggable Handle */}
           <div className="drag-handle p-4 border-b border-border bg-muted/50 flex items-center justify-between cursor-move">
@@ -317,7 +325,7 @@ export function FloatingNovaChat({
           {!isMinimized && (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="messages-area flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map((message) => (
                   <div
                     key={message.id}
