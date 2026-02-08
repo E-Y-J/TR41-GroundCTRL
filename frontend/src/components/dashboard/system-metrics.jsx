@@ -1,43 +1,61 @@
 "use client"
 
 import { Satellite, Target, Clock, TrendingUp } from "lucide-react"
+import { getTotalMissionTime } from "@/lib/firebase/userProgressService"
 
-const metrics = [
-  {
-    label: "Active Satellites",
-    value: "1",
-    sublabel: "SAT-01 Online",
-    icon: Satellite,
-    color: "text-primary",
-    bgColor: "bg-primary/10",
-  },
-  {
-    label: "Missions Completed",
-    value: "4",
-    sublabel: "of 12 available",
-    icon: Target,
-    color: "text-status-nominal",
-    bgColor: "bg-status-nominal/10",
-  },
-  {
-    label: "Training Hours",
-    value: "8.5",
-    sublabel: "hrs logged",
-    icon: Clock,
-    color: "text-status-warning",
-    bgColor: "bg-status-warning/10",
-  },
-  {
-    label: "Skill Level",
-    value: "Intermediate",
-    sublabel: "Level 3",
-    icon: TrendingUp,
-    color: "text-teal",
-    bgColor: "bg-teal/10",
-  },
-]
+/**
+ * Calculate skill level based on completed missions
+ */
+function calculateSkillLevel(completedCount) {
+  if (completedCount === 0) return { level: "Rookie", tier: "Level 1" }
+  if (completedCount < 3) return { level: "Beginner", tier: "Level 2" }
+  if (completedCount < 8) return { level: "Intermediate", tier: "Level 3" }
+  if (completedCount < 12) return { level: "Advanced", tier: "Level 4" }
+  return { level: "Expert", tier: "Level 5" }
+}
 
-export function SystemMetrics() {
+export function SystemMetrics({ sessions = [] }) {
+  // Calculate real metrics from session data
+  const completedCount = sessions.filter(s => s.status === 'COMPLETED').length
+  const totalTime = getTotalMissionTime(sessions)
+  const trainingHours = (totalTime.totalSeconds / 3600).toFixed(1)
+  const skillData = calculateSkillLevel(completedCount)
+
+  const metrics = [
+    {
+      label: "Active Satellites",
+      value: "1",
+      sublabel: "SAT-01 Online",
+      icon: Satellite,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
+    {
+      label: "Missions Completed",
+      value: completedCount.toString(),
+      sublabel: "scenarios completed",
+      icon: Target,
+      color: "text-status-nominal",
+      bgColor: "bg-status-nominal/10",
+    },
+    {
+      label: "Training Hours",
+      value: trainingHours,
+      sublabel: "hrs logged",
+      icon: Clock,
+      color: "text-status-warning",
+      bgColor: "bg-status-warning/10",
+    },
+    {
+      label: "Skill Level",
+      value: skillData.level,
+      sublabel: skillData.tier,
+      icon: TrendingUp,
+      color: "text-teal",
+      bgColor: "bg-teal/10",
+    },
+  ]
+
   return (
     <>
       {metrics.map((metric) => (
