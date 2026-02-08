@@ -194,6 +194,7 @@ function createAtmosphere(cameraPosition) {
   const geometry = new THREE.SphereGeometry(EARTH_RADIUS * 1.018, 64, 64)
   
   const material = new THREE.ShaderMaterial({
+    name: 'AtmosphereShader',
     vertexShader: atmosphereVertexShader,
     fragmentShader: atmosphereFragmentShader,
     uniforms: {
@@ -317,6 +318,7 @@ function createOrbitLine(radius, inclination, raan, satelliteProgress = 0.0) {
   
   // Create gradient material
   const material = new THREE.ShaderMaterial({
+    name: 'OrbitGradientShader',
     vertexShader: orbitGradientVertexShader,
     fragmentShader: orbitGradientFragmentShader,
     uniforms: {
