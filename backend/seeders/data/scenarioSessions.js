@@ -23,6 +23,17 @@ const OPERATORS = [
   { userId: 'user_015', callSign: 'PHOENIX' },
 ];
 
+// All 7 ground stations that should be available in scenarios
+const ALL_GROUND_STATIONS = [
+  'SVALBARD',
+  'ALASKA', 
+  'HAWAII',
+  'AUSTRALIA',
+  'SOUTH_AFRICA',
+  'CHILE',
+  'ANTARCTICA'
+];
+
 /**
  * Generate completed scenario session
  */
@@ -38,6 +49,7 @@ function createCompletedSession(operator, scenarioCode, performance, daysAgo = 0
     status: 'completed',
     startTime: startedAt.toISOString(),
     endTime: completedAt.toISOString(),
+    groundStationCodes: ALL_GROUND_STATIONS, // Include all 7 ground stations
     performance: {
       overallScore: performance.overallScore,
       duration: `${performance.durationMinutes}m`,
