@@ -18,6 +18,7 @@ import {
   orbitGradientVertexShader,
   orbitGradientFragmentShader
 } from "./shaders/orbitGradientShader"
+import { createSatellite3D } from "./components/Satellite3D"
 
 // ============================================================================
 // Constants
@@ -468,8 +469,11 @@ export function EarthGlobe3D({
       scene.add(createStarField())
     }
 
-    // Create satellite
-    const satellite = createSatelliteMesh()
+    // Create satellite (Phase 3 - Enhanced 3D model)
+    const satellite = createSatellite3D({ 
+      status: 'active',
+      showAttitudeAxes: false 
+    })
     scene.add(satellite)
     satelliteRef.current = satellite
 
