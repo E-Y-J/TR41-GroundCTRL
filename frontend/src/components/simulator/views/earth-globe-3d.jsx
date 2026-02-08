@@ -400,9 +400,9 @@ export function EarthGlobe3D({
     scene.background = new THREE.Color(0x000510)
     sceneRef.current = scene
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000)
-    camera.position.set(0, 1.5, 4)
+    // Camera - Increased FOV for wider view in smaller space
+    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000)
+    camera.position.set(0, 1.5, 4.5)
     cameraRef.current = camera
 
     // Renderer
