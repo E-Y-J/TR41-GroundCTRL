@@ -1,281 +1,354 @@
 /**
- * HUDLabels - 3D Text Labels
+ * HUDLabels - 3D Billboard Text Labels
  * 
- * Adds text labels that always face the camera:
+ * Text labels that always face the camera:
  * - Satellite altitude, velocity near satellite
  * - Ground station names above markers
  * - Cardinal directions (N, S, E, W) on Earth
- * - Orbit info at extremes
+ * - Billboard effect (text always faces camera)
+ * - Scale text based on camera distance
+ * - Semi-transparent background for readability
  * 
  * Phase 3 Implementation
- * 
- * Note: This uses CSS2D/CSS3D labels as an alternative to drei's Text component
- * for better performance and compatibility
+ * Note: Uses drei's Text component for React Three Fiber compatibility
+ * For vanilla Three.js, we use sprites with canvas textures
  */
 
 import * as THREE from 'three'
-import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 
 /**
- * Create HTML label element
+ * Create text sprite (billboard that always faces camera)
  * 
- * @param {string} text - Label text
- * @param {string} className - CSS class name
- * @returns {HTMLDivElement} Label element
+ * @param {string} text - Text to display
+ * @param {Object} options - Styling options
+ * @returns {THREE.Sprite} Text sprite
  */
-function createLabelElement(text, className = 'label-default') {
-  const div = document.createElement('div')
-  div.className = `hud-3d-label ${className}`
-  div.textContent = text
-  div.style.cssText = `
-    color: rgba(255, 255, 255, 0.9);
-    font-family: monospace;
-    font-size: 11px;
-    padding: 2px 6px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 3px;
-    pointer-events: none;
-    user-select: none;
-    white-space: nowrap;
-    backdrop-filter: blur(4px);
-  `
-  return div
+export function createTextLabel(text, options = {}) {
+  const {
+    fontSize = 64,
+    fontFamily = 'monospace',
+    textColor = '#ffffff',
+    backgroundColor = 'rgba(0, 0, 0, 0.7)',
+    padding = 10
+  } = options
+
+  // Create canvas
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
+  
+  // Set font for measuring
+  context.font = `${fontSize}px ${fontFamily}`
+  const metrics = context.measureText(text)
+  const textWidth = metrics.width
+  const textHeight = fontSize
+  
+  // Set canvas size
+  canvas.width = textWidth + padding * 2
+  canvas.height = textHeight + padding * 2
+  
+  // Draw background
+  context.fillStyle = backgroundColor
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  
+  // Draw text
+  context.font = `${fontSize}px ${fontFamily}`
+  context.fillStyle = textColor
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  context.fillText(text, canvas.width / 2, canvas.height / 2)
+  
+  // Create texture from canvas
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.needsUpdate = true
+  
+  // Create sprite material
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false
+  })
+  
+  const sprite = new THREE.Sprite(material)
+  
+  // Scale sprite (adjust based on canvas size)
+  const scale = 0.1
+  sprite.scale.set(
+    (canvas.width / canvas.height) * scale,
+    scale,
+    1
+  )
+  
+  // Store original text for updates
+  sprite.userData = {
+    text,
+    canvas,
+    context,
+    options,
+    originalScale: sprite.scale.clone()
+  }
+  
+  return sprite
+}
+
+/**
+ * Update text label content
+ * 
+ * @param {THREE.Sprite} sprite - Text sprite
+ * @param {string} newText - New text content
+ */
+export function updateTextLabel(sprite, newText) {
+  if (!sprite.userData || !sprite.userData.canvas) return
+  
+  const { canvas, context, options } = sprite.userData
+  const { fontSize = 64, fontFamily = 'monospace', textColor = '#ffffff', backgroundColor = 'rgba(0, 0, 0, 0.7)', padding = 10 } = options
+  
+  // Measure new text
+  context.font = `${fontSize}px ${fontFamily}`
+  const metrics = context.measureText(newText)
+  const textWidth = metrics.width
+  const textHeight = fontSize
+  
+  // Resize canvas if needed
+  canvas.width = textWidth + padding * 2
+  canvas.height = textHeight + padding * 2
+  
+  // Redraw background
+  context.fillStyle = backgroundColor
+  context.fillRect(0, 0, canvas.width, canvas.height)
+  
+  // Redraw text
+  context.font = `${fontSize}px ${fontFamily}`
+  context.fillStyle = textColor
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  context.fillText(newText, canvas.width / 2, canvas.height / 2)
+  
+  // Update texture
+  sprite.material.map.needsUpdate = true
+  
+  // Update scale
+  const scale = 0.1
+  sprite.scale.set(
+    (canvas.width / canvas.height) * scale,
+    scale,
+    1
+  )
+  
+  sprite.userData.text = newText
+  sprite.userData.originalScale = sprite.scale.clone()
 }
 
 /**
  * Create satellite info label
  * 
- * @param {Object} data - Satellite data
- * @param {number} data.altitude - Altitude in km
- * @param {number} data.velocity - Velocity in km/s
- * @param {number} data.lat - Latitude in degrees
- * @param {number} data.lon - Longitude in degrees
- * @returns {CSS2DObject} Label object
+ * @param {Object} telemetry - Satellite telemetry data
+ * @returns {THREE.Sprite} Satellite label sprite
  */
-export function createSatelliteLabel(data) {
-  const { altitude = 0, velocity = 0, lat = 0, lon = 0 } = data
+export function createSatelliteLabel(telemetry) {
+  const { altitude = 0, velocity = 0, lat = 0, lon = 0 } = telemetry
   
-  const div = createLabelElement('', 'satellite-label')
-  div.innerHTML = `
-    <div style="line-height: 1.4;">
-      <div style="color: #60a5fa; font-weight: bold; margin-bottom: 2px;">SATELLITE</div>
-      <div>ALT: ${altitude.toFixed(0)} km</div>
-      <div>VEL: ${velocity.toFixed(2)} km/s</div>
-      <div>LAT: ${lat.toFixed(2)}°</div>
-      <div>LON: ${lon.toFixed(2)}°</div>
-    </div>
-  `
-  div.style.fontSize = '10px'
+  const text = `ALT: ${altitude.toFixed(0)}km  VEL: ${velocity.toFixed(1)}km/s\nLAT: ${lat.toFixed(2)}°  LON: ${lon.toFixed(2)}°`
   
-  const label = new CSS2DObject(div)
-  label.position.set(0, 0.15, 0) // Offset above satellite
+  const sprite = createTextLabel(text, {
+    fontSize: 32,
+    fontFamily: 'monospace',
+    textColor: '#4ade80',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    padding: 8
+  })
   
-  return label
-}
-
-/**
- * Update satellite label content
- * 
- * @param {CSS2DObject} label - Satellite label object
- * @param {Object} data - Updated satellite data
- */
-export function updateSatelliteLabel(label, data) {
-  if (!label || !label.element) return
+  sprite.userData.labelType = 'satellite'
   
-  const { altitude = 0, velocity = 0, lat = 0, lon = 0 } = data
-  
-  label.element.innerHTML = `
-    <div style="line-height: 1.4;">
-      <div style="color: #60a5fa; font-weight: bold; margin-bottom: 2px;">SATELLITE</div>
-      <div>ALT: ${altitude.toFixed(0)} km</div>
-      <div>VEL: ${velocity.toFixed(2)} km/s</div>
-      <div>LAT: ${lat.toFixed(2)}°</div>
-      <div>LON: ${lon.toFixed(2)}°</div>
-    </div>
-  `
+  return sprite
 }
 
 /**
  * Create ground station label
  * 
- * @param {Object} data - Ground station data
- * @param {string} data.name - Station name
- * @param {number} data.elevation - Current elevation angle in degrees (optional)
- * @returns {CSS2DObject} Label object
+ * @param {string} name - Station name
+ * @param {number} elevation - Elevation angle in degrees (optional)
+ * @returns {THREE.Sprite} Station label sprite
  */
-export function createStationLabel(data) {
-  const { name = 'Ground Station', elevation = null } = data
-  
-  const div = createLabelElement('', 'station-label')
-  div.style.fontSize = '10px'
-  div.style.background = 'rgba(34, 197, 94, 0.3)'
-  div.style.borderColor = 'rgba(34, 197, 94, 0.5)'
-  
+export function createStationLabel(name, elevation = null) {
+  let text = name
   if (elevation !== null) {
-    div.innerHTML = `
-      <div style="color: #4ade80; font-weight: bold;">${name}</div>
-      <div style="font-size: 9px;">EL: ${elevation.toFixed(1)}°</div>
-    `
-  } else {
-    div.innerHTML = `<div style="color: #4ade80; font-weight: bold;">${name}</div>`
+    text += `\nEL: ${elevation.toFixed(1)}°`
   }
   
-  const label = new CSS2DObject(div)
-  label.position.set(0, 0.06, 0) // Offset above station marker
-  
-  return label
-}
-
-/**
- * Update station label elevation
- * 
- * @param {CSS2DObject} label - Station label object
- * @param {string} name - Station name
- * @param {number} elevation - Elevation angle in degrees
- */
-export function updateStationLabel(label, name, elevation) {
-  if (!label || !label.element) return
-  
-  label.element.innerHTML = `
-    <div style="color: #4ade80; font-weight: bold;">${name}</div>
-    <div style="font-size: 9px;">EL: ${elevation.toFixed(1)}°</div>
-  `
-}
-
-/**
- * Create cardinal direction labels (N, S, E, W)
- * 
- * @param {number} earthRadius - Earth radius in scene units
- * @returns {THREE.Group} Group containing all cardinal labels
- */
-export function createCardinalLabels(earthRadius = 1.0) {
-  const group = new THREE.Group()
-  group.name = 'CardinalLabels'
-  
-  const directions = [
-    { text: 'N', position: new THREE.Vector3(0, earthRadius * 1.05, 0), color: '#60a5fa' },
-    { text: 'S', position: new THREE.Vector3(0, -earthRadius * 1.05, 0), color: '#60a5fa' },
-    { text: 'E', position: new THREE.Vector3(earthRadius * 1.15, 0, 0), color: '#34d399' },
-    { text: 'W', position: new THREE.Vector3(-earthRadius * 1.15, 0, 0), color: '#f59e0b' }
-  ]
-  
-  directions.forEach(({ text, position, color }) => {
-    const div = createLabelElement(text, 'cardinal-label')
-    div.style.fontSize = '14px'
-    div.style.fontWeight = 'bold'
-    div.style.color = color
-    div.style.background = 'rgba(0, 0, 0, 0.5)'
-    div.style.borderColor = color
-    div.style.padding = '4px 8px'
-    
-    const label = new CSS2DObject(div)
-    label.position.copy(position)
-    group.add(label)
+  const sprite = createTextLabel(text, {
+    fontSize: 40,
+    fontFamily: 'sans-serif',
+    textColor: '#60a5fa',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10
   })
   
-  return group
+  sprite.userData.labelType = 'station'
+  sprite.userData.stationName = name
+  
+  return sprite
 }
 
 /**
- * Create orbit info labels (apogee, perigee)
+ * Create cardinal direction label
  * 
- * @param {Object} orbitData - Orbit parameters
- * @param {number} orbitData.apogee - Apogee altitude in km
- * @param {number} orbitData.perigee - Perigee altitude in km
- * @param {THREE.Vector3} orbitData.apogeePos - Apogee position vector
- * @param {THREE.Vector3} orbitData.perigeePos - Perigee position vector
- * @returns {THREE.Group} Group containing orbit info labels
+ * @param {string} direction - Direction ('N', 'S', 'E', 'W')
+ * @returns {THREE.Sprite} Direction label sprite
  */
-export function createOrbitInfoLabels(orbitData) {
-  const group = new THREE.Group()
-  group.name = 'OrbitInfoLabels'
+export function createCardinalLabel(direction) {
+  const sprite = createTextLabel(direction, {
+    fontSize: 96,
+    fontFamily: 'sans-serif',
+    textColor: '#94a3b8',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 15
+  })
   
-  const { apogee = 0, perigee = 0, apogeePos, perigeePos } = orbitData
+  sprite.userData.labelType = 'cardinal'
+  sprite.userData.direction = direction
   
-  if (apogeePos) {
-    const apDiv = createLabelElement(`APOGEE: ${apogee.toFixed(0)} km`, 'orbit-label')
-    apDiv.style.color = '#f59e0b'
-    apDiv.style.borderColor = 'rgba(245, 158, 11, 0.5)'
-    const apLabel = new CSS2DObject(apDiv)
-    apLabel.position.copy(apogeePos)
-    group.add(apLabel)
-  }
-  
-  if (perigeePos) {
-    const peDiv = createLabelElement(`PERIGEE: ${perigee.toFixed(0)} km`, 'orbit-label')
-    peDiv.style.color = '#06b6d4'
-    peDiv.style.borderColor = 'rgba(6, 182, 212, 0.5)'
-    const peLabel = new CSS2DObject(peDiv)
-    peLabel.position.copy(perigeePos)
-    group.add(peLabel)
-  }
-  
-  return group
+  return sprite
 }
 
 /**
- * Create label manager for handling multiple labels
+ * Create orbital node label
  * 
+ * @param {string} type - Node type ('AN' or 'DN')
+ * @returns {THREE.Sprite} Node label sprite
+ */
+export function createNodeLabel(type) {
+  const sprite = createTextLabel(type, {
+    fontSize: 48,
+    fontFamily: 'monospace',
+    textColor: type === 'AN' ? '#4ade80' : '#ef4444',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 8
+  })
+  
+  sprite.userData.labelType = 'node'
+  sprite.userData.nodeType = type
+  
+  return sprite
+}
+
+/**
+ * Update label scale based on camera distance
+ * 
+ * @param {THREE.Sprite} sprite - Label sprite
+ * @param {THREE.Vector3} cameraPosition - Camera position
+ * @param {number} minScale - Minimum scale factor (default 0.5)
+ * @param {number} maxScale - Maximum scale factor (default 2.0)
+ */
+export function updateLabelScale(sprite, cameraPosition, minScale = 0.5, maxScale = 2.0) {
+  if (!sprite.userData || !sprite.userData.originalScale) return
+  
+  const distance = sprite.position.distanceTo(cameraPosition)
+  
+  // Scale factor based on distance (closer = smaller, farther = larger for readability)
+  const baseDist = 3.0
+  let scaleFactor = distance / baseDist
+  scaleFactor = Math.max(minScale, Math.min(maxScale, scaleFactor))
+  
+  const originalScale = sprite.userData.originalScale
+  sprite.scale.set(
+    originalScale.x * scaleFactor,
+    originalScale.y * scaleFactor,
+    originalScale.z
+  )
+}
+
+/**
+ * Create label manager for organizing multiple labels
+ * 
+ * @param {THREE.Scene} scene - Three.js scene
  * @returns {Object} Label manager with helper methods
  */
-export function createLabelManager() {
-  const labels = new Map()
+export function createLabelManager(scene) {
+  const labels = new Map() // labelId -> sprite
   
   return {
     /**
-     * Add label to scene
+     * Add or update a label
      */
-    addLabel(name, label, parent) {
-      if (labels.has(name)) {
-        this.removeLabel(name, parent)
-      }
-      parent.add(label)
-      labels.set(name, label)
-      return label
-    },
-    
-    /**
-     * Remove label from scene
-     */
-    removeLabel(name, parent) {
-      const label = labels.get(name)
-      if (label) {
-        parent.remove(label)
-        if (label.element && label.element.parentNode) {
-          label.element.parentNode.removeChild(label.element)
+    setLabel(labelId, sprite, position) {
+      // Remove old label if exists
+      if (labels.has(labelId)) {
+        const oldSprite = labels.get(labelId)
+        scene.remove(oldSprite)
+        if (oldSprite.material.map) {
+          oldSprite.material.map.dispose()
         }
-        labels.delete(name)
+        oldSprite.material.dispose()
+      }
+      
+      // Add new label
+      sprite.position.copy(position)
+      scene.add(sprite)
+      labels.set(labelId, sprite)
+    },
+    
+    /**
+     * Update label position
+     */
+    updatePosition(labelId, position) {
+      const sprite = labels.get(labelId)
+      if (sprite) {
+        sprite.position.copy(position)
       }
     },
     
     /**
-     * Get label by name
+     * Update label text
      */
-    getLabel(name) {
-      return labels.get(name)
+    updateText(labelId, newText) {
+      const sprite = labels.get(labelId)
+      if (sprite) {
+        updateTextLabel(sprite, newText)
+      }
     },
     
     /**
-     * Update label visibility based on camera distance
+     * Remove a label
      */
-    updateVisibility(camera, maxDistance = 10) {
-      labels.forEach(label => {
-        if (!label.position) return
-        const distance = camera.position.distanceTo(label.position)
-        const opacity = Math.max(0, Math.min(1, 1 - (distance / maxDistance)))
-        if (label.element) {
-          label.element.style.opacity = opacity
+    removeLabel(labelId) {
+      const sprite = labels.get(labelId)
+      if (sprite) {
+        scene.remove(sprite)
+        if (sprite.material.map) {
+          sprite.material.map.dispose()
         }
+        sprite.material.dispose()
+        labels.delete(labelId)
+      }
+    },
+    
+    /**
+     * Get label sprite
+     */
+    getLabel(labelId) {
+      return labels.get(labelId)
+    },
+    
+    /**
+     * Update all label scales based on camera
+     */
+    updateAllScales(cameraPosition) {
+      labels.forEach(sprite => {
+        updateLabelScale(sprite, cameraPosition)
       })
     },
     
     /**
      * Dispose all labels
      */
-    dispose(parent) {
-      labels.forEach((label, name) => {
-        this.removeLabel(name, parent)
+    dispose() {
+      labels.forEach(sprite => {
+        scene.remove(sprite)
+        if (sprite.material.map) {
+          sprite.material.map.dispose()
+        }
+        sprite.material.dispose()
       })
       labels.clear()
     },
@@ -289,4 +362,30 @@ export function createLabelManager() {
   }
 }
 
-export default createSatelliteLabel
+/**
+ * Create cardinal direction labels on Earth horizon
+ * 
+ * @param {number} earthRadius - Earth radius in scene units
+ * @param {number} distance - Distance from Earth center (default 1.5)
+ * @returns {Array} Array of [labelId, sprite, position] tuples
+ */
+export function createCardinalLabels(earthRadius = 1.0, distance = 1.5) {
+  const labels = []
+  
+  const directions = [
+    { id: 'cardinal-N', label: 'N', pos: [0, 0, distance] },
+    { id: 'cardinal-S', label: 'S', pos: [0, 0, -distance] },
+    { id: 'cardinal-E', label: 'E', pos: [distance, 0, 0] },
+    { id: 'cardinal-W', label: 'W', pos: [-distance, 0, 0] }
+  ]
+  
+  directions.forEach(({ id, label, pos }) => {
+    const sprite = createCardinalLabel(label)
+    const position = new THREE.Vector3(...pos)
+    labels.push([id, sprite, position])
+  })
+  
+  return labels
+}
+
+export default createTextLabel

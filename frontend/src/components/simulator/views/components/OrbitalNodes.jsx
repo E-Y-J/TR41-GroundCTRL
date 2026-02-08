@@ -1,11 +1,12 @@
 /**
- * OrbitalNodes - Orbital Node Visualization
+ * OrbitalNodes - Ascending and Descending Node Visualization
  * 
- * Shows ascending and descending node positions:
- * - Ascending node: where orbit crosses equator northbound (green)
- * - Descending node: where orbit crosses equator southbound (red)
- * - Markers with directional arrows
- * - Labels showing node type
+ * Shows orbital node positions:
+ * - Ascending node (orbit crosses equator northbound)
+ * - Descending node (orbit crosses equator southbound)
+ * - Color-coded markers (green=ascending, red=descending)
+ * - Directional arrows
+ * - Node labels (AN/DN)
  * 
  * Phase 3 Implementation
  */
@@ -13,35 +14,46 @@
 import * as THREE from 'three'
 
 /**
- * Calculate orbital nodes positions
+ * Calculate orbital node positions
  * 
- * @param {number} orbitRadius - Orbit radius in scene units
- * @param {number} inclination - Inclination in degrees
+ * @param {number} radius - Orbit radius in scene units
+ * @param {number} inclination - Inclination angle in degrees
  * @param {number} raan - Right Ascension of Ascending Node in degrees
- * @param {number} earthRadius - Earth radius in scene units
  * @returns {Object} { ascendingNode, descendingNode }
  */
-export function calculateOrbitalNodes(orbitRadius, inclination, raan, earthRadius = 1.0) {
+export function calculateOrbitalNodes(radius, inclination, raan) {
   const inclRad = inclination * (Math.PI / 180)
   const raanRad = raan * (Math.PI / 180)
   
-  // Ascending node is where orbit crosses equator going north
-  // This occurs at true anomaly = 0 (or where the orbit intersects z=0 going up)
-  // For an inclined orbit, the ascending node is at the RAAN angle
+  // Ascending node: where orbit crosses equator going north (angle = 0)
+  let x_an = radius * Math.cos(0)
+  let y_an = 0
+  let z_an = radius * Math.sin(0)
   
-  // Ascending node position (in orbital plane at y=0, then rotated)
-  const anX = orbitRadius * Math.cos(raanRad)
-  const anY = 0 // On equatorial plane
-  const anZ = orbitRadius * Math.sin(raanRad)
+  // Apply inclination
+  const y1_an = y_an * Math.cos(inclRad) - z_an * Math.sin(inclRad)
+  const z1_an = y_an * Math.sin(inclRad) + z_an * Math.cos(inclRad)
   
-  const ascendingNode = new THREE.Vector3(anX, anY, anZ)
+  // Apply RAAN
+  const x2_an = x_an * Math.cos(raanRad) + z1_an * Math.sin(raanRad)
+  const z2_an = -x_an * Math.sin(raanRad) + z1_an * Math.cos(raanRad)
   
-  // Descending node is 180 degrees opposite
-  const dnX = -anX
-  const dnY = 0
-  const dnZ = -anZ
+  const ascendingNode = new THREE.Vector3(x2_an, y1_an, z2_an)
   
-  const descendingNode = new THREE.Vector3(dnX, dnY, dnZ)
+  // Descending node: opposite side of orbit (angle = PI)
+  let x_dn = radius * Math.cos(Math.PI)
+  let y_dn = 0
+  let z_dn = radius * Math.sin(Math.PI)
+  
+  // Apply inclination
+  const y1_dn = y_dn * Math.cos(inclRad) - z_dn * Math.sin(inclRad)
+  const z1_dn = y_dn * Math.sin(inclRad) + z_dn * Math.cos(inclRad)
+  
+  // Apply RAAN
+  const x2_dn = x_dn * Math.cos(raanRad) + z1_dn * Math.sin(raanRad)
+  const z2_dn = -x_dn * Math.sin(raanRad) + z1_dn * Math.cos(raanRad)
+  
+  const descendingNode = new THREE.Vector3(x2_dn, y1_dn, z2_dn)
   
   return {
     ascendingNode,
@@ -50,49 +62,35 @@ export function calculateOrbitalNodes(orbitRadius, inclination, raan, earthRadiu
 }
 
 /**
- * Create orbital node marker
+ * Create node marker mesh
  * 
- * @param {string} type - Node type ('ascending'|'descending')
+ * @param {string} nodeType - Node type ('ascending' or 'descending')
  * @param {THREE.Vector3} position - Node position
  * @returns {THREE.Group} Node marker group
  */
-export function createOrbitalNodeMarker(type, position) {
+export function createNodeMarker(nodeType, position) {
   const group = new THREE.Group()
-  group.position.copy(position)
   
-  // Colors based on type
-  const colors = {
-    ascending: {
-      base: 0x4ade80,      // Green
-      emissive: 0x22c55e,
-      label: 'AN'
-    },
-    descending: {
-      base: 0xef4444,      // Red
-      emissive: 0xdc2626,
-      label: 'DN'
-    }
-  }
+  const isAscending = nodeType === 'ascending'
+  const color = isAscending ? 0x4ade80 : 0xef4444 // Green or Red
+  const arrowDirection = isAscending ? 1 : -1 // Up or Down
   
-  const color = colors[type] || colors.ascending
-  
-  // Sphere marker
-  const sphereGeometry = new THREE.SphereGeometry(0.025, 16, 16)
+  // Marker sphere
+  const sphereGeometry = new THREE.SphereGeometry(0.03, 16, 16)
   const sphereMaterial = new THREE.MeshStandardMaterial({
-    color: color.base,
-    metalness: 0.4,
+    color: color,
+    metalness: 0.5,
     roughness: 0.3,
-    emissive: color.emissive,
+    emissive: color,
     emissiveIntensity: 0.4
   })
   const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
-  sphere.castShadow = true
   group.add(sphere)
   
   // Glow effect
-  const glowGeometry = new THREE.SphereGeometry(0.035, 16, 16)
+  const glowGeometry = new THREE.SphereGeometry(0.04, 16, 16)
   const glowMaterial = new THREE.MeshBasicMaterial({
-    color: color.base,
+    color: color,
     transparent: true,
     opacity: 0.3,
     depthWrite: false
@@ -101,25 +99,39 @@ export function createOrbitalNodeMarker(type, position) {
   group.add(glow)
   
   // Directional arrow
-  const arrowDirection = type === 'ascending' 
-    ? new THREE.Vector3(0, 1, 0)  // Points up
-    : new THREE.Vector3(0, -1, 0) // Points down
-  
+  const arrowDir = new THREE.Vector3(0, arrowDirection, 0)
+  const arrowOrigin = new THREE.Vector3(0, 0, 0)
+  const arrowLength = 0.08
   const arrowHelper = new THREE.ArrowHelper(
-    arrowDirection,
-    new THREE.Vector3(0, 0, 0),
-    0.08,
-    color.base,
-    0.02,
-    0.015
+    arrowDir,
+    arrowOrigin,
+    arrowLength,
+    color,
+    0.03, // Head length
+    0.02  // Head width
   )
   group.add(arrowHelper)
   
+  // Ring indicator (orbit path at node)
+  const ringGeometry = new THREE.TorusGeometry(0.035, 0.003, 8, 32)
+  const ringMaterial = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.6
+  })
+  const ring = new THREE.Mesh(ringGeometry, ringMaterial)
+  ring.rotation.x = Math.PI / 2
+  group.add(ring)
+  
+  // Position the group
+  group.position.copy(position)
+  
   // Store data
   group.userData = {
-    type,
-    label: color.label,
+    nodeType,
+    position: position.clone(),
     glowMesh: glow,
+    ringMesh: ring,
     pulsePhase: 0
   }
   
@@ -127,172 +139,177 @@ export function createOrbitalNodeMarker(type, position) {
 }
 
 /**
- * Create both orbital node markers
+ * Update node marker position
  * 
- * @param {number} orbitRadius - Orbit radius in scene units
- * @param {number} inclination - Inclination in degrees
- * @param {number} raan - Right Ascension of Ascending Node in degrees
- * @param {number} earthRadius - Earth radius in scene units
- * @returns {THREE.Group} Group containing both node markers
+ * @param {THREE.Group} nodeMarker - Node marker group
+ * @param {THREE.Vector3} newPosition - New position
  */
-export function createOrbitalNodes(orbitRadius, inclination, raan, earthRadius = 1.0) {
-  const group = new THREE.Group()
-  group.name = 'OrbitalNodes'
+export function updateNodeMarker(nodeMarker, newPosition) {
+  if (!nodeMarker) return
   
-  const { ascendingNode, descendingNode } = calculateOrbitalNodes(
-    orbitRadius, 
-    inclination, 
-    raan, 
-    earthRadius
-  )
+  nodeMarker.position.copy(newPosition)
   
-  // Create markers
-  const anMarker = createOrbitalNodeMarker('ascending', ascendingNode)
-  anMarker.name = 'AscendingNode'
-  group.add(anMarker)
-  
-  const dnMarker = createOrbitalNodeMarker('descending', descendingNode)
-  dnMarker.name = 'DescendingNode'
-  group.add(dnMarker)
-  
-  return group
-}
-
-/**
- * Update orbital node positions
- * 
- * @param {THREE.Group} nodesGroup - Orbital nodes group
- * @param {number} orbitRadius - Orbit radius in scene units
- * @param {number} inclination - Inclination in degrees
- * @param {number} raan - Right Ascension of Ascending Node in degrees
- * @param {number} earthRadius - Earth radius in scene units
- */
-export function updateOrbitalNodes(nodesGroup, orbitRadius, inclination, raan, earthRadius = 1.0) {
-  if (!nodesGroup) return
-  
-  const { ascendingNode, descendingNode } = calculateOrbitalNodes(
-    orbitRadius, 
-    inclination, 
-    raan, 
-    earthRadius
-  )
-  
-  // Update ascending node position
-  const anMarker = nodesGroup.getObjectByName('AscendingNode')
-  if (anMarker) {
-    anMarker.position.copy(ascendingNode)
-  }
-  
-  // Update descending node position
-  const dnMarker = nodesGroup.getObjectByName('DescendingNode')
-  if (dnMarker) {
-    dnMarker.position.copy(descendingNode)
+  if (nodeMarker.userData) {
+    nodeMarker.userData.position = newPosition.clone()
   }
 }
 
 /**
- * Animate orbital node markers (subtle pulse)
+ * Animate node markers (pulse effect)
  * 
- * @param {THREE.Group} nodesGroup - Orbital nodes group
+ * @param {THREE.Group} nodeMarker - Node marker group
  * @param {number} deltaTime - Time since last frame in seconds
  */
-export function animateOrbitalNodes(nodesGroup, deltaTime) {
-  if (!nodesGroup) return
+export function animateNodeMarker(nodeMarker, deltaTime) {
+  if (!nodeMarker || !nodeMarker.userData) return
   
-  nodesGroup.children.forEach(marker => {
-    if (!marker.userData || !marker.userData.glowMesh) return
-    
-    // Subtle pulse animation
-    marker.userData.pulsePhase += deltaTime * 2
-    const pulse = Math.sin(marker.userData.pulsePhase) * 0.1 + 0.3
-    marker.userData.glowMesh.material.opacity = pulse
-    
-    // Slight scale pulse
-    const scale = 1 + Math.sin(marker.userData.pulsePhase) * 0.05
-    marker.userData.glowMesh.scale.setScalar(scale)
-  })
+  const { glowMesh, ringMesh } = nodeMarker.userData
+  
+  // Update pulse phase
+  nodeMarker.userData.pulsePhase += deltaTime * 2
+  
+  // Pulse glow
+  if (glowMesh) {
+    const pulse = Math.sin(nodeMarker.userData.pulsePhase) * 0.15 + 0.85
+    glowMesh.material.opacity = 0.3 * pulse
+    glowMesh.scale.setScalar(pulse)
+  }
+  
+  // Rotate ring slowly
+  if (ringMesh) {
+    ringMesh.rotation.z += deltaTime * 0.5
+  }
 }
 
 /**
- * Check if satellite is near a node (for highlighting)
+ * Create orbital nodes visualization (both AN and DN)
  * 
- * @param {THREE.Vector3} satPos - Satellite position
- * @param {THREE.Group} nodesGroup - Orbital nodes group
- * @param {number} threshold - Distance threshold in scene units
- * @returns {Object} { nearAscending, nearDescending, closestNode }
+ * @param {number} radius - Orbit radius in scene units
+ * @param {number} inclination - Inclination angle in degrees
+ * @param {number} raan - Right Ascension of Ascending Node in degrees
+ * @returns {Object} { ascendingMarker, descendingMarker, positions }
  */
-export function checkSatelliteNearNodes(satPos, nodesGroup, threshold = 0.1) {
-  if (!nodesGroup || !satPos) {
-    return { nearAscending: false, nearDescending: false, closestNode: null }
-  }
+export function createOrbitalNodes(radius, inclination, raan) {
+  const { ascendingNode, descendingNode } = calculateOrbitalNodes(radius, inclination, raan)
   
-  const anMarker = nodesGroup.getObjectByName('AscendingNode')
-  const dnMarker = nodesGroup.getObjectByName('DescendingNode')
-  
-  let nearAscending = false
-  let nearDescending = false
-  let closestNode = null
-  let minDistance = Infinity
-  
-  if (anMarker) {
-    const distToAN = satPos.distanceTo(anMarker.position)
-    if (distToAN < threshold) {
-      nearAscending = true
-      if (distToAN < minDistance) {
-        minDistance = distToAN
-        closestNode = 'ascending'
-      }
-    }
-  }
-  
-  if (dnMarker) {
-    const distToDN = satPos.distanceTo(dnMarker.position)
-    if (distToDN < threshold) {
-      nearDescending = true
-      if (distToDN < minDistance) {
-        minDistance = distToDN
-        closestNode = 'descending'
-      }
-    }
-  }
+  const ascendingMarker = createNodeMarker('ascending', ascendingNode)
+  const descendingMarker = createNodeMarker('descending', descendingNode)
   
   return {
-    nearAscending,
-    nearDescending,
-    closestNode
+    ascendingMarker,
+    descendingMarker,
+    positions: {
+      ascendingNode,
+      descendingNode
+    }
   }
 }
 
 /**
- * Highlight node when satellite is near
+ * Update orbital nodes when orbit parameters change
  * 
- * @param {THREE.Group} nodesGroup - Orbital nodes group
- * @param {string} nodeType - Node type to highlight ('ascending'|'descending'|null)
+ * @param {THREE.Group} ascendingMarker - Ascending node marker
+ * @param {THREE.Group} descendingMarker - Descending node marker
+ * @param {number} radius - New orbit radius
+ * @param {number} inclination - New inclination angle
+ * @param {number} raan - New RAAN
  */
-export function highlightNode(nodesGroup, nodeType) {
-  if (!nodesGroup) return
+export function updateOrbitalNodes(ascendingMarker, descendingMarker, radius, inclination, raan) {
+  const { ascendingNode, descendingNode } = calculateOrbitalNodes(radius, inclination, raan)
   
-  const anMarker = nodesGroup.getObjectByName('AscendingNode')
-  const dnMarker = nodesGroup.getObjectByName('DescendingNode')
-  
-  // Reset all highlights
-  if (anMarker && anMarker.userData.glowMesh) {
-    anMarker.userData.glowMesh.material.opacity = 0.3
-    anMarker.scale.setScalar(1)
+  if (ascendingMarker) {
+    updateNodeMarker(ascendingMarker, ascendingNode)
   }
   
-  if (dnMarker && dnMarker.userData.glowMesh) {
-    dnMarker.userData.glowMesh.material.opacity = 0.3
-    dnMarker.scale.setScalar(1)
+  if (descendingMarker) {
+    updateNodeMarker(descendingMarker, descendingNode)
   }
+}
+
+/**
+ * Create orbital nodes manager
+ * 
+ * @param {THREE.Scene} scene - Three.js scene
+ * @returns {Object} Nodes manager with helper methods
+ */
+export function createOrbitalNodesManager(scene) {
+  let ascendingMarker = null
+  let descendingMarker = null
   
-  // Highlight selected node
-  if (nodeType === 'ascending' && anMarker) {
-    anMarker.userData.glowMesh.material.opacity = 0.7
-    anMarker.scale.setScalar(1.3)
-  } else if (nodeType === 'descending' && dnMarker) {
-    dnMarker.userData.glowMesh.material.opacity = 0.7
-    dnMarker.scale.setScalar(1.3)
+  return {
+    /**
+     * Create or update nodes
+     */
+    updateNodes(radius, inclination, raan) {
+      const { ascendingNode, descendingNode } = calculateOrbitalNodes(radius, inclination, raan)
+      
+      if (!ascendingMarker) {
+        // Create new markers
+        ascendingMarker = createNodeMarker('ascending', ascendingNode)
+        descendingMarker = createNodeMarker('descending', descendingNode)
+        scene.add(ascendingMarker)
+        scene.add(descendingMarker)
+      } else {
+        // Update existing markers
+        updateNodeMarker(ascendingMarker, ascendingNode)
+        updateNodeMarker(descendingMarker, descendingNode)
+      }
+    },
+    
+    /**
+     * Animate nodes
+     */
+    animate(deltaTime) {
+      if (ascendingMarker) {
+        animateNodeMarker(ascendingMarker, deltaTime)
+      }
+      if (descendingMarker) {
+        animateNodeMarker(descendingMarker, deltaTime)
+      }
+    },
+    
+    /**
+     * Show/hide nodes
+     */
+    setVisible(visible) {
+      if (ascendingMarker) ascendingMarker.visible = visible
+      if (descendingMarker) descendingMarker.visible = visible
+    },
+    
+    /**
+     * Get node positions
+     */
+    getPositions() {
+      if (!ascendingMarker || !descendingMarker) return null
+      
+      return {
+        ascendingNode: ascendingMarker.userData.position,
+        descendingNode: descendingMarker.userData.position
+      }
+    },
+    
+    /**
+     * Dispose nodes
+     */
+    dispose() {
+      if (ascendingMarker) {
+        scene.remove(ascendingMarker)
+        ascendingMarker.traverse(child => {
+          if (child.geometry) child.geometry.dispose()
+          if (child.material) child.material.dispose()
+        })
+        ascendingMarker = null
+      }
+      
+      if (descendingMarker) {
+        scene.remove(descendingMarker)
+        descendingMarker.traverse(child => {
+          if (child.geometry) child.geometry.dispose()
+          if (child.material) child.material.dispose()
+        })
+        descendingMarker = null
+      }
+    }
   }
 }
 
