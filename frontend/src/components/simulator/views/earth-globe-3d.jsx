@@ -209,6 +209,13 @@ function createAtmosphere(cameraPosition) {
     depthWrite: false
   })
 
+  // Log shader compilation errors
+  material.onBeforeCompile = (shader, renderer) => {
+    const gl = renderer.getContext()
+    console.log('[AtmosphereShader] Vertex shader:', atmosphereVertexShader)
+    console.log('[AtmosphereShader] Fragment shader:', atmosphereFragmentShader)
+  }
+
   return new THREE.Mesh(geometry, material)
 }
 
