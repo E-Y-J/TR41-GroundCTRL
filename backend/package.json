@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "dev:emulators": "cross-env FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 FIREBASE_FIRESTORE_EMULATOR_HOST=localhost:8080 nodemon src/server.js",
     "test": "node check-files.js && jest --runInBand",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
@@ -23,6 +22,10 @@
     "lint": "biome check src",
     "lint:fix": "biome check src --write",
     "seed": "node seeders/seed.js",
+    "seed:all": "node seeders/seed.js --all",
+    "seed:leaderboard": "node seeders/seed.js --leaderboard",
+    "seed:tutorials": "node seeders/seed.js --tutorials",
+    "seed:scenarios": "node seeders/seed.js --scenarios",
     "cleanup": "node src/scripts/FB_cleanup.js",
     "test:verify-migration": "node tests/scripts/verify-migration.js",
     "test:migrate": "bash tests/scripts/migrate-from-tests-backend.sh"
