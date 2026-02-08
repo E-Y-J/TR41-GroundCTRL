@@ -94,24 +94,52 @@ export function createTextLabel(text, options = {}) {
 /**
  * Update text label content
  * 
- * @param {THREE.Sprite} sprite - Text sprite
+ * @param {THREE.Sprite} sprite - Text sprite or CSS2DObject
  * @param {string} newText - New text content
  */
 export function updateTextLabel(sprite, newText) {
+  // Handle CSS2DObject labels (skip update, they don't use canvas)
+  if (sprite.isCSS2DObject) {
+    if (sprite.element) {
+      sprite.element.textContent = newText
+    }
+    return
+  }
+  
   if (!sprite.userData || !sprite.userData.canvas) return
   
-  const { canvas, context, options } = sprite.userData
+  const { canvas, context, options, text: oldText } = sprite.userData
+  
+  // Skip if text hasn't changed
+  if (oldText === newText) return
+  
   const { fontSize = 64, fontFamily = 'monospace', textColor = '#ffffff', backgroundColor = 'rgba(0, 0, 0, 0.7)', padding = 10 } = options
   
   // Measure new text
   context.font = `${fontSize}px ${fontFamily}`
   const metrics = context.measureText(newText)
-  const textWidth = metrics.width
+  const textWidth = Math.ceil(metrics.width)
   const textHeight = fontSize
   
-  // Resize canvas if needed
-  canvas.width = textWidth + padding * 2
-  canvas.height = textHeight + padding * 2
+  const newWidth = textWidth + padding * 2
+  const newHeight = textHeight + padding * 2
+  
+  // Only resize if dimensions changed significantly (avoid tiny changes)
+  if (Math.abs(canvas.width - newWidth) > 2 || Math.abs(canvas.height - newHeight) > 2) {
+    // Dispose old texture
+    if (sprite.material.map) {
+      sprite.material.map.dispose()
+    }
+    
+    // Resize canvas
+    canvas.width = newWidth
+    canvas.height = newHeight
+    
+    // Create new texture
+    const newTexture = new THREE.CanvasTexture(canvas)
+    newTexture.needsUpdate = true
+    sprite.material.map = newTexture
+  }
   
   // Redraw background
   context.fillStyle = backgroundColor
@@ -367,10 +395,11 @@ export function createLabelManager(scene) {
  * 
  * @param {number} earthRadius - Earth radius in scene units
  * @param {number} distance - Distance from Earth center (default 1.5)
- * @returns {Array} Array of [labelId, sprite, position] tuples
+ * @returns {THREE.Group} Group containing cardinal direction labels
  */
 export function createCardinalLabels(earthRadius = 1.0, distance = 1.5) {
-  const labels = []
+  const group = new THREE.Group()
+  group.name = 'cardinal-labels'
   
   const directions = [
     { id: 'cardinal-N', label: 'N', pos: [0, 0, distance] },
@@ -381,11 +410,12 @@ export function createCardinalLabels(earthRadius = 1.0, distance = 1.5) {
   
   directions.forEach(({ id, label, pos }) => {
     const sprite = createCardinalLabel(label)
-    const position = new THREE.Vector3(...pos)
-    labels.push([id, sprite, position])
+    sprite.name = id
+    sprite.position.set(...pos)
+    group.add(sprite)
   })
   
-  return labels
+  return group
 }
 
 export default createTextLabel

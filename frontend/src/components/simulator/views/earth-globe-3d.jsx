@@ -246,7 +246,7 @@ function createEarthMesh(onLoad) {
 }
 
 /** Create enhanced atmosphere glow effect with Fresnel-based scattering */
-function createAtmosphere(cameraPosition) {
+function createAtmosphere() {
   const geometry = new THREE.SphereGeometry(EARTH_RADIUS * 1.018, 64, 64)
   
   const material = new THREE.ShaderMaterial({
@@ -256,8 +256,8 @@ function createAtmosphere(cameraPosition) {
     uniforms: {
       glowColor: { value: new THREE.Vector3(0.3, 0.6, 1.0) },
       glowIntensity: { value: 1.3 },
-      atmosphereThickness: { value: 0.85 },
-      cameraPosition: { value: cameraPosition || new THREE.Vector3(0, 1.5, 4.5) }
+      atmosphereThickness: { value: 0.85 }
+      // cameraPosition is a built-in uniform in Three.js, no need to declare it
     },
     blending: THREE.AdditiveBlending,
     side: THREE.BackSide,
@@ -376,6 +376,7 @@ export function EarthGlobe3D({
   showLabels = true,
   showOrbitalNodes = true,
   animationSpeed = 120,
+  groundStationsData = null, // Phase 3 - WebSocket ground stations
   className = "",
 }) {
   // Refs
@@ -393,6 +394,7 @@ export function EarthGlobe3D({
   const orbitalNodesRef = useRef(null)
   const satLabelRef = useRef(null)
   const animationRef = useRef(0)
+  const isMountedRef = useRef(false) // Track mount status for StrictMode
   
   // Phase 3 managers
   const coneManagerRef = useRef(null)
@@ -498,7 +500,7 @@ export function EarthGlobe3D({
 
     // Create atmosphere
     if (showAtmosphere) {
-      const atmosphere = createAtmosphere(camera.position)
+      const atmosphere = createAtmosphere()
       scene.add(atmosphere)
       atmosphereRef.current = atmosphere
     }
@@ -535,22 +537,8 @@ export function EarthGlobe3D({
       orbitLineRef.current = orbitLine
     }
 
-    // Create ground stations (Phase 3)
-    if (showGroundStations) {
-      const stations = createGroundStationMarkers(GROUND_STATIONS, EARTH_RADIUS)
-      scene.add(stations)
-      groundStationsRef.current = stations
-
-      // Add station labels
-      if (showLabels) {
-        stations.children.forEach((marker, index) => {
-          const stationLabel = createStationLabel({
-            name: GROUND_STATIONS[index].name
-          })
-          marker.add(stationLabel)
-        })
-      }
-    }
+    // Ground stations will be created/updated separately via useEffect
+    // to handle WebSocket data updates and proper cleanup
 
     // Orbital nodes - Phase 3 component exists but not yet integrated
     // if (showOrbitalNodes) {
@@ -568,6 +556,9 @@ export function EarthGlobe3D({
     // Initialize Phase 3 managers
     coneManagerRef.current = createVisibilityConeManager()
     linkManagerRef.current = createCommLinkManager()
+    
+    // Mark as mounted (after all scene setup)
+    isMountedRef.current = true
 
     // Handle resize
     const handleResize = () => {
@@ -581,8 +572,16 @@ export function EarthGlobe3D({
     window.addEventListener("resize", handleResize)
 
     return () => {
+      isMountedRef.current = false
       window.removeEventListener("resize", handleResize)
       cancelAnimationFrame(animationRef.current)
+      
+      // Cleanup ground stations
+      if (groundStationsRef.current && sceneRef.current) {
+        sceneRef.current.remove(groundStationsRef.current)
+        disposeGroundStations(groundStationsRef.current)
+        groundStationsRef.current = null
+      }
       
       // Cleanup Phase 3 managers
       if (coneManagerRef.current) {
@@ -600,7 +599,49 @@ export function EarthGlobe3D({
         container.removeChild(labelRenderer.domElement)
       }
     }
-  }, [showAtmosphere, showStars, showOrbit, showGroundStations, showLabels, showOrbitalNodes, orbitRadius, inclination, raan, altitude, calculateOrbitalVelocity])
+  }, [showAtmosphere, showStars, showOrbit, orbitRadius, inclination, raan, altitude, calculateOrbitalVelocity])
+
+  // Ground stations update effect - handles WebSocket data and proper cleanup
+  useEffect(() => {
+    if (!sceneRef.current || !isLoaded) return
+    
+    // Don't create ground stations if disabled or mount not complete
+    if (!showGroundStations || !isMountedRef.current) return
+
+    const scene = sceneRef.current
+    
+    // Determine which station data to use: WebSocket data or fallback to static
+    const stationsToRender = groundStationsData && groundStationsData.length > 0 
+      ? groundStationsData 
+      : GROUND_STATIONS
+
+    console.log('[EarthGlobe3D] Updating ground stations:', stationsToRender.length)
+
+    // Remove and dispose old ground stations group if it exists
+    if (groundStationsRef.current) {
+      scene.remove(groundStationsRef.current)
+      disposeGroundStations(groundStationsRef.current)
+      groundStationsRef.current = null
+    }
+
+    // Create new ground stations group
+    const newStationsGroup = createGroundStationMarkers(stationsToRender, EARTH_RADIUS)
+    
+    // Add station labels if enabled
+    if (showLabels) {
+      newStationsGroup.children.forEach((marker, index) => {
+        const stationLabel = createStationLabel({
+          name: stationsToRender[index].name
+        })
+        marker.add(stationLabel)
+      })
+    }
+
+    // Add to scene and store reference
+    scene.add(newStationsGroup)
+    groundStationsRef.current = newStationsGroup
+
+  }, [showGroundStations, showLabels, groundStationsData, isLoaded])
 
   // Update orbit when parameters change
   useEffect(() => {
@@ -721,13 +762,7 @@ export function EarthGlobe3D({
         earthRef.current.rotation.y += deltaTime * 0.02
       }
 
-      // Update atmosphere camera position
-      if (atmosphereRef.current && camera) {
-        const material = atmosphereRef.current.material
-        if (material.uniforms && material.uniforms.cameraPosition) {
-          material.uniforms.cameraPosition.value.copy(camera.position)
-        }
-      }
+      // Atmosphere shader uses built-in cameraPosition uniform, no need to update
 
       // Update satellite position
       if (satelliteRef.current) {
@@ -751,13 +786,18 @@ export function EarthGlobe3D({
         // Phase 3: Check visibility to ground stations
         if (showGroundStations && groundStationsRef.current) {
           const newActiveStations = new Set()
+          const currentStations = groundStationsData && groundStationsData.length > 0 
+            ? groundStationsData 
+            : GROUND_STATIONS
           
           groundStationsRef.current.children.forEach((marker, index) => {
+            if (index >= currentStations.length) return // Safety check
+            
             const stationPos = marker.position
             const visibility = checkVisibility(satPosVec, stationPos, EARTH_RADIUS)
             
             if (visibility.visible) {
-              newActiveStations.add(GROUND_STATIONS[index].name)
+              newActiveStations.add(currentStations[index].name)
               
               // Update station active state
               updateStationActive(marker, true)
@@ -765,7 +805,7 @@ export function EarthGlobe3D({
               // Create/update visibility cone
               if (showVisibilityCones && coneManagerRef.current) {
                 const cone = coneManagerRef.current.updateCone(
-                  GROUND_STATIONS[index].name,
+                  currentStations[index].name,
                   stationPos,
                   satPosVec,
                   scene
@@ -778,20 +818,20 @@ export function EarthGlobe3D({
               if (showCommLinks && linkManagerRef.current) {
                 const quality = calculateLinkQuality(visibility.elevation)
                 const linkData = linkManagerRef.current.updateLink(
-                  GROUND_STATIONS[index].name,
+                  currentStations[index].name,
                   satPosVec,
                   stationPos,
                   quality,
                   scene
                 )
-                animateCommLink(linkData.line, linkData.packetsGroup, deltaTime, true)
+                animateCommLink(linkData.line, linkData.packetsGroup, deltaTime, true, scene)
               }
               
               // Update station label with elevation
               if (showLabels && marker.children.length > 0) {
                 const labelIndex = marker.children.findIndex(child => child.isCSS2DObject)
                 if (labelIndex !== -1) {
-                  const newText = `${GROUND_STATIONS[index].name}\nEL: ${visibility.elevation.toFixed(1)}°`
+                  const newText = `${currentStations[index].name}\nEL: ${visibility.elevation.toFixed(1)}°`
                   updateTextLabel(marker.children[labelIndex], newText)
                 }
               }
@@ -801,7 +841,7 @@ export function EarthGlobe3D({
               
               // Fade out visibility cone
               if (showVisibilityCones && coneManagerRef.current) {
-                const cone = coneManagerRef.current.getCone(GROUND_STATIONS[index].name)
+                const cone = coneManagerRef.current.getCone(currentStations[index].name)
                 if (cone) {
                   animateVisibilityCone(cone, false, deltaTime)
                 }
@@ -809,9 +849,9 @@ export function EarthGlobe3D({
               
               // Fade out comm link
               if (showCommLinks && linkManagerRef.current) {
-                const linkData = linkManagerRef.current.getLink(GROUND_STATIONS[index].name)
+                const linkData = linkManagerRef.current.getLink(currentStations[index].name)
                 if (linkData) {
-                  animateCommLink(linkData.line, linkData.packetsGroup, deltaTime, false)
+                  animateCommLink(linkData.line, linkData.packetsGroup, deltaTime, false, scene)
                 }
               }
             }
@@ -865,7 +905,8 @@ export function EarthGlobe3D({
     showGroundStations,
     showVisibilityCones,
     showCommLinks,
-    showLabels
+    showLabels,
+    groundStationsData
   ])
 
   // Current satellite position for display
@@ -892,6 +933,37 @@ export function EarthGlobe3D({
       <InteractionHint followMode={followSatellite} isPaused={isPaused} />
     </div>
   )
+}
+
+/**
+ * Dispose ground stations group and all its resources
+ * @param {THREE.Group} stationsGroup - Ground stations group to dispose
+ */
+function disposeGroundStations(stationsGroup) {
+  if (!stationsGroup) return
+  
+  stationsGroup.children.forEach(marker => {
+    // Dispose geometries and materials for each marker's children
+    marker.children.forEach(child => {
+      if (child.geometry) {
+        child.geometry.dispose()
+      }
+      if (child.material) {
+        if (Array.isArray(child.material)) {
+          child.material.forEach(mat => mat.dispose())
+        } else {
+          child.material.dispose()
+        }
+      }
+    })
+    
+    // Clear marker's children
+    marker.children.length = 0
+  })
+  
+  // Clear group's children
+  stationsGroup.children.length = 0
+
 }
 
 export default EarthGlobe3D

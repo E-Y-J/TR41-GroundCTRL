@@ -31,14 +31,13 @@ export const atmosphereFragmentShader = `
   uniform vec3 glowColor;
   uniform float glowIntensity;
   uniform float atmosphereThickness;
-  uniform vec3 cameraPosition;
   
   varying vec3 vNormal;
   varying vec3 vPosition;
   varying vec3 vWorldPosition;
 
   void main() {
-    // Calculate view direction
+    // Calculate view direction (cameraPosition is built-in uniform in Three.js)
     vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
     
     // Fresnel effect - stronger glow at edges (limb)

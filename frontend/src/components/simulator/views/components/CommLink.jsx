@@ -155,39 +155,59 @@ export function updateCommLink(linkLine, satPos, stationPos, linkQuality) {
  * Animate communication link (pulse effect and data packets)
  * 
  * @param {THREE.Line} linkLine - Communication link line
- * @param {THREE.Scene} scene - Three.js scene
+ * @param {THREE.Group} packetsGroup - Group containing data packets (unused, for compatibility)
  * @param {number} deltaTime - Time since last frame in seconds
+ * @param {boolean} visible - Whether link is visible (fade in/out)
+ * @param {THREE.Scene} scene - Three.js scene (optional, needed for packet spawning)
  */
-export function animateCommLink(linkLine, scene, deltaTime) {
+export function animateCommLink(linkLine, packetsGroup, deltaTime, visible = true, scene = null) {
   if (!linkLine || !linkLine.userData) return
   
+  // Handle visibility fading
+  if (!visible) {
+    // Fade out effect
+    if (linkLine.material.opacity > 0) {
+      linkLine.material.opacity = Math.max(0, linkLine.material.opacity - deltaTime * 2)
+    }
+    return
+  }
+  
+  
   const { linkQuality, satPos, stationPos } = linkLine.userData
+  
+  // Fade in effect
+  const targetOpacity = 0.6 + linkQuality.strength * 0.4
+  if (linkLine.material.opacity < targetOpacity) {
+    linkLine.material.opacity = Math.min(targetOpacity, linkLine.material.opacity + deltaTime * 2)
+  }
   
   // Pulse effect on line
   linkLine.userData.pulsePhase += deltaTime * 4
   const pulse = Math.sin(linkLine.userData.pulsePhase) * 0.1 + 0.9
   linkLine.material.opacity = (0.6 + linkQuality.strength * 0.4) * pulse
   
-  // Spawn data packets periodically
-  const packetInterval = 1.0 / (1 + linkQuality.strength * 2) // Faster for better quality
-  linkLine.userData.lastPacketTime += deltaTime
-  
-  if (linkLine.userData.lastPacketTime >= packetInterval) {
-    linkLine.userData.lastPacketTime = 0
+  // Spawn data packets periodically (only if scene is provided)
+  if (scene) {
+    const packetInterval = 1.0 / (1 + linkQuality.strength * 2) // Faster for better quality
+    linkLine.userData.lastPacketTime += deltaTime
     
-    // Create new packet
-    const packet = createDataPacket(linkQuality.color)
-    packet.position.copy(stationPos)
-    packet.userData = {
-      progress: 0,
-      startPos: stationPos.clone(),
-      endPos: satPos.clone(),
-      lifespan: 2.0, // 2 seconds to travel
-      age: 0
+    if (linkLine.userData.lastPacketTime >= packetInterval) {
+      linkLine.userData.lastPacketTime = 0
+      
+      // Create new packet
+      const packet = createDataPacket(linkQuality.color)
+      packet.position.copy(stationPos)
+      packet.userData = {
+        progress: 0,
+        startPos: stationPos.clone(),
+        endPos: satPos.clone(),
+        lifespan: 2.0, // 2 seconds to travel
+        age: 0
+      }
+      
+      scene.add(packet)
+      linkLine.userData.packets.push(packet)
     }
-    
-    scene.add(packet)
-    linkLine.userData.packets.push(packet)
   }
   
   // Animate existing packets
@@ -220,7 +240,9 @@ export function animateCommLink(linkLine, scene, deltaTime) {
     
     // Remove when complete
     if (packet.userData.progress >= 1) {
-      scene.remove(packet)
+      if (scene) {
+        scene.remove(packet)
+      }
       packet.geometry.dispose()
       packet.material.dispose()
       if (packet.children[0]) {
@@ -269,39 +291,49 @@ export function disposeCommLink(linkLine, scene) {
 /**
  * Create communication link manager for multiple stations
  * 
- * @param {THREE.Scene} scene - Three.js scene
  * @returns {Object} Link manager with helper methods
  */
-export function createCommLinkManager(scene) {
-  const links = new Map() // stationName -> link line
+export function createCommLinkManager() {
+  const links = new Map() // stationName -> { line, packetsGroup }
   
   return {
     /**
      * Update or create link for a station
      */
-    updateLink(stationName, satPos, stationPos, linkQuality) {
-      let link = links.get(stationName)
-      
-      if (!link) {
-        // Create new link
-        link = createCommLink(satPos, stationPos, linkQuality)
-        scene.add(link)
-        links.set(stationName, link)
-      } else {
-        // Update existing link
-        updateCommLink(link, satPos, stationPos, linkQuality)
+    updateLink(stationName, satPos, stationPos, linkQuality, scene) {
+      if (!scene) {
+        console.error('[CommLink] Scene is required for updateLink')
+        return { line: null, packetsGroup: null }
       }
       
-      return link
+      let linkData = links.get(stationName)
+      
+      if (!linkData) {
+        // Create new link
+        const line = createCommLink(satPos, stationPos, linkQuality)
+        scene.add(line)
+        
+        // Create packets group (for compatibility, packets are stored in line.userData)
+        const packetsGroup = new THREE.Group()
+        packetsGroup.name = `packets_${stationName}`
+        
+        linkData = { line, packetsGroup }
+        links.set(stationName, linkData)
+      } else {
+        // Update existing link
+        updateCommLink(linkData.line, satPos, stationPos, linkQuality)
+      }
+      
+      return linkData
     },
     
     /**
      * Remove link for a station
      */
-    removeLink(stationName) {
-      const link = links.get(stationName)
-      if (link) {
-        disposeCommLink(link, scene)
+    removeLink(stationName, scene) {
+      const linkData = links.get(stationName)
+      if (linkData && scene) {
+        disposeCommLink(linkData.line, scene)
         links.delete(stationName)
       }
     },
@@ -316,19 +348,21 @@ export function createCommLinkManager(scene) {
     /**
      * Animate all links
      */
-    animateAll(deltaTime) {
-      links.forEach(link => {
-        animateCommLink(link, scene, deltaTime)
+    animateAll(deltaTime, scene) {
+      links.forEach(linkData => {
+        animateCommLink(linkData.line, linkData.packetsGroup, deltaTime, true, scene)
       })
     },
     
     /**
      * Dispose all links
      */
-    dispose() {
-      links.forEach(link => {
-        disposeCommLink(link, scene)
-      })
+    dispose(scene) {
+      if (scene) {
+        links.forEach(linkData => {
+          disposeCommLink(linkData.line, scene)
+        })
+      }
       links.clear()
     },
     
