@@ -260,7 +260,12 @@ export function FloatingNovaChat({
         <Draggable
           handle=".drag-handle"
           defaultPosition={initialPanelPosition}
-          bounds="parent"
+          bounds={{
+            left: 0,
+            top: 0,
+            right: window.innerWidth - 384, // 384px = panel width
+            bottom: window.innerHeight - (isMinimized ? 64 : 600) // Adjust for panel height
+          }}
           nodeRef={draggableRef}
         >
           <div 
@@ -268,7 +273,6 @@ export function FloatingNovaChat({
             className={`fixed z-50 w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
               isMinimized ? 'h-16' : 'h-150'
             } ${className}`}
-            style={{ cursor: 'default' }}
           >
           {/* Header - Draggable Handle */}
           <div className="drag-handle p-4 border-b border-border bg-muted/50 flex items-center justify-between cursor-move">

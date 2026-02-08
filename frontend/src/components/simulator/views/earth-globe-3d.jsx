@@ -399,7 +399,7 @@ export function EarthGlobe3D({
     const scene = new THREE.Scene()
     // Check if dark mode is active (look for 'dark' class on html element)
     const isDarkMode = document.documentElement.classList.contains('dark')
-    scene.background = new THREE.Color(isDarkMode ? 0x000510 : 0xe0e7ff) // Dark blue or light lavender
+    scene.background = new THREE.Color(isDarkMode ? 0x000510 : 0xffffff) // Dark blue or white
     sceneRef.current = scene
 
     // Camera - Increased FOV for wider view in smaller space
