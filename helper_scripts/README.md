@@ -91,28 +91,6 @@ python helper_scripts/use_new_syntax.py
 ---
 
 ### 5. `FB_cleanup.js`
-**Purpose:** Delete ALL Firebase data (Auth users + Firestore collections).
-
-⚠️ **DANGER:** This script permanently deletes ALL data! Use with extreme caution.
-
-**Usage:**
-```bash
-# From project root
-node helper_scripts/FB_cleanup.js
-```
-
-**Requires:**
-- Backend `.env` file configured
-- Firebase Admin SDK access
-- Double confirmation prompts
-
-**Use Cases:**
-- Clearing test data
-- Resetting development environment
-- Database cleanup during development
-
-**Safety Features:**
-- Double confirmation required
 - Must type "DELETE ALL DATA" to proceed
 - Displays detailed summary of deletions
 

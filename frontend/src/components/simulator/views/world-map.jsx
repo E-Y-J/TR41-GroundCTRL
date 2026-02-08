@@ -20,7 +20,8 @@
 
 // NASA Blue Marble: Next Generation (January, 5400x2700, 8km/pixel)
 // Source: https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-map/
-const NASA_BLUE_MARBLE_URL = "/images/world.jpg"
+// Image dimensions: 5400x2700 (2:1 aspect ratio for equirectangular projection)
+const NASA_BLUE_MARBLE_URL = "/images/world.200401.3x5400x2700.jpg"
 
 // Convert lat/lon to SVG coordinates using plate carrée projection
 export function latLonToSvg(lat, lon) {

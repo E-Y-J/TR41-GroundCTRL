@@ -59,10 +59,14 @@ async function getAll(options = {}) {
 			query = query.where("status", "==", status);
 		}
 		if (isActive !== undefined) {
-			query = query.where("isActive", "==", isActive);
+			// Convert string "true"/"false" to boolean for Firestore comparison
+			const isActiveBool = isActive === true || isActive === "true";
+			query = query.where("isActive", "==", isActiveBool);
 		}
 		if (isPublic !== undefined) {
-			query = query.where("isPublic", "==", isPublic);
+			// Convert string "true"/"false" to boolean for Firestore comparison
+			const isPublicBool = isPublic === true || isPublic === "true";
+			query = query.where("isPublic", "==", isPublicBool);
 		}
 		if (satellite_id) {
 			query = query.where("satellite_id", "==", satellite_id);
