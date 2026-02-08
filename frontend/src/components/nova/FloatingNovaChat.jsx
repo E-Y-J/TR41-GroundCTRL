@@ -274,12 +274,21 @@ export function FloatingNovaChat({
             className={`fixed z-50 w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
               isMinimized ? 'h-16' : 'h-150'
             } ${className}`}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+            }}
             onMouseDown={(e) => {
-              // Only stop propagation if not clicking the drag handle
-              if (!e.target.closest('.drag-handle')) {
-                e.stopPropagation()
-              }
+              e.stopPropagation()
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation()
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation()
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation()
             }}
           >
           {/* Header - Draggable Handle */}
