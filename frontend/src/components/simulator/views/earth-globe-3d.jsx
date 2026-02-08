@@ -395,9 +395,11 @@ export function EarthGlobe3D({
     const width = container.clientWidth
     const height = container.clientHeight
 
-    // Scene
+    // Scene - theme-aware background color
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x000510)
+    // Check if dark mode is active (look for 'dark' class on html element)
+    const isDarkMode = document.documentElement.classList.contains('dark')
+    scene.background = new THREE.Color(isDarkMode ? 0x000510 : 0xe0e7ff) // Dark blue or light lavender
     sceneRef.current = scene
 
     // Camera - Increased FOV for wider view in smaller space
