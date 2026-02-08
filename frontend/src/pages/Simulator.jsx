@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
 import { fetchSessionById, markSessionInProgress } from "@/lib/firebase/sessionService"
-import { Loader2, AlertCircle, Satellite, Radio, Clock } from "lucide-react"
+import { Loader2, AlertCircle, Satellite, Radio, Clock, Battery, Antenna, Zap } from "lucide-react"
 
 // Lazy load heavy components
 const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat").then(module => ({ default: module.FloatingNovaChat })))
@@ -401,7 +401,7 @@ export default function Simulator() {
               <div className="flex items-center justify-between">
                 <GroundStationIndicator />
                 
-                {/* Panel Toggle Icons - Centered */}
+                {/* Panel Toggle Icons - Show icons for closed panels */}
                 <div className="flex items-center gap-2">
                   {!showTimeControlPanel && (
                     <button
@@ -436,7 +436,7 @@ export default function Simulator() {
                       className="p-2 hover:bg-muted rounded transition-colors"
                       title="Show EPS Panel"
                     >
-                      <Loader2 className="w-4 h-4" />
+                      <Battery className="w-4 h-4" />
                     </button>
                   )}
                   {!showCommsPanel && (
@@ -445,7 +445,16 @@ export default function Simulator() {
                       className="p-2 hover:bg-muted rounded transition-colors"
                       title="Show Comms Panel"
                     >
-                      <Radio className="w-4 h-4" />
+                      <Antenna className="w-4 h-4" />
+                    </button>
+                  )}
+                  {!showPropulsionPanel && (
+                    <button
+                      onClick={() => setShowPropulsionPanel(true)}
+                      className="p-2 hover:bg-muted rounded transition-colors"
+                      title="Show Propulsion Panel"
+                    >
+                      <Zap className="w-4 h-4" />
                     </button>
                   )}
                 </div>
