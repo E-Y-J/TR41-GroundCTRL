@@ -271,7 +271,7 @@ export function FloatingNovaChat({
         >
           <div 
             ref={draggableRef}
-            className={`fixed z-50 w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
+            className={`fixed z-[9999] w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
               isMinimized ? 'h-16' : 'h-150'
             } ${className}`}
             onClick={(e) => {
@@ -461,7 +461,7 @@ export function FloatingNovaChat({
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className={`fixed ${positionClasses} z-50 group ${className}`}
+          className={`fixed ${positionClasses} z-[9999] group ${className}`}
           aria-label="Open NOVA Chat"
         >
           {/* Beaconing/Pulsing Rings */}
