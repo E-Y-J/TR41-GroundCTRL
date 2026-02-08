@@ -41,6 +41,11 @@ export function FloatingNovaChat({
   const isAuthenticated = !!user
   const hasActiveSession = isAuthenticated && !!sessionId
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[NOVA] Component state:', { isOpen, isMinimized })
+  }, [isOpen, isMinimized])
+
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -460,7 +465,10 @@ export function FloatingNovaChat({
       {/* Floating Button with Beaconing Animation */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            console.log('[NOVA] Button clicked, opening panel')
+            setIsOpen(true)
+          }}
           className={`fixed ${positionClasses} z-[9999] group ${className}`}
           aria-label="Open NOVA Chat"
         >
