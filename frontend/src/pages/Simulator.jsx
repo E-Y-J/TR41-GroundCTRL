@@ -478,15 +478,10 @@ export default function Simulator() {
               <DockContainerLayout
                 leftContent={
                   <>
-                    {/* NOVA Chat docked in left column */}
-                    <Suspense fallback={null}>
-                      <FloatingNovaChat 
-                        sessionId={contextSessionId || sessionIdParam} 
-                        stepId={sessionData?.scenario_id}
-                        context="simulator"
-                        position="left"
-                      />
-                    </Suspense>
+                    {/* Left column - Reserved for future docked panels */}
+                    <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                      {/* Placeholder - panels can dock here */}
+                    </div>
                   </>
                 }
                 rightContent={
@@ -536,6 +531,18 @@ export default function Simulator() {
             missionId={sessionData.scenario_id} 
             onStart={handleStartMission}
           />
+        )}
+        
+        {/* Floating NOVA Chat - Always floating, never docked */}
+        {missionStarted && (
+          <Suspense fallback={null}>
+            <FloatingNovaChat 
+              sessionId={contextSessionId || sessionIdParam} 
+              stepId={sessionData?.scenario_id}
+              context="simulator"
+              position="left"
+            />
+          </Suspense>
         )}
         
         {/* HUD Enhancement - All Panels (only renders floating ones, docked are in containers) */}
