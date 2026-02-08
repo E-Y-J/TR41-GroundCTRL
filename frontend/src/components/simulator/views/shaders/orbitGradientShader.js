@@ -11,6 +11,8 @@
  */
 
 export const orbitGradientVertexShader = `
+  precision highp float;
+  
   attribute float segmentIndex;
   attribute float totalSegments;
   
