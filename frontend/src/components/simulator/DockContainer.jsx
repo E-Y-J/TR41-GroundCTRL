@@ -90,9 +90,9 @@ export function DockContainerLayout({ children, leftContent, rightContent, topCo
           {leftContent}
         </LeftDockColumn>
         
-        {/* Center Content (3D/2D View) - Locked in grid, always visible, reduced padding */}
-        <div className="flex-1 min-w-0 relative flex items-center justify-center bg-background/50 border-l border-r border-border">
-          <div className="w-full max-h-[450px] p-2">
+        {/* Center Content (3D/2D View) - Locked in grid, always visible, fills available space */}
+        <div className="flex-1 min-w-0 relative flex items-center justify-center bg-background/50 border-l border-r border-border overflow-hidden">
+          <div className="w-full h-full p-2">
             {children}
           </div>
         </div>
