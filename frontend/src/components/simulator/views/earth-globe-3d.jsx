@@ -50,12 +50,8 @@ import {
   createCardinalLabels,
   createOrbitInfoLabels
 } from "./components/HUDLabels"
-import {
-  createOrbitalNodes,
-  updateOrbitalNodes,
-  animateOrbitalNodes,
-  checkSatelliteNearNodes
-} from "./components/OrbitalNodes"
+// Phase 3 components not yet integrated - components exist but full integration pending
+// import { createOrbitalNodesManager } from "./components/OrbitalNodes"
 
 // ============================================================================
 // Constants
@@ -558,12 +554,12 @@ export function EarthGlobe3D({
       }
     }
 
-    // Create orbital nodes (Phase 3)
-    if (showOrbitalNodes) {
-      const nodes = createOrbitalNodes(orbitRadius, inclination, raan, EARTH_RADIUS)
-      scene.add(nodes)
-      orbitalNodesRef.current = nodes
-    }
+    // Orbital nodes - Phase 3 component exists but not yet integrated
+    // if (showOrbitalNodes) {
+    //   const nodesManager = createOrbitalNodesManager(scene)
+    //   nodesManager.updateNodes(orbitRadius, inclination, raan)
+    //   orbitalNodesRef.current = nodesManager
+    // }
 
     // Create cardinal labels (Phase 3)
     if (showLabels) {
@@ -621,10 +617,10 @@ export function EarthGlobe3D({
       orbitLineRef.current = newOrbitLine
     }
 
-    // Update orbital nodes
-    if (orbitalNodesRef.current) {
-      updateOrbitalNodes(orbitalNodesRef.current, orbitRadius, inclination, raan, EARTH_RADIUS)
-    }
+    // Update orbital nodes - Phase 3 component not yet integrated
+    // if (orbitalNodesRef.current && orbitalNodesRef.current.updateNodes) {
+    //   orbitalNodesRef.current.updateNodes(orbitRadius, inclination, raan)
+    // }
   }, [altitude, inclination, raan, showOrbit, orbitRadius])
 
   // Keyboard controls
@@ -838,10 +834,10 @@ export function EarthGlobe3D({
           animateStationMarkers(groundStationsRef.current.children, deltaTime)
         }
 
-        // Animate orbital nodes (Phase 3)
-        if (orbitalNodesRef.current && !isPaused) {
-          animateOrbitalNodes(orbitalNodesRef.current, deltaTime)
-        }
+        // Animate orbital nodes - Phase 3 component not yet integrated
+        // if (orbitalNodesRef.current && orbitalNodesRef.current.animate) {
+        //   orbitalNodesRef.current.animate(deltaTime)
+        // }
 
         // Camera follow mode
         if (followSatellite && camera && controls) {
