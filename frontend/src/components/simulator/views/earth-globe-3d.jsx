@@ -159,7 +159,7 @@ function createEarthMesh(onLoad) {
   const textureLoader = new THREE.TextureLoader()
   
   const dayTexture = textureLoader.load(
-    "/images/world.jpg",
+    "/images/world.200401.3x5400x2700.jpg",
     onLoad,
     undefined,
     () => console.warn("[EarthGlobe3D] Earth texture failed to load")
