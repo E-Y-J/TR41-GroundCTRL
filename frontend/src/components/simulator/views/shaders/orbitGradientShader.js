@@ -55,11 +55,14 @@ export const orbitGradientFragmentShader = `
     // Near satellite (present) - bright white
     if (distFromSat < gradientSpread) {
       float proximity = 1.0 - (distFromSat / gradientSpread);
-      color = mix(
-        relativePosition < 0.0 ? pastColor : futureColor,
-        presentColor,
-        proximity
-      );
+      // Determine base color (past or future)
+      vec3 baseColor;
+      if (relativePosition < 0.0) {
+        baseColor = pastColor;
+      } else {
+        baseColor = futureColor;
+      }
+      color = mix(baseColor, presentColor, proximity);
       opacity = 0.9;
     }
     // Past orbit - gray/dimmed
