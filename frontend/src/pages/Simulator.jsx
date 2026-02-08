@@ -401,66 +401,72 @@ export default function Simulator() {
               <div className="flex items-center justify-between">
                 <GroundStationIndicator />
                 
-                {/* Panel Toggle Icons - Show icons for closed panels with circular style */}
+                {/* Panel Toggle Icons - Show icons for closed panels with abbreviated labels */}
                 <div className="flex items-center gap-2">
                   {!showTimeControlPanel && (
                     <button
                       onClick={() => setShowTimeControlPanel(true)}
-                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
                       title="Show Time Control"
                       aria-label="Show Time Control"
                     >
                       <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">TIME</span>
                     </button>
                   )}
                   {!showTMTCConsole && (
                     <button
                       onClick={() => setShowTMTCConsole(true)}
-                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
                       title="Show TM/TC Console"
                       aria-label="Show TM/TC Console"
                     >
                       <Radio className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">TMTC</span>
                     </button>
                   )}
                   {!showADCSPanel && (
                     <button
                       onClick={() => setShowADCSPanel(true)}
-                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
                       title="Show ADCS Panel"
                       aria-label="Show ADCS Panel"
                     >
                       <Satellite className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">ADCS</span>
                     </button>
                   )}
                   {!showEPSPanel && (
                     <button
                       onClick={() => setShowEPSPanel(true)}
-                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
                       title="Show EPS Panel"
                       aria-label="Show EPS Panel"
                     >
                       <Battery className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">EPS</span>
                     </button>
                   )}
                   {!showCommsPanel && (
                     <button
                       onClick={() => setShowCommsPanel(true)}
-                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
                       title="Show Comms Panel"
                       aria-label="Show Comms Panel"
                     >
                       <Antenna className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">COMM</span>
                     </button>
                   )}
                   {!showPropulsionPanel && (
                     <button
                       onClick={() => setShowPropulsionPanel(true)}
-                      className="w-8 h-8 rounded-full border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors flex items-center justify-center"
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
                       title="Show Propulsion Panel"
                       aria-label="Show Propulsion Panel"
                     >
                       <Zap className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">PROP</span>
                     </button>
                   )}
                 </div>
