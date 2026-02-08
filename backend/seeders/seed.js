@@ -29,6 +29,7 @@ const helpFaqs = require('./data/helpFaqs');
 
 // Import tutorial seeder
 const { seedTutorials } = require('./seedTutorials');
+const { seedLeaderboard } = require('./seedLeaderboard');
 
 const CREATED_BY_UID = '5usOQ3eOm7OjXmDOFjEmKSQovs42';
 
@@ -325,6 +326,7 @@ async function runSeed() {
       groundStations: args.includes('--ground-stations'),
       help: args.includes('--help-system'),
       tutorials: args.includes('--tutorials'),
+      leaderboard: args.includes('--leaderboard'),
       all: args.includes('--all') || args.length === 0,
     };
     
@@ -407,6 +409,11 @@ async function runSeed() {
       counts.tutorials = await seedTutorials(firstScenarioId);
     }
     
+    // Seed leaderboard (requires scenarios)
+    if (flags.leaderboard) {
+      counts.leaderboard = await seedLeaderboard();
+    }
+    
     // Summary
     console.log('\n✅ Seeding complete!\n');
     console.log('Summary:');
@@ -422,6 +429,9 @@ async function runSeed() {
     }
     if (counts.tutorials) {
       console.log(`   🎓 ${counts.tutorials.created} tutorials (${counts.tutorials.skipped} skipped)`);
+    }
+    if (counts.leaderboard) {
+      console.log(`   🏆 ${counts.leaderboard} completed missions (leaderboard data)`);
     }
     console.log('');
     
