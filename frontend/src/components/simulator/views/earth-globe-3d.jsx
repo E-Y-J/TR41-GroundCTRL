@@ -630,9 +630,7 @@ export function EarthGlobe3D({
     // Add station labels if enabled
     if (showLabels) {
       newStationsGroup.children.forEach((marker, index) => {
-        const stationLabel = createStationLabel({
-          name: stationsToRender[index].name
-        })
+        const stationLabel = createStationLabel(stationsToRender[index].name)
         marker.add(stationLabel)
       })
     }
