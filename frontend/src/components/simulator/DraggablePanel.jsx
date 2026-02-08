@@ -7,11 +7,14 @@
  * Phase 1.5: Now with magnetic docking to zones!
  */
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { createPortal } from "react-dom"
 import { Rnd } from "react-rnd"
 import { GripVertical, Minimize2, Maximize2, X, Pin, PinOff } from "lucide-react"
 import { useDocking } from "@/contexts/DockingContext"
+
+// Footer height to exclude from draggable area
+const FOOTER_HEIGHT = 60
 
 export function DraggablePanel({
   id,
@@ -50,6 +53,14 @@ export function DraggablePanel({
   
   // Check if this panel is docked
   const dockedZone = docking ? docking.isPanelDocked(id) : null
+  
+  // Calculate bounds to exclude footer area
+  const dragBounds = useMemo(() => ({
+    left: 0,
+    top: 0,
+    right: window.innerWidth - (position.width || defaultPosition.width),
+    bottom: window.innerHeight - FOOTER_HEIGHT - (position.height || defaultPosition.height)
+  }), [position.width, position.height, defaultPosition.width, defaultPosition.height])
 
   // Save position to localStorage whenever it changes
   useEffect(() => {
@@ -240,7 +251,7 @@ export function DraggablePanel({
       minHeight={isMinimized ? 40 : minHeight}
       maxWidth={maxWidth}
       maxHeight={maxHeight}
-      bounds="parent"
+      bounds={dragBounds}
       dragHandleClassName={dragHandleClassName}
       className={`bg-card border border-border rounded-lg shadow-xl ${className}`}
       enableResizing={!isMinimized}
