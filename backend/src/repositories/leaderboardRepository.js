@@ -5,8 +5,11 @@
  * Provides efficient queries for rankings and statistics
  */
 
-const { db } = require("../config/firebase");
+const { getFirestore } = require("../config/firebase");
 const logger = require("../utils/logger");
+
+// Get Firestore instance
+const db = getFirestore();
 
 /**
  * Validate Firebase emulator configuration in test/CI environments
