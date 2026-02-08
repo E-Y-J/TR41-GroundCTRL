@@ -4,7 +4,29 @@ Utility scripts for project maintenance and development operations.
 
 ## 📁 Scripts Overview
 
-### 1. `map_file_structure.py`
+### 1. `close_all_servers.bat`
+**Purpose:** Terminate all running Node.js development servers.
+
+**Usage:**
+```bash
+# From project root or anywhere
+helper_scripts\close_all_servers.bat
+# Or double-click the file
+```
+
+**What it does:**
+- Terminates all Node.js processes (frontend dev server, backend server, etc.)
+- Useful for quickly stopping all development servers
+- Shows success/info messages
+
+**Use Cases:**
+- Quickly stop all servers before switching branches
+- Clean shutdown when servers hang or port conflicts occur
+- Batch cleanup of development processes
+
+---
+
+### 2. `map_file_structure.py`
 **Purpose:** Generate a visual tree map of the entire project structure.
 
 **Usage:**
@@ -19,7 +41,7 @@ python helper_scripts/map_file_structure.py
 
 ---
 
-### 2. `convert_crlf_to_lf.py`
+### 3. `convert_crlf_to_lf.py`
 **Purpose:** Convert all text files from Windows (CRLF) to Unix (LF) line endings.
 
 **Usage:**
@@ -36,7 +58,7 @@ python helper_scripts/convert_crlf_to_lf.py
 
 ---
 
-### 3. `use_new_syntax.py`
+### 4. `use_new_syntax.py`
 **Purpose:** Automatically fix Tailwind CSS canonical class name warnings from VS Code.
 
 **Usage:**
@@ -68,7 +90,7 @@ python helper_scripts/use_new_syntax.py
 
 ---
 
-### 4. `FB_cleanup.js`
+### 5. `FB_cleanup.js`
 **Purpose:** Delete ALL Firebase data (Auth users + Firestore collections).
 
 ⚠️ **DANGER:** This script permanently deletes ALL data! Use with extreme caution.

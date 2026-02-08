@@ -10,16 +10,6 @@
     <meta name="description" content="Browser-based training simulator for satellite operations. Learn fundamentals through interactive, guided missions with real-time AI guidance." />
     <meta name="generator" content="Vite + React" />
 
-    <!-- Preload critical resources -->
-    <link rel="preload" href="/assets/index-BkH0AAn4.css" as="style" />
-    <link rel="preload" href="/assets/index-Dr-rwEQn.js" as="script" />
-    
-    <!-- Preload critical font CSS files -->
-    <link rel="preload" href="/assets/400-BSZy4-jE.css" as="style" />
-    <link rel="preload" href="/assets/500-C_dI6MQI.css" as="style" />
-    <link rel="preload" href="/assets/600-pzD8DR21.css" as="style" />
-    <link rel="preload" href="/assets/700-E4062nZO.css" as="style" />
-
     <!-- Preconnect to required origins for better performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -30,14 +20,14 @@
     <title>GroundCTRL - Virtual Satellite Simulator</title>
   </head>
   <body>
+    <!-- Optional loading screen -->
+    <div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; display: flex; align-items: center; justify-content: center; z-index: 9999;">
+      <div style="text-align: center; color: #fff;">
+        <div style="font-size: 24px; margin-bottom: 16px;">🛰️ GroundCTRL</div>
+        <div style="font-size: 14px; opacity: 0.7;">Loading Mission Control...</div>
+      </div>
+    </div>
     <div id="root"></div>
-    <!-- Load main CSS -->
-    <link rel="stylesheet" href="/assets/index-BkH0AAn4.css" />
-    <!-- Load critical font CSS -->
-    <link rel="stylesheet" href="/assets/400-BSZy4-jE.css" />
-    <link rel="stylesheet" href="/assets/500-C_dI6MQI.css" />
-    <link rel="stylesheet" href="/assets/600-pzD8DR21.css" />
-    <link rel="stylesheet" href="/assets/700-E4062nZO.css" />
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
