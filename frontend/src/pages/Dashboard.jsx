@@ -8,6 +8,7 @@ import { SystemMetrics } from "@/components/dashboard/system-metrics"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { CurrentMission } from "@/components/dashboard/current-mission"
+import { ExploreLearnSection } from "@/components/dashboard/explore-learn-section"
 import { useAuth } from "@/hooks/use-auth"
 import { Loader2, Satellite, Radio, Clock, Play } from "lucide-react"
 import { Footer } from "@/components/footer"
@@ -127,6 +128,7 @@ export default function Dashboard() {
               {/* Right column - Activity and actions */}
               <div className="space-y-6">
                 <QuickActions />
+                <ExploreLearnSection />
                 <RecentActivity />
               </div>
             </div>
