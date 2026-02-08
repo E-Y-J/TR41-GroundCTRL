@@ -47,8 +47,7 @@ import {
   updateSatelliteLabel,
   createStationLabel,
   updateStationLabel,
-  createCardinalLabels,
-  createOrbitInfoLabels
+  createCardinalLabels
 } from "./components/HUDLabels"
 // Phase 3 components not yet integrated - components exist but full integration pending
 // import { createOrbitalNodesManager } from "./components/OrbitalNodes"
