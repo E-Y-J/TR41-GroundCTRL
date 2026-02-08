@@ -44,7 +44,7 @@ export function QuickActions() {
       </div>
 
       {/* Actions */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 flex flex-col gap-1.5">
         {actions.map((action) => (
           <Link key={action.label} to={action.href}>
             <Button
