@@ -327,8 +327,8 @@ function createOrbitLine(radius, inclination, raan, satelliteProgress = 0.0) {
       gradientSpread: { value: 0.1 } // 10% of orbit shows gradient
     },
     transparent: true,
-    depthWrite: false,
-    linewidth: 2
+    depthWrite: false
+    // Note: linewidth is not supported in WebGL and has been removed
   })
 
   return new THREE.Line(geometry, material)
