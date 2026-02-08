@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react"
 import { Bot, Sparkles, Lightbulb, HelpCircle, Send, Loader2, X, Minimize2, Maximize2 } from "lucide-react"
+import Draggable from "react-draggable"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -246,21 +247,28 @@ export function FloatingNovaChat({
     ? "left-6 bottom-6" 
     : "right-6 bottom-6"
 
-  const panelPositionClasses = position === "left"
-    ? "left-6 bottom-24"
-    : "right-6 bottom-24"
+  // Initial position for draggable panel
+  const initialPanelPosition = position === "left"
+    ? { x: 24, y: window.innerHeight - 696 } // 24px left, 696px = ~600px height + 96px from bottom
+    : { x: window.innerWidth - 408, y: window.innerHeight - 696 } // 408px = 384px width + 24px right
 
   return (
     <>
-      {/* Floating Chat Panel */}
+      {/* Floating Chat Panel - Draggable but NOT Dockable */}
       {isOpen && (
-        <div 
-          className={`fixed ${panelPositionClasses} z-50 w-96 bg-card border border-border rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
-            isMinimized ? 'h-16' : 'h-150'
-          } ${className}`}
+        <Draggable
+          handle=".drag-handle"
+          defaultPosition={initialPanelPosition}
+          bounds="parent"
         >
-          {/* Header */}
-          <div className="p-4 border-b border-border bg-muted/50 flex items-center justify-between">
+          <div 
+            className={`fixed z-50 w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
+              isMinimized ? 'h-16' : 'h-150'
+            } ${className}`}
+            style={{ cursor: 'default' }}
+          >
+          {/* Header - Draggable Handle */}
+          <div className="drag-handle p-4 border-b border-border bg-muted/50 flex items-center justify-between cursor-move">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Bot className="w-4 h-4 text-primary" />
@@ -418,10 +426,11 @@ export function FloatingNovaChat({
                     )}
                   </Button>
                 </form>
-              </div>
-            </>
+            </div>
+          </>
           )}
-        </div>
+          </div>
+        </Draggable>
       )}
 
       {/* Floating Button with Beaconing Animation */}
