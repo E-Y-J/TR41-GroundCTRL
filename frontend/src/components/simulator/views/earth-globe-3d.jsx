@@ -14,6 +14,10 @@ import {
   atmosphereVertexShader, 
   atmosphereFragmentShader 
 } from "./shaders/atmosphereShader"
+import {
+  orbitGradientVertexShader,
+  orbitGradientFragmentShader
+} from "./shaders/orbitGradientShader"
 
 // ============================================================================
 // Constants
@@ -275,12 +279,15 @@ function createSatelliteMesh() {
   return group
 }
 
-/** Create orbital path line */
-function createOrbitLine(radius, inclination, raan) {
+/** Create orbital path line with gradient shader */
+function createOrbitLine(radius, inclination, raan, satelliteProgress = 0.0) {
   const points = []
   const segments = 128
   const inclRad = inclination * DEG_TO_RAD
   const raanRad = raan * DEG_TO_RAD
+  
+  // Create segment indices for shader
+  const segmentIndices = []
 
   for (let i = 0; i <= segments; i++) {
     const angle = (i / segments) * Math.PI * 2
@@ -298,13 +305,29 @@ function createOrbitLine(radius, inclination, raan) {
     const z2 = -x * Math.sin(raanRad) + z1 * Math.cos(raanRad)
 
     points.push(new THREE.Vector3(x2, y1, z2))
+    segmentIndices.push(i / segments) // Normalized position 0.0 to 1.0
   }
 
   const geometry = new THREE.BufferGeometry().setFromPoints(points)
-  const material = new THREE.LineBasicMaterial({
-    color: 0x3b82f6,
+  
+  // Add segment index attribute for gradient shader
+  geometry.setAttribute('segmentIndex', new THREE.Float32BufferAttribute(segmentIndices, 1))
+  geometry.setAttribute('totalSegments', new THREE.Float32BufferAttribute(new Array(points.length).fill(segments), 1))
+  
+  // Create gradient material
+  const material = new THREE.ShaderMaterial({
+    vertexShader: orbitGradientVertexShader,
+    fragmentShader: orbitGradientFragmentShader,
+    uniforms: {
+      satelliteProgress: { value: satelliteProgress },
+      pastColor: { value: new THREE.Vector3(0.5, 0.5, 0.5) },    // Gray
+      presentColor: { value: new THREE.Vector3(1.0, 1.0, 1.0) },  // White
+      futureColor: { value: new THREE.Vector3(0.2, 0.6, 1.0) },   // Blue
+      gradientSpread: { value: 0.1 } // 10% of orbit shows gradient
+    },
     transparent: true,
-    opacity: 0.7,
+    depthWrite: false,
+    linewidth: 2
   })
 
   return new THREE.Line(geometry, material)
@@ -599,11 +622,17 @@ export function EarthGlobe3D({
         }
       }
 
-      // Update satellite position
+      // Update satellite position and orbit gradient
       if (satelliteRef.current) {
         const pos = calculateSatellitePosition(trueAnomaly, orbitRadius, inclination, raan)
         satelliteRef.current.position.set(pos.x, pos.y, pos.z)
         satelliteRef.current.lookAt(0, 0, 0)
+
+        // Update orbit line gradient to follow satellite
+        if (orbitLineRef.current && orbitLineRef.current.material.uniforms) {
+          const progress = trueAnomaly / (2 * Math.PI) // Normalize to 0.0-1.0
+          orbitLineRef.current.material.uniforms.satelliteProgress.value = progress
+        }
 
         // Camera follow mode
         if (followSatellite && camera && controls) {
