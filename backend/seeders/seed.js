@@ -17,7 +17,7 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const admin = require('firebase-admin');
 
-// Import seed data
+// Import seed datal firestore collection
 const commands = require('./data/commands');
 const satellites = require('./data/satellites');
 const scenarios = require('./data/scenarios');
@@ -26,10 +26,7 @@ const groundStations = require('./data/groundStations');
 const helpCategories = require('./data/helpCategories');
 const helpArticles = require('./data/helpArticles');
 const helpFaqs = require('./data/helpFaqs');
-
-// Import tutorial seeder
-const { seedTutorials } = require('./seedTutorials');
-const { seedLeaderboard } = require('./seedLeaderboard');
+const scenarioSessionsData = require('./data/scenarioSessions');
 
 const CREATED_BY_UID = '5usOQ3eOm7OjXmDOFjEmKSQovs42';
 
@@ -312,6 +309,117 @@ async function fetchExistingScenarios() {
   return scenarioMap;
 }
 
+async function seedTutorials(scenarioId) {
+  console.log('🎓 Seeding tutorials...');
+  
+  const tutorials = [
+    {
+      code: 'RENDERING_2D_INTRO',
+      title: '2D Satellite View Tutorial',
+      description: 'Learn how to use the 2D orbital map visualization',
+      scenario_id: scenarioId,
+      icon: '🗺️',
+      estimatedDurationMinutes: 5,
+      triggerType: 'ON_SCENARIO_START',
+      triggerConditions: {},
+      steps: [
+        { order: 0, title: 'Welcome to 2D View 🗺️', content: 'This is the 2D satellite visualization - a flat map projection showing your satellite\'s orbit.', targetElement: '.satellite-canvas-2d', placement: 'center', isOptional: false },
+        { order: 1, title: 'Satellite Position', content: 'The red dot shows your satellite\'s current position.', targetElement: '.satellite-canvas-2d canvas', placement: 'right', isOptional: false },
+      ],
+      status: 'PUBLISHED',
+      isActive: true,
+      priority: 80,
+      tags: ['rendering', '2d', 'visualization', 'beginner'],
+      prerequisites: [],
+    },
+    {
+      code: 'RENDERING_3D_INTRO',
+      title: '3D Globe View Tutorial',
+      description: 'Master the 3D interactive globe and camera controls',
+      scenario_id: scenarioId,
+      icon: '🌍',
+      estimatedDurationMinutes: 5,
+      triggerType: 'ON_SCENARIO_START',
+      triggerConditions: {},
+      steps: [
+        { order: 0, title: 'Welcome to 3D View 🌍', content: 'This is the 3D globe visualization - an interactive view of Earth and your satellite.', targetElement: '.satellite-globe-3d', placement: 'center', isOptional: false },
+      ],
+      status: 'PUBLISHED',
+      isActive: true,
+      priority: 80,
+      tags: ['rendering', '3d', 'visualization', 'beginner'],
+      prerequisites: [],
+    },
+  ];
+  
+  let created = 0;
+  let skipped = 0;
+  
+  for (const tutorial of tutorials) {
+    const existingQuery = await db.collection('tutorials')
+      .where('code', '==', tutorial.code)
+      .limit(1)
+      .get();
+      
+    if (!existingQuery.empty) {
+      skipped++;
+      continue;
+    }
+    
+    const now = new Date().toISOString();
+    await db.collection('tutorials').add({
+      ...tutorial,
+      createdAt: now,
+      updatedAt: now,
+      createdBy: CREATED_BY_UID,
+      createdByCallSign: 'GROUNDCTRL-SEEDER',
+    });
+    created++;
+  }
+  
+  console.log(`   ✓ ${created} tutorials created, ${skipped} skipped`);
+  return { created, skipped };
+}
+
+async function seedLeaderboard(scenarioMap) {
+  console.log('🏆 Seeding leaderboard (scenario sessions)...');
+  
+  if (!scenarioMap || Object.keys(scenarioMap).length === 0) {
+    console.log('   ⚠️  No scenarios found. Skipping leaderboard.');
+    return 0;
+  }
+  
+  let count = 0;
+  let skipped = 0;
+  
+  for (const session of scenarioSessionsData) {
+    const scenarioId = scenarioMap[session.scenarioCode];
+    
+    if (!scenarioId) {
+      skipped++;
+      continue;
+    }
+    
+    const sessionData = { ...session };
+    delete sessionData.scenarioCode;
+    sessionData.scenarioId = scenarioId;
+    
+    const now = new Date().toISOString();
+    sessionData.createdAt = sessionData.createdAt || now;
+    sessionData.updatedAt = sessionData.updatedAt || now;
+    sessionData.createdBy = CREATED_BY_UID;
+    sessionData.createdByCallSign = 'GROUNDCTRL-SEEDER';
+    
+    await db.collection('scenario_sessions').add(sessionData);
+    count++;
+  }
+  
+  console.log(`   ✓ ${count} scenario sessions seeded`);
+  if (skipped > 0) console.log(`   ⚠️  ${skipped} sessions skipped`);
+  
+  return count;
+}
+
 // Main seeder
 async function runSeed() {
   try {
@@ -338,6 +446,7 @@ async function runSeed() {
       flags.groundStations = true;
       flags.help = true;
       flags.tutorials = true;
+      flags.leaderboard = true;
     }
     
     console.log('\n🚀 GroundCTRL Database Seeder\n');
@@ -411,7 +520,12 @@ async function runSeed() {
     
     // Seed leaderboard (requires scenarios)
     if (flags.leaderboard) {
-      counts.leaderboard = await seedLeaderboard();
+      if (Object.keys(scenarioMap).length === 0) {
+        console.log('⚠️  Fetching existing scenarios for leaderboard...');
+        scenarioMap = await fetchExistingScenarios();
+        console.log(`   Found ${Object.keys(scenarioMap).length} scenarios\n`);
+      }
+      counts.leaderboard = await seedLeaderboard(scenarioMap);
     }
     
     // Summary
@@ -430,8 +544,8 @@ async function runSeed() {
     if (counts.tutorials) {
       console.log(`   🎓 ${counts.tutorials.created} tutorials (${counts.tutorials.skipped} skipped)`);
     }
-    if (counts.leaderboard) {
-      console.log(`   🏆 ${counts.leaderboard} completed missions (leaderboard data)`);
+    if (counts.leaderboard > 0) {
+      console.log(`   🏆 ${counts.leaderboard} scenario sessions (leaderboard data)`);
     }
     console.log('');
     
