@@ -100,6 +100,7 @@ export function VisualizationSwitcher({
   raan = 0,
   defaultView = "2d",
   showToggle = true,
+  groundStationsData = null, // WebSocket ground stations data
   className = "",
 }) {
   const [viewMode, setViewMode] = useState(defaultView)
@@ -135,6 +136,7 @@ export function VisualizationSwitcher({
             showLabels={true}
             showOrbitalNodes={false}
             animationSpeed={120}
+            groundStationsData={groundStationsData}
             className="w-full h-full"
           />
         </Suspense>
