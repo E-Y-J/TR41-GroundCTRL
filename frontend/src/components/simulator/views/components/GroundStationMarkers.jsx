@@ -115,6 +115,32 @@ export function createGroundStationMarker(station, earthRadius = 1.0) {
   const glow = new THREE.Mesh(glowGeometry, glowMaterial)
   group.add(glow)
 
+  // Coverage sphere (permanent visibility radius indicator)
+  const coverageRadius = 0.15 // Approximately 900-1000km at 415km altitude
+  const coverageGeometry = new THREE.SphereGeometry(coverageRadius, 32, 32)
+  const coverageMaterial = new THREE.MeshBasicMaterial({
+    color: color.glow,
+    transparent: true,
+    opacity: 0.08,
+    depthWrite: false,
+    side: THREE.FrontSide
+  })
+  const coverageSphere = new THREE.Mesh(coverageGeometry, coverageMaterial)
+  
+  // Add coverage ring at equator of sphere for better visibility
+  const ringGeometry = new THREE.RingGeometry(coverageRadius * 0.99, coverageRadius, 64)
+  const ringMaterial = new THREE.MeshBasicMaterial({
+    color: color.glow,
+    transparent: true,
+    opacity: active ? 0.3 : 0.15,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  })
+  const coverageRing = new THREE.Mesh(ringGeometry, ringMaterial)
+  coverageRing.rotation.x = Math.PI / 2 // Make ring horizontal
+  group.add(coverageRing)
+  group.add(coverageSphere)
+
   // Store data for animations and updates
   group.userData = {
     name,
