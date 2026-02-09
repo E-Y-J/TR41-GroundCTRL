@@ -1,6 +1,9 @@
 /**
  * EarthGlobe3D - 3D Globe Visualization Component (Phase 3 Integrated)
  * 
+ * Note: This is the active 3D globe implementation.
+ * Backup version (earth-globe-3d.backup.jsx) removed 2026-02-08
+ *
  * Uses Three.js for photorealistic Earth rendering with satellite orbit.
  * Features proper orbital mechanics, camera controls, and follow mode.
  * 
@@ -736,12 +739,17 @@ export function EarthGlobe3D({
       // Update satellite position - use telemetry if available, otherwise calculate
       if (satelliteRef.current) {
         let pos
-        if (telemetry?.orbit?.latitude != null && telemetry?.orbit?.longitude != null) {
+        // Support both flat structure (lat/lon/alt) and nested structure (orbit.latitude/longitude/altitude_km)
+        const lat = telemetry?.orbit?.latitude ?? telemetry?.lat
+        const lon = telemetry?.orbit?.longitude ?? telemetry?.lon
+        const alt = telemetry?.orbit?.altitude_km ?? telemetry?.alt
+        
+        if (lat != null && lon != null) {
           // Use real-time telemetry from backend
           pos = latLonToPosition(
-            telemetry.orbit.latitude,
-            telemetry.orbit.longitude,
-            telemetry.orbit.altitude_km || altitude
+            lat,
+            lon,
+            alt || altitude
           )
         } else {
           // Fallback to calculated position
@@ -892,7 +900,7 @@ export function EarthGlobe3D({
   const satPos = calculateSatellitePosition(trueAnomaly, orbitRadius, inclination, raan)
 
   return (
-    <div ref={containerRef} className={`relative w-full h-full ${className}`}>
+    <div ref={containerRef} className={`relative w-full h-full ${className}`} style={{ display: 'block', maxHeight: '100%' }}>
       {!isLoaded && <LoadingOverlay />}
       
       <FollowToggle 
