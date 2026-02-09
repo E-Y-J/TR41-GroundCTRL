@@ -278,9 +278,10 @@ class SimulationEngine {
 		commandEffects = {},
 		sessionId = null,
 	) {
-		// Initialize state if empty
+		// Initialize state if empty - pass saved telemetry if it exists
 		if (!currentState.orbit) {
-			currentState = this.initializeState(satellite);
+			// currentState might have telemetry at top level from session state
+			currentState = this.initializeState(satellite, currentState.telemetry || currentState);
 		}
 
 		// Get TLE for accurate orbital propagation
