@@ -227,9 +227,6 @@ export function GroundTrack2D({
       >
         SAT-01
       </text>
-      
-      {/* Coordinate display */}
-      <CoordinateDisplay lat={satPos.lat} lon={satPos.lon} altitude={altitude} />
       </svg>
     </div>
   )
