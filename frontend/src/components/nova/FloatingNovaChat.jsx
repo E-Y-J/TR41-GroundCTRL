@@ -13,6 +13,9 @@ const NOVA_API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}
  * Floating NOVA Chat Component
  * A floating chat button with beaconing animation that expands into a chat panel
  * 
+ * Note: This is the active Nova chat implementation.
+ * Old version (simulator/nova-assistant.jsx) removed 2026-02-08
+ * 
  * Props:
  * - sessionId: string - Current session ID for backend tracking
  * - stepId: string - Current step ID (for simulator context)
@@ -276,19 +279,10 @@ export function FloatingNovaChat({
             } ${className}`}
             style={{ zIndex: 9999 }}
             onClick={(e) => {
+              // Only stop propagation, don't prevent default to allow interactive elements to work
               e.stopPropagation()
-              e.preventDefault()
             }}
             onMouseDown={(e) => {
-              e.stopPropagation()
-            }}
-            onMouseUp={(e) => {
-              e.stopPropagation()
-            }}
-            onTouchStart={(e) => {
-              e.stopPropagation()
-            }}
-            onTouchEnd={(e) => {
               e.stopPropagation()
             }}
           >
