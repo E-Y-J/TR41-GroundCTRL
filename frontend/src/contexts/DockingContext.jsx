@@ -133,7 +133,10 @@ export function DockingProvider({ children }) {
         Math.pow(x - zoneCenterX, 2) + Math.pow(y - zoneCenterY, 2)
       )
       
-      console.log(`[Docking] Panel at (${x}, ${y}), Zone ${zoneId} center (${zoneCenterX}, ${zoneCenterY}), distance: ${distanceFromCenter}`)
+      // Only log when actually close to snapping (reduce spam)
+      if (distanceFromCenter < SNAP_THRESHOLD * 2) {
+        console.log(`[Docking] Panel at (${x}, ${y}), Zone ${zoneId} center (${zoneCenterX}, ${zoneCenterY}), distance: ${distanceFromCenter}`)
+      }
       
       if (distanceFromCenter < SNAP_THRESHOLD) {
         return zoneId
