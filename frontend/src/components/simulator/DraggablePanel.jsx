@@ -78,9 +78,14 @@ export function DraggablePanel({
     }
   }, [position.width, position.height, defaultPosition.width, defaultPosition.height, isMinimized])
 
-  // Save position to localStorage whenever it changes
+  // Save position to localStorage whenever it changes (but NOT if it's invalid)
   useEffect(() => {
     try {
+      // Don't save invalid (0,0) positions - they cause bugs
+      if (position.x === 0 && position.y === 0) {
+        console.warn(`[DraggablePanel] Refusing to save invalid (0,0) position for ${id}`)
+        return
+      }
       localStorage.setItem(`panel-position-${id}`, JSON.stringify(position))
     } catch (error) {
       console.warn(`[DraggablePanel] Failed to save position for ${id}:`, error)
