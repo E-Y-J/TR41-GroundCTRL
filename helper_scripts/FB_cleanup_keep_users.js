@@ -37,11 +37,25 @@ function askQuestion(question) {
 }
 
 /**
- * Delete all documents in a collection
+ * Recursively delete subcollections within a document
  */
-async function deleteCollection(db, collectionName, batchSize = 500) {
-  const collectionRef = db.collection(collectionName);
+async function deleteSubcollections(db, docRef) {
+  const subcollections = await docRef.listCollections();
+  
+  for (const subcollection of subcollections) {
+    await deleteCollection(db, subcollection.id, 500, subcollection);
+  }
+}
+
+/**
+ * Delete all documents in a collection (including subcollections)
+ */
+async function deleteCollection(db, collectionName, batchSize = 500, collectionRef = null) {
+  if (!collectionRef) {
+    collectionRef = db.collection(collectionName);
+  }
   let deletedCount = 0;
+  let subcollectionCount = 0;
   
   try {
     let hasMore = true;
@@ -55,7 +69,19 @@ async function deleteCollection(db, collectionName, batchSize = 500) {
         break;
       }
       
-      // Delete in batch
+      // Delete subcollections first (recursively)
+      for (const doc of snapshot.docs) {
+        const subcollections = await doc.ref.listCollections();
+        if (subcollections.length > 0) {
+          for (const subcollection of subcollections) {
+            subcollectionCount++;
+            process.stdout.write(`\r   Deleting subcollection ${subcollection.id} in ${collectionName}...`);
+            await deleteCollection(db, `${collectionName}/${doc.id}/${subcollection.id}`, batchSize, subcollection);
+          }
+        }
+      }
+      
+      // Delete documents in batch
       const batch = db.batch();
       snapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
@@ -71,7 +97,11 @@ async function deleteCollection(db, collectionName, batchSize = 500) {
       }
     }
     
-    console.log(`\n✅ Deleted ${deletedCount} documents from collection '${collectionName}'`);
+    if (subcollectionCount > 0) {
+      console.log(`\n✅ Deleted ${deletedCount} documents and ${subcollectionCount} subcollections from '${collectionName}'`);
+    } else {
+      console.log(`\n✅ Deleted ${deletedCount} documents from collection '${collectionName}'`);
+    }
     return deletedCount;
   } catch (error) {
     console.error(`\n❌ Error deleting collection '${collectionName}':`, error.message);
