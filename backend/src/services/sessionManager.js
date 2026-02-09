@@ -47,12 +47,14 @@ class SessionManager {
 					logger.info("Starting simulation for session", {
 						sessionId,
 						satellite: session.satellite?.name || "Unknown",
+						difficulty: session.scenario?.difficulty || "BEGINNER"
 					});
 
 					this.simulationEngine.startSimulation(
 						sessionId,
 						session.satellite,
 						session.state || {},
+						session.scenario?.difficulty || "BEGINNER"
 					);
 				} else {
 					logger.warn(
@@ -109,11 +111,23 @@ class SessionManager {
 			// Broadcast to all clients in session room
 			this.io.to(`session:${sessionId}`).emit("state:update", newState);
 
-			logger.debug("Session state updated", {
-				sessionId,
-				updateKeys: Object.keys(stateUpdate),
-				activeUsers: sessionInfo.users.size,
-			});
+			// Log telemetry updates at info level to debug
+			if (stateUpdate.telemetry) {
+				logger.info("📡 Broadcasting telemetry update", {
+					sessionId,
+					lat: stateUpdate.telemetry?.orbit?.latitude,
+					lon: stateUpdate.telemetry?.orbit?.longitude,
+					alt: stateUpdate.telemetry?.orbit?.altitude_km,
+					activeUsers: sessionInfo.users.size,
+					roomName: `session:${sessionId}`
+				});
+			} else {
+				logger.debug("Session state updated", {
+					sessionId,
+					updateKeys: Object.keys(stateUpdate),
+					activeUsers: sessionInfo.users.size,
+				});
+			}
 
 			// Persist to database (async, non-blocking)
 			scenarioSessionRepository
