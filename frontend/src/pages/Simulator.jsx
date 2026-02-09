@@ -21,7 +21,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
 import { fetchSessionById, markSessionInProgress } from "@/lib/firebase/sessionService"
-import { Loader2, AlertCircle, Satellite, Radio, Clock, Battery, Antenna, Zap } from "lucide-react"
+import { Loader2, AlertCircle, Satellite, Radio, Clock, Battery, Antenna, Zap, Globe } from "lucide-react"
 
 // Lazy load heavy components
 const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat").then(module => ({ default: module.FloatingNovaChat })))
@@ -125,6 +125,7 @@ export default function Simulator() {
   const [showPropulsionPanel, setShowPropulsionPanel] = useState(false)
   const [showTimeControlPanel, setShowTimeControlPanel] = useState(false)
   const [showOrbitalViewPanel, setShowOrbitalViewPanel] = useState(false)
+  const [viewMode, setViewMode] = useState("2d")
   
   // Use simulator state context
   const { 
@@ -500,6 +501,17 @@ export default function Simulator() {
                       <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">ORBIT</span>
                     </button>
                   )}
+                  
+                  {/* 2D/3D View Toggle */}
+                  <button
+                    onClick={() => setViewMode(prev => prev === "2d" ? "3d" : "2d")}
+                    className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                    title={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
+                    aria-label={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
+                  >
+                    <Globe className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">{viewMode === "2d" ? "2D" : "3D"}</span>
+                  </button>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -534,8 +546,9 @@ export default function Simulator() {
                   inclination={sessionData?.satellite?.orbit?.inclination_degrees || 51.6}
                   eccentricity={sessionData?.satellite?.orbit?.eccentricity || 0.0001}
                   raan={sessionData?.satellite?.orbit?.raan_degrees || 0}
-                  defaultView="2d"
-                  showToggle={true}
+                  mode={viewMode}
+                  onModeChange={setViewMode}
+                  showToggle={false}
                   groundStationsData={groundStations}
                   className="h-full w-full"
                 />

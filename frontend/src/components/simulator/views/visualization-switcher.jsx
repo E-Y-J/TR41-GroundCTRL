@@ -98,15 +98,21 @@ export function VisualizationSwitcher({
   inclination = 51.6,
   eccentricity = 0.0001,
   raan = 0,
+  mode = "2d",
+  onModeChange,
   defaultView = "2d",
   showToggle = true,
   groundStationsData = null, // WebSocket ground stations data
   className = "",
 }) {
-  const [viewMode, setViewMode] = useState(defaultView)
+  // Support both controlled (mode + onModeChange) and uncontrolled (defaultView) usage
+  const [internalMode, setInternalMode] = useState(defaultView)
+  const viewMode = mode || internalMode
+  const handleModeChange = onModeChange || setInternalMode
 
   const toggleView = () => {
-    setViewMode(prev => prev === "2d" ? "3d" : "2d")
+    const newMode = viewMode === "2d" ? "3d" : "2d"
+    handleModeChange(newMode)
   }
 
   return (
