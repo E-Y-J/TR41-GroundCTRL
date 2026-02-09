@@ -263,26 +263,18 @@ export function FloatingNovaChat({
 
   return (
     <>
-      {/* Floating Chat Panel - Draggable but NOT Dockable */}
+      {/* Floating Chat Panel - TEMPORARILY WITHOUT Draggable for debugging */}
       {isOpen && (
-        <Draggable
-          handle=".drag-handle"
-          defaultPosition={initialPanelPosition}
-          bounds={{
-            left: 0,
-            top: 0,
-            right: window.innerWidth - 384, // 384px = panel width
-            bottom: window.innerHeight - (isMinimized ? 64 : 600) // Adjust for panel height
-          }}
-          cancel="button, input, .messages-area"
-          nodeRef={draggableRef}
-        >
           <div 
             ref={draggableRef}
             className={`fixed w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
               isMinimized ? 'h-16' : 'h-[600px]'
             } ${className}`}
-            style={{ zIndex: 9999 }}
+            style={{ 
+              zIndex: 9999,
+              left: '100px',
+              top: '100px'
+            }}
             onClick={(e) => {
               console.log('[NOVA] Container clicked', e.target, e.currentTarget)
               // Only stop propagation, don't prevent default to allow interactive elements to work
@@ -468,7 +460,6 @@ export function FloatingNovaChat({
           </>
           )}
           </div>
-        </Draggable>
       )}
 
       {/* Floating Button with Beaconing Animation */}
