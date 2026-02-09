@@ -1,20 +1,17 @@
 import { useState, useEffect } from "react"
 import { useSearchParams, Link } from "react-router-dom"
 import { Helmet } from "react-helmet-async"
-import { Satellite, Rocket, Radio, Gauge, Play, Clock } from "lucide-react"
+import { Rocket, Radio, Gauge } from "lucide-react"
 import AppHeader from "@/components/app-header"
 import { Footer } from "@/components/footer"
 import { AuthForm } from "@/components/auth-form"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
-import { httpClient } from "@/lib/http-client"
 
 export default function Index() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [authView, setAuthView] = useState("login")
   const [authError, setAuthError] = useState(null)
-  const [activeSessions, setActiveSessions] = useState([])
-  const [loadingSessions, setLoadingSessions] = useState(false)
   const { user } = useAuth()
 
   // Check for auth error from URL
@@ -27,31 +24,6 @@ export default function Index() {
       setSearchParams(searchParams, { replace: true })
     }
   }, [searchParams, setSearchParams])
-
-  // Fetch active/in-progress sessions when user is logged in
-  useEffect(() => {
-    if (user) {
-      setLoadingSessions(true)
-      httpClient
-        .get('/api/v1/scenario-sessions?status=IN_PROGRESS')
-        .then((response) => {
-          setActiveSessions(response.data || [])
-        })
-        .catch((error) => {
-          console.error('Failed to fetch active sessions:', error)
-        })
-        .finally(() => {
-          setLoadingSessions(false)
-        })
-    }
-  }, [user])
-
-  // Format elapsed time
-  const formatElapsedTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}m ${secs}s`
-  }
 
   return (
     <>
@@ -143,53 +115,6 @@ export default function Index() {
                       Ready for your next mission?
                     </p>
                   </div>
-
-                  {/* Active Mission - Continue */}
-                  {!loadingSessions && activeSessions.length > 0 && (
-                    <div className="space-y-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                      <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                        <Satellite className="w-4 h-4" />
-                        <span>Mission In Progress</span>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium text-foreground">
-                          {activeSessions[0].scenario?.name || 'Active Mission'}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          <span>
-                            {activeSessions[0].state?.elapsedTime 
-                              ? formatElapsedTime(activeSessions[0].state.elapsedTime)
-                              : 'Just started'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <Button asChild className="w-full" size="lg">
-                        <Link to={`/simulator/${activeSessions[0].id}`}>
-                          <Play className="w-4 h-4 mr-2" />
-                          Continue Mission
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* No Active Mission - Browse or Start */}
-                  {!loadingSessions && activeSessions.length === 0 && (
-                    <div className="space-y-3 p-4 bg-accent/5 border border-border rounded-lg">
-                      <div className="text-sm text-center text-muted-foreground">
-                        No active missions. Ready to start your first mission?
-                      </div>
-                      
-                      <Button asChild className="w-full" size="lg" variant="default">
-                        <Link to="/missions">
-                          <Rocket className="w-4 h-4 mr-2" />
-                          Start First Mission
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
 
                   {/* Quick Actions */}
                   <div className="space-y-3">
