@@ -24,7 +24,7 @@ export function LeftDockColumn({ children, dockedPanels = [] }) {
  */
 export function RightDockColumn({ children, dockedPanels = [] }) {
   return (
-    <div className="w-[380px] border-l border-green-500/20 bg-green-950/20 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-y-auto">
+    <div className="w-95 border-l border-green-500/20 bg-green-950/20 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-y-auto">
       {/* Render children directly - no portals needed */}
       {children}
     </div>
@@ -32,12 +32,12 @@ export function RightDockColumn({ children, dockedPanels = [] }) {
 }
 
 /**
- * Top Dock Bar - for orbital data, quick stats, mission info
- * Color: Purple/magenta tint for orbital/mission data
+ * Top Dock Bar - for orbital data, mission stats above center visualization only
+ * Neutral color to match background
  */
 export function TopDockBar({ children }) {
   return (
-    <div className="h-[80px] border-b border-purple-500/20 bg-purple-950/20 backdrop-blur-sm p-2 flex items-center gap-4">
+    <div className="h-[80px] border-b border-border bg-muted/30 backdrop-blur-sm p-2 flex items-center gap-4">
       {children || (
         <div className="w-full text-center text-xs text-muted-foreground/60">
           Top HUD Area - Orbital Data & Mission Stats
@@ -53,27 +53,27 @@ export function TopDockBar({ children }) {
  */
 export function DockContainerLayout({ children, leftPanels, rightPanels, topContent }) {
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      {/* Top Dock Bar (optional) */}
-      {topContent && <TopDockBar>{topContent}</TopDockBar>}
+    <div className="flex-1 flex overflow-hidden min-h-0">
+      {/* Left Column - Always visible, full height, subsystem monitoring */}
+      <LeftDockColumn>
+        {leftPanels}
+      </LeftDockColumn>
       
-      {/* Middle section with columns - FIXED GRID LAYOUT */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Left Column - Always visible, subsystem monitoring */}
-        <LeftDockColumn>
-          {leftPanels}
-        </LeftDockColumn>
+      {/* Center Column with Top Dock and Visualization */}
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        {/* Top Dock Bar - only above center visualization */}
+        {topContent && <TopDockBar>{topContent}</TopDockBar>}
         
-        {/* Center Content (3D/2D View) - Locked in grid, always visible, fills available space */}
-        <div className="flex-1 min-w-0 relative bg-background/50 overflow-hidden">
+        {/* Center Content (3D/2D View) - fills remaining space */}
+        <div className="flex-1 relative bg-background/50 overflow-hidden">
           {children}
         </div>
-        
-        {/* Right Column - Always visible, comms and control */}
-        <RightDockColumn>
-          {rightPanels}
-        </RightDockColumn>
       </div>
+      
+      {/* Right Column - Always visible, full height, comms and control */}
+      <RightDockColumn>
+        {rightPanels}
+      </RightDockColumn>
     </div>
   )
 }
