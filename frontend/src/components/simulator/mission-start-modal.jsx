@@ -7,7 +7,9 @@ import {
   Trophy,
   CheckCircle2,
   Circle,
-  Rocket
+  Rocket,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fetchPublishedScenarios } from "@/lib/firebase/scenariosService"
@@ -15,6 +17,7 @@ import { fetchPublishedScenarios } from "@/lib/firebase/scenariosService"
 export function MissionStartModal({ missionId, onStart }) {
   const [mission, setMission] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     async function loadMission() {
@@ -110,33 +113,48 @@ export function MissionStartModal({ missionId, onStart }) {
         </div>
 
         {/* Objectives */}
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <CheckCircle2 className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-bold text-foreground">
-              Mission Objectives
-            </h3>
-          </div>
+        <div className="p-6 border-b border-border">
+          <button 
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center justify-between w-full mb-2 hover:bg-muted/50 p-2 rounded-lg transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-bold text-foreground">
+                Mission Objectives
+              </h3>
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                {objectives.length}
+              </span>
+            </div>
+            {expanded ? (
+              <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            )}
+          </button>
 
-          <div className="space-y-2">
-            {objectives.map((objective, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 p-3 rounded-lg bg-background border border-border hover:border-primary/30 transition-colors"
-              >
-                <Circle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                <span className="text-sm text-foreground">
-                  {objective}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {objectives.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground">
-                No specific objectives - free exploration mode
-              </p>
+          {expanded && (
+            <div className="space-y-2 mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              {objectives.map((objective, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-background border border-border hover:border-primary/30 transition-colors"
+                >
+                  <Circle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <span className="text-sm text-foreground">
+                    {objective}
+                  </span>
+                </div>
+              ))}
+              
+              {objectives.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">
+                    No specific objectives - free exploration mode
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

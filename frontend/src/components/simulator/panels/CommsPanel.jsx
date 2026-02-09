@@ -5,10 +5,11 @@
  * Part of the modular mission control console system.
  */
 
-import { SubsystemCard, DataRow, StatusGlyph } from "../SubsystemCard"
+import { StaticPanel } from "../StaticPanel"
+import { DataRow, StatusGlyph } from "../SubsystemCard"
 import { Radio, Signal } from "lucide-react"
 
-export function CommsPanel({ telemetry, status = "nominal", onClose }) {
+export function CommsPanel({ telemetry, status = "nominal" }) {
   // Extract communications telemetry
   const comms = telemetry?.communications || {}
   const signalStrength = comms.signalStrength || -85
@@ -28,15 +29,10 @@ export function CommsPanel({ telemetry, status = "nominal", onClose }) {
   const signalStatus = getSignalStatus(signalStrength)
 
   return (
-    <SubsystemCard
-      subsystem="COMMS"
+    <StaticPanel
+      id="comms-panel"
       title="📡 Communications"
-      icon={Radio}
-      telemetry={telemetry}
-      status={status}
-      alarmCount={0}
-      defaultPosition={{ x: 670, y: 150, width: 300, height: 360 }}
-      onClose={onClose}
+      minHeight={360}
     >
       {/* Signal Strength */}
       <div className="space-y-2">
@@ -112,7 +108,7 @@ export function CommsPanel({ telemetry, status = "nominal", onClose }) {
           <span className="text-xs font-mono font-semibold text-green-500">TRACKING</span>
         </div>
       </div>
-    </SubsystemCard>
+    </StaticPanel>
   )
 }
 

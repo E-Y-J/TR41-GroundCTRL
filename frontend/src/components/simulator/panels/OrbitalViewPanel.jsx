@@ -16,10 +16,11 @@ export function OrbitalViewPanel({ telemetry, onClose }) {
   const isDocked = dockedPanels['orbital-view']?.docked
 
   // Extract orbital data from telemetry
-  const altitude = telemetry?.orbit?.altitude_km || 0
+  // Support both flat structure (lat/lon/alt) and nested structure (orbit.latitude/longitude/altitude_km)
+  const altitude = telemetry?.orbit?.altitude_km || telemetry?.alt || 0
   const inclination = telemetry?.orbit?.inclination_degrees || 0
-  const latitude = telemetry?.orbit?.latitude || 0
-  const longitude = telemetry?.orbit?.longitude || 0
+  const latitude = telemetry?.orbit?.latitude || telemetry?.lat || 0
+  const longitude = telemetry?.orbit?.longitude || telemetry?.lon || 0
   const velocity = telemetry?.orbit?.velocity_km_s || 0
   const period = telemetry?.orbit?.period_minutes || 93 // ~93 min for LEO
 

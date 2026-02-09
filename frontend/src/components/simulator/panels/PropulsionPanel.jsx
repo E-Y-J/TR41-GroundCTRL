@@ -5,10 +5,11 @@
  * Part of the modular mission control console system.
  */
 
-import { SubsystemCard, DataRow, StatusBar, StatusGlyph } from "../SubsystemCard"
+import { StaticPanel } from "../StaticPanel"
+import { DataRow, StatusBar, StatusGlyph } from "../SubsystemCard"
 import { Rocket } from "lucide-react"
 
-export function PropulsionPanel({ telemetry, status = "nominal", onClose }) {
+export function PropulsionPanel({ telemetry, status = "nominal" }) {
   // Extract propulsion telemetry
   const propulsion = telemetry?.subsystems?.propulsion || {}
   const fuelRemaining = propulsion.fuelRemaining || 100
@@ -36,15 +37,10 @@ export function PropulsionPanel({ telemetry, status = "nominal", onClose }) {
   const fuelStatus = getFuelStatus(fuelRemaining)
 
   return (
-    <SubsystemCard
-      subsystem="PROP"
+    <StaticPanel
+      id="prop-panel"
       title="🚀 Propulsion"
-      icon={Rocket}
-      telemetry={telemetry}
-      status={status}
-      alarmCount={0}
-      defaultPosition={{ x: 50, y: 550, width: 300, height: 400 }}
-      onClose={onClose}
+      minHeight={400}
     >
       {/* Fuel Status */}
       <div className="space-y-2">
@@ -112,7 +108,7 @@ export function PropulsionPanel({ telemetry, status = "nominal", onClose }) {
           <span className="text-xs font-mono font-semibold text-green-500">READY</span>
         </div>
       </div>
-    </SubsystemCard>
+    </StaticPanel>
   )
 }
 

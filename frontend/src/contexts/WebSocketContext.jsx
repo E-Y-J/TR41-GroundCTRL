@@ -144,6 +144,16 @@ export function WebSocketProvider({ children }) {
           setSessionState(newState);
         });
 
+        // Listen for real-time telemetry updates (broadcasted every 2 seconds)
+        telemetrySock.on('telemetry:update', (telemetryData) => {
+          console.log('[WebSocket] telemetry:update received:', telemetryData);
+          // Update session state with new telemetry
+          setSessionState(prev => ({
+            ...prev,
+            telemetry: telemetryData
+          }));
+        });
+
         telemetrySock.on('session:error', ({ message, code }) => {
           console.error('Session error:', code, message);
         });

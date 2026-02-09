@@ -900,7 +900,7 @@ export function EarthGlobe3D({
   const satPos = calculateSatellitePosition(trueAnomaly, orbitRadius, inclination, raan)
 
   return (
-    <div ref={containerRef} className={`relative w-full h-full ${className}`} style={{ display: 'block', maxHeight: '100%' }}>
+    <div ref={containerRef} className={`relative w-full h-full ${className}`} style={{ display: 'block' }}>
       {!isLoaded && <LoadingOverlay />}
       
       <FollowToggle 

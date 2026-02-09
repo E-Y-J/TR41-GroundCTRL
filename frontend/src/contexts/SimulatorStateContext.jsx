@@ -511,18 +511,29 @@ export function SimulatorStateProvider({ children }) {
   // Listen for WebSocket session state updates
   useEffect(() => {
     if (sessionState) {
+      console.log('[SimulatorState] Full sessionState received:', sessionState);
+      
       // Sync telemetry from WebSocket
       if (sessionState.telemetry) {
+        console.log('[SimulatorState] Telemetry object:', sessionState.telemetry);
+        console.log('[SimulatorState] Extracted values:', {
+          lat: sessionState.telemetry.lat,
+          lon: sessionState.telemetry.lon,
+          alt: sessionState.telemetry.alt
+        });
         updateTelemetry(sessionState.telemetry);
       }
       
-      // Sync other session data
-      dispatch({
-        type: ACTIONS.UPDATE_SESSION_DATA,
-        payload: sessionState
-      });
+      // Sync other session data (but don't overwrite telemetry if we just updated it)
+      const { telemetry, ...otherData } = sessionState;
+      if (Object.keys(otherData).length > 0) {
+        dispatch({
+          type: ACTIONS.UPDATE_SESSION_DATA,
+          payload: otherData
+        });
+      }
     }
-  }, [sessionState, updateTelemetry]);
+  }, [sessionState]);
   
   // Listen for command status updates from WebSocket
   useEffect(() => {

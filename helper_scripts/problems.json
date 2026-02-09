@@ -1,0 +1,25 @@
+[{
+	"resource": "/k:/HUD/TR41-GroundCTRL/frontend/src/components/simulator/DockContainer.jsx",
+	"owner": "tailwindcss-intellisense",
+	"code": "suggestCanonicalClasses",
+	"severity": 4,
+	"message": "The class `w-[380px]` can be written as `w-95`",
+	"startLineNumber": 27,
+	"startColumn": 21,
+	"endLineNumber": 27,
+	"endColumn": 30,
+	"modelVersionId": 57,
+	"origin": "extHost1"
+},{
+	"resource": "/k:/HUD/TR41-GroundCTRL/frontend/src/components/simulator/DockContainer.jsx",
+	"owner": "tailwindcss-intellisense",
+	"code": "suggestCanonicalClasses",
+	"severity": 4,
+	"message": "The class `h-[80px]` can be written as `h-20`",
+	"startLineNumber": 40,
+	"startColumn": 21,
+	"endLineNumber": 40,
+	"endColumn": 29,
+	"modelVersionId": 57,
+	"origin": "extHost1"
+}]
