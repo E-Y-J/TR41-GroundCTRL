@@ -240,7 +240,12 @@ export default function Simulator() {
           apogee_km: satelliteData.orbit?.altitude_km || 415,
           inclination_degrees: satelliteData.orbit?.inclination_degrees || 51.6,
           period_minutes: 92.7,
-          eccentricity: satelliteData.orbit?.eccentricity || 0.0
+          eccentricity: satelliteData.orbit?.eccentricity || 0.0,
+          velocity_km_s: 7.7
+        },
+        position: {
+          latitude: 0,
+          longitude: 0
         },
         subsystems: {
           power: {

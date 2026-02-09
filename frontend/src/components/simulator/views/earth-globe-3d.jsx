@@ -867,8 +867,6 @@ export function EarthGlobe3D({
     <div ref={containerRef} className={`relative w-full h-full ${className}`}>
       {!isLoaded && <LoadingOverlay />}
       
-      <ViewModeBadge />
-      
       <FollowToggle 
         active={followSatellite}
         onToggle={() => setFollowSatellite(!followSatellite)}
