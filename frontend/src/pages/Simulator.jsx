@@ -14,7 +14,7 @@ import { OperatorPrompt } from "@/components/simulator/operator-prompt"
 import { PerformanceMetrics } from "@/components/simulator/performance-metrics"
 import { VisualizationSwitcher } from "@/components/simulator/views"
 import { FloatingTMTCConsole } from "@/components/simulator/FloatingTMTCConsole"
-import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel, TimeControlPanel } from "@/components/simulator/panels"
+import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel, TimeControlPanel, OrbitalViewPanel } from "@/components/simulator/panels"
 import { DockingProvider, useDocking } from "@/contexts/DockingContext"
 import { DockContainerLayout } from "@/components/simulator/DockContainer"
 import { useAuth } from "@/hooks/use-auth"
@@ -115,6 +115,7 @@ export default function Simulator() {
   const [showCommsPanel, setShowCommsPanel] = useState(false)
   const [showPropulsionPanel, setShowPropulsionPanel] = useState(false)
   const [showTimeControlPanel, setShowTimeControlPanel] = useState(false)
+  const [showOrbitalViewPanel, setShowOrbitalViewPanel] = useState(false)
   
   // Use simulator state context
   const { 
@@ -471,6 +472,17 @@ export default function Simulator() {
                     >
                       <Zap className="w-4 h-4 text-muted-foreground" />
                       <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">PROP</span>
+                    </button>
+                  )}
+                  {!showOrbitalViewPanel && (
+                    <button
+                      onClick={() => setShowOrbitalViewPanel(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show Orbital View"
+                      aria-label="Show Orbital View"
+                    >
+                      <Satellite className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">ORBIT</span>
                     </button>
                   )}
                 </div>
