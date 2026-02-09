@@ -94,6 +94,7 @@ function ViewIcon({ mode }) {
 // ============================================================================
 
 export function VisualizationSwitcher({
+  telemetry,
   altitude = 415,
   inclination = 51.6,
   eccentricity = 0.0001,
@@ -119,6 +120,7 @@ export function VisualizationSwitcher({
     <div className={`relative w-full h-full ${className}`}>
       {viewMode === "2d" ? (
         <GroundTrack2D
+          telemetry={telemetry}
           altitude={altitude}
           inclination={inclination}
           showFootprint={true}
@@ -129,6 +131,7 @@ export function VisualizationSwitcher({
       ) : (
         <Suspense fallback={<ViewLoader />}>
           <EarthGlobe3D
+            telemetry={telemetry}
             altitude={altitude}
             inclination={inclination}
             eccentricity={eccentricity}

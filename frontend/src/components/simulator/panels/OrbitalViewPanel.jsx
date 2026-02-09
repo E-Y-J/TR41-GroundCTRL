@@ -18,10 +18,10 @@ export function OrbitalViewPanel({ telemetry, onClose }) {
   // Extract orbital data from telemetry
   const altitude = telemetry?.orbit?.altitude_km || 0
   const inclination = telemetry?.orbit?.inclination_degrees || 0
-  const latitude = telemetry?.position?.latitude || 0
-  const longitude = telemetry?.position?.longitude || 0
+  const latitude = telemetry?.orbit?.latitude || 0
+  const longitude = telemetry?.orbit?.longitude || 0
   const velocity = telemetry?.orbit?.velocity_km_s || 0
-  const period = telemetry?.orbit?.period_minutes || 0
+  const period = telemetry?.orbit?.period_minutes || 93 // ~93 min for LEO
 
   const content = (
     <div className="space-y-3">

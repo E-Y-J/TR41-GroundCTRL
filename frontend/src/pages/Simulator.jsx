@@ -542,6 +542,7 @@ export default function Simulator() {
               >
                 {/* Center: 3D/2D Visualization - Always visible in grid */}
                 <VisualizationSwitcher
+                  telemetry={telemetry}
                   altitude={sessionData?.satellite?.orbit?.altitude_km || 415}
                   inclination={sessionData?.satellite?.orbit?.inclination_degrees || 51.6}
                   eccentricity={sessionData?.satellite?.orbit?.eccentricity || 0.0001}

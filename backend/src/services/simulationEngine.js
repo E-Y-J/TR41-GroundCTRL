@@ -390,32 +390,55 @@ class SimulationEngine {
 	simulateOrbit(satellite, currentOrbit, elapsedSeconds, maneuverEffect, tle) {
 		// Use SGP4 if TLE is available
 		if (tle && tle.line1 && tle.line2) {
-			const currentTime = Date.now();
-			const position = this.orbitalMechanics.getSatellitePosition(
-				tle.line1,
-				tle.line2,
-				currentTime
-			);
+			try {
+				const currentTime = Date.now();
+				const position = this.orbitalMechanics.getSatellitePosition(
+					tle.line1,
+					tle.line2,
+					currentTime
+				);
 
-			if (position) {
-				// Apply maneuver altitude change if active
-				let altitudeAdjustment = 0;
-				if (maneuverEffect) {
-					const elapsed = Date.now() - maneuverEffect.startTime;
-					if (elapsed < maneuverEffect.duration) {
-						const targetDelta = maneuverEffect.targetAltitude - position.altitude;
-						altitudeAdjustment = targetDelta * 0.05; // Gradual altitude change
+				if (position) {
+					// Apply maneuver altitude change if active
+					let altitudeAdjustment = 0;
+					if (maneuverEffect) {
+						const elapsed = Date.now() - maneuverEffect.startTime;
+						if (elapsed < maneuverEffect.duration) {
+							const targetDelta = maneuverEffect.targetAltitude - position.altitude;
+							altitudeAdjustment = targetDelta * 0.05; // Gradual altitude change
+						}
 					}
-				}
 
-				return {
-					altitude_km: position.altitude + altitudeAdjustment,
-					inclination_degrees: currentOrbit.inclination_degrees,
-					eccentricity: currentOrbit.eccentricity,
-					latitude: position.latitude,
-					longitude: position.longitude,
-					velocity_km_s: position.velocity.magnitude,
-				};
+					// Log SGP4 calculation (first time only to avoid spam)
+					if (!this._sgp4Logged) {
+						logger.info("SGP4 orbital calculation working", {
+							latitude: position.latitude.toFixed(2),
+							longitude: position.longitude.toFixed(2),
+							altitude: position.altitude.toFixed(2),
+						});
+						this._sgp4Logged = true;
+					}
+
+					return {
+						altitude_km: position.altitude + altitudeAdjustment,
+						inclination_degrees: currentOrbit.inclination_degrees,
+						eccentricity: currentOrbit.eccentricity,
+						latitude: position.latitude,
+						longitude: position.longitude,
+						velocity_km_s: position.velocity.magnitude,
+					};
+				} else {
+					logger.warn("SGP4 returned null position, using fallback");
+				}
+			} catch (error) {
+				logger.error("SGP4 calculation failed, using fallback", {
+					error: error.message
+				});
+			}
+		} else {
+			if (!this._tleWarningLogged) {
+				logger.warn("No TLE available, using simplified orbit model");
+				this._tleWarningLogged = true;
 			}
 		}
 
