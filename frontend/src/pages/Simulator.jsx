@@ -510,7 +510,7 @@ export default function Simulator() {
                     aria-label={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
                   >
                     <Globe className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">{viewMode === "2d" ? "2D" : "3D"}</span>
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">{viewMode === "2d" ? "3D" : "2D"}</span>
                   </button>
                 </div>
                 
