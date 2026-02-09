@@ -307,7 +307,10 @@ export function FloatingNovaChat({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setIsMinimized(!isMinimized)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsMinimized(!isMinimized)
+                }}
               >
                 {isMinimized ? (
                   <Maximize2 className="h-4 w-4" />
@@ -319,7 +322,10 @@ export function FloatingNovaChat({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsOpen(false)
+                }}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -364,7 +370,10 @@ export function FloatingNovaChat({
                                 key={option.id}
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleSend(option.text)}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleSend(option.text)
+                                }}
                                 className="w-full justify-start text-left bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-xs"
                               >
                                 {option.text}
@@ -408,7 +417,10 @@ export function FloatingNovaChat({
                       variant="outline" 
                       size="sm" 
                       disabled={isLoading}
-                      onClick={() => handleSend(action.prompt)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleSend(action.prompt)
+                      }}
                       className="flex-1 rounded-md text-[10px] h-7 bg-transparent gap-1 px-2"
                     >
                       <action.icon className="h-2.5 w-2.5" />
