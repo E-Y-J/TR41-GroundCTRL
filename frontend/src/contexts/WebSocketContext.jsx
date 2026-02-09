@@ -140,7 +140,13 @@ export function WebSocketProvider({ children }) {
         });
 
         telemetrySock.on('state:update', (newState) => {
-          console.log('Session state updated:', newState);
+          console.log('[WebSocket] state:update received:', {
+            timestamp: Date.now(),
+            hasTelemetry: !!newState.telemetry,
+            lat: newState.telemetry?.orbit?.latitude,
+            lon: newState.telemetry?.orbit?.longitude,
+            elapsedTime: newState.elapsedTime
+          });
           setSessionState(newState);
         });
 
