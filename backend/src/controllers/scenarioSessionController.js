@@ -7,6 +7,8 @@
 
 const scenarioSessionRepository = require("../repositories/scenarioSessionRepository");
 const tutorialRepository = require("../repositories/tutorialRepository");
+const scenarioRepository = require("../repositories/scenarioRepository");
+const satelliteRepository = require("../repositories/satelliteRepository");
 const { createCrudHandlers } = require("../factories/crudFactory");
 const logger = require("../utils/logger");
 const {
@@ -31,6 +33,58 @@ const hooks = {
 		// CRITICAL: Set user_id from authenticated user (not from request body)
 		// This is required for Firestore security rules
 		data.user_id = req.user?.uid;
+
+		// Snapshot scenario data (for simulation engine)
+		try {
+			const scenario = await scenarioRepository.getById(data.scenario_id);
+			if (scenario) {
+				data.scenario = {
+					id: scenario.id,
+					name: scenario.name,
+					difficulty: scenario.difficulty,
+					satellite_id: scenario.satellite_id,
+					description: scenario.description
+				};
+				
+				logger.debug("Scenario snapshot added", {
+					scenario_id: data.scenario_id,
+					difficulty: scenario.difficulty
+				});
+			}
+		} catch (error) {
+			logger.warn("Failed to snapshot scenario", {
+				scenario_id: data.scenario_id,
+				error: error.message,
+			});
+		}
+
+		// Snapshot satellite data (CRITICAL for simulation engine)
+		try {
+			const scenario = await scenarioRepository.getById(data.scenario_id);
+			if (scenario && scenario.satellite_id) {
+				const satellite = await satelliteRepository.getById(scenario.satellite_id);
+				if (satellite) {
+					data.satellite = {
+						id: satellite.id,
+						name: satellite.name,
+						noradId: satellite.noradId,
+						tle: satellite.tle,
+						type: satellite.type,
+						status: satellite.status
+					};
+					
+					logger.info("🛰️ Satellite snapshot added to session", {
+						satelliteName: satellite.name,
+						noradId: satellite.noradId
+					});
+				}
+			}
+		} catch (error) {
+			logger.error("Failed to snapshot satellite - simulation will not work!", {
+				scenario_id: data.scenario_id,
+				error: error.message,
+			});
+		}
 
 		// Snapshot tutorials for this scenario at session start
 		try {
