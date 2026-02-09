@@ -41,7 +41,16 @@ export function DraggablePanel({
   const [position, setPosition] = useState(() => {
     try {
       const saved = localStorage.getItem(`panel-position-${id}`)
-      return saved ? JSON.parse(saved) : defaultPosition
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        // Reject invalid positions (0,0 is top-left corner, likely a bug)
+        if (parsed.x === 0 && parsed.y === 0) {
+          console.warn(`[DraggablePanel] Rejecting invalid (0,0) position for ${id}, using default`)
+          return defaultPosition
+        }
+        return parsed
+      }
+      return defaultPosition
     } catch (error) {
       console.warn(`[DraggablePanel] Failed to load position for ${id}:`, error)
       return defaultPosition
