@@ -36,6 +36,13 @@ class SessionManager {
 
 			// Initialize or retrieve session state
 			if (!this.activeSessions.has(sessionId)) {
+				logger.info("🚀 Initializing new session", {
+					sessionId,
+					hasEngine: !!this.simulationEngine,
+					hasSatellite: !!session.satellite,
+					satelliteName: session.satellite?.name
+				});
+
 				this.activeSessions.set(sessionId, {
 					state: session.state || {},
 					users: new Set(),
