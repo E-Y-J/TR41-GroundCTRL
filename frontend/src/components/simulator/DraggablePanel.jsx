@@ -97,11 +97,21 @@ export function DraggablePanel({
   }, [onClose])
 
   // Handle drag start
-  const handleDragStart = useCallback(() => {
+  const handleDragStart = useCallback((e, d) => {
     setIsDragging(true)
-    // If panel was docked, undock it
+    // If panel was docked, undock it and set its position to where it currently is visually
     if (docking && dockedZone) {
-      docking.undockPanel(id, position)
+      // Get the current visual position from the drag event
+      const currentPosition = {
+        x: d.x,
+        y: d.y,
+        width: position.width,
+        height: position.height
+      }
+      console.log('[DraggablePanel] Undocking from drag start, current pos:', currentPosition)
+      docking.undockPanel(id, currentPosition)
+      // Update local position state to match
+      setPosition(currentPosition)
     }
   }, [docking, dockedZone, id, position])
 
