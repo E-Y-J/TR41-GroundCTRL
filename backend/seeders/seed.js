@@ -117,6 +117,7 @@ async function seedScenarios(satelliteMap) {
     
     const ref = await db.collection('scenarios').add({
       ...data,
+      code: scn.code, // IMPORTANT: Store code for fetchExistingScenarios
       satellite_id,
       createdAt: data.createdAt || now,
       updatedAt: data.updatedAt || now,

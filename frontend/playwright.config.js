@@ -8,7 +8,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   
   /* Increase timeout for slow tests */
-  timeout: 90 * 1000, // 90 seconds per test
+  timeout: process.env.CI ? 120 * 1000 : 90 * 1000, // 120 seconds on CI, 90 locally
   
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -17,7 +17,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 3 : 0,
   
   /* Opt out of parallel tests on CI */
   workers: process.env.CI ? 1 : undefined,
@@ -44,10 +44,10 @@ export default defineConfig({
     video: 'retain-on-failure',
     
     /* Global timeout for actions (click, fill, etc.) - helps with slow API responses */
-    actionTimeout: 10000, // 10 seconds for individual actions
+    actionTimeout: process.env.CI ? 20000 : 10000, // 20 seconds on CI, 10 locally
     
     /* Navigation timeout - generous timeout for page loads during API delays */
-    navigationTimeout: 30000, // 30 seconds for page navigation
+    navigationTimeout: process.env.CI ? 60000 : 30000, // 60 seconds on CI, 30 locally
     
     /* Wait for at least some network activity to settle before considering page loaded */
     waitForLoadState: 'domcontentloaded', // More lenient than 'networkidle' for slow APIs

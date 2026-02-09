@@ -16,21 +16,21 @@ const actions = [
     label: "Training Docs",
     description: "Review satellite operation guides",
     icon: BookOpen,
-    href: "#",
+    href: "/help",
     variant: "outline",
   },
   {
     label: "Analytics",
     description: "View your performance metrics",
     icon: BarChart3,
-    href: "#",
+    href: "/analytics",
     variant: "outline",
   },
   {
     label: "Settings",
     description: "Customize your experience",
     icon: Settings,
-    href: "#",
+    href: "/settings",
     variant: "outline",
   },
 ]
@@ -44,7 +44,7 @@ export function QuickActions() {
       </div>
 
       {/* Actions */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 flex flex-col gap-1.5">
         {actions.map((action) => (
           <Link key={action.label} to={action.href}>
             <Button
