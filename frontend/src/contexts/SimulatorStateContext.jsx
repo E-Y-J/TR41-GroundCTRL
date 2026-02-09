@@ -495,6 +495,19 @@ export function SimulatorStateProvider({ children }) {
     });
   }, [leaveSession]);
   
+  // Join WebSocket session when connected and we have a sessionId
+  useEffect(() => {
+    if (connected && stateRef.current.sessionId && !stateRef.current.hasJoinedWebSocket) {
+      console.log('🔌 Joining WebSocket session:', stateRef.current.sessionId);
+      joinSession(stateRef.current.sessionId);
+      // Mark as joined so we don't join multiple times
+      dispatch({
+        type: ACTIONS.UPDATE_SESSION_DATA,
+        payload: { hasJoinedWebSocket: true }
+      });
+    }
+  }, [connected, joinSession]);
+
   // Listen for WebSocket session state updates
   useEffect(() => {
     if (sessionState) {
