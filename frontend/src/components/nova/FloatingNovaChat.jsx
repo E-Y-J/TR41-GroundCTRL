@@ -33,6 +33,11 @@ export function FloatingNovaChat({
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
+  
+  // Debug: Track when isOpen changes
+  useEffect(() => {
+    console.log('[NOVA] isOpen changed to:', isOpen, 'Stack:', new Error().stack)
+  }, [isOpen])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [messages, setMessages] = useState([])
@@ -279,10 +284,12 @@ export function FloatingNovaChat({
             } ${className}`}
             style={{ zIndex: 9999 }}
             onClick={(e) => {
+              console.log('[NOVA] Container clicked', e.target, e.currentTarget)
               // Only stop propagation, don't prevent default to allow interactive elements to work
               e.stopPropagation()
             }}
             onMouseDown={(e) => {
+              console.log('[NOVA] Container mousedown', e.target)
               e.stopPropagation()
             }}
           >
