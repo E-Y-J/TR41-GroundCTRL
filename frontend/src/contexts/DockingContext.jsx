@@ -50,7 +50,7 @@ export const DOCK_ZONES = {
   }
 }
 
-const SNAP_THRESHOLD = 50 // pixels from zone edge to trigger snap
+const SNAP_THRESHOLD = 80 // pixels from zone CENTER to trigger snap (made more strict)
 const STORAGE_KEY = 'groundctrl-dock-config'
 
 const DockingContext = createContext(null)
@@ -100,7 +100,7 @@ export function DockingProvider({ children }) {
   }, [dockedPanels, floatingPanels, saveDockConfig])
 
   /**
-   * Detect which dock zone a position is near
+   * Detect which dock zone a position is near (checks CENTER of zone)
    */
   const detectDockZone = useCallback((position) => {
     const { x, y } = position
@@ -109,26 +109,33 @@ export function DockingProvider({ children }) {
       // Convert calc() values to actual pixels for comparison
       let zoneX = zone.position.x
       let zoneY = zone.position.y
+      let zoneWidth = zone.size.width
+      let zoneHeight = 400 // Approximate height for vertical zones
       
-      if (typeof zoneX === 'string') {
-        // For right zone: calc(100vw - 420px)
-        if (zoneX.includes('100vw')) {
-          zoneX = window.innerWidth - 420
-        }
+      if (typeof zoneX === 'string' && zoneX.includes('100vw')) {
+        zoneX = window.innerWidth - 320
       }
       
-      if (typeof zoneY === 'string') {
-        // For bottom zone: calc(100vh - 180px)
-        if (zoneY.includes('100vh')) {
-          zoneY = window.innerHeight - 180
-        }
+      if (typeof zoneY === 'string' && zoneY.includes('100vh')) {
+        zoneY = window.innerHeight - 180
       }
       
-      // Check if position is near zone (within snap threshold)
-      const isNearX = Math.abs(x - zoneX) < SNAP_THRESHOLD
-      const isNearY = Math.abs(y - zoneY) < SNAP_THRESHOLD
+      if (typeof zoneWidth === 'string' && zoneWidth.includes('100vw')) {
+        zoneWidth = window.innerWidth - 660
+      }
       
-      if (isNearX || isNearY) {
+      // Calculate CENTER of the zone
+      const zoneCenterX = zoneX + (typeof zoneWidth === 'number' ? zoneWidth / 2 : 160)
+      const zoneCenterY = zoneY + zoneHeight / 2
+      
+      // Check distance from CENTER (must be close to center to snap)
+      const distanceFromCenter = Math.sqrt(
+        Math.pow(x - zoneCenterX, 2) + Math.pow(y - zoneCenterY, 2)
+      )
+      
+      console.log(`[Docking] Panel at (${x}, ${y}), Zone ${zoneId} center (${zoneCenterX}, ${zoneCenterY}), distance: ${distanceFromCenter}`)
+      
+      if (distanceFromCenter < SNAP_THRESHOLD) {
         return zoneId
       }
     }
