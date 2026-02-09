@@ -260,10 +260,15 @@ export function DraggablePanel({
   }
   
   // Render with react-rnd when floating
+  // Use default prop instead of position for initial render to avoid (0,0) issues
   return (
     <Rnd
-      position={{ x: position.x, y: position.y }}
-      size={{ width: position.width, height: position.height }}
+      default={{
+        x: position.x,
+        y: position.y,
+        width: position.width,
+        height: position.height
+      }}
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragStop={handleDragStop}
