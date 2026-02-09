@@ -36,6 +36,7 @@ export function WebSocketProvider({ children }) {
   const commandSocketRef = useRef(null);
   const isInitializingRef = useRef(false);
   const hasConnectedRef = useRef(false); // Track if we've ever connected successfully
+  const currentSessionIdRef = useRef(null); // Track current session for reconnection
   
   // Keep refs in sync with state
   useEffect(() => {
@@ -49,6 +50,10 @@ export function WebSocketProvider({ children }) {
   useEffect(() => {
     isInitializingRef.current = isInitializing;
   }, [isInitializing]);
+  
+  useEffect(() => {
+    currentSessionIdRef.current = currentSessionId;
+  }, [currentSessionId]);
 
   /**
    * Initialize WebSocket connections on-demand
@@ -123,6 +128,12 @@ export function WebSocketProvider({ children }) {
         telemetrySock.on('connect', () => {
       console.log('✅ Telemetry socket connected:', telemetrySock.id);
       setConnected(true);
+      
+      // Re-join session if we were in one (handles reconnection)
+      if (currentSessionIdRef.current) {
+        console.log('[WebSocket] Reconnected - rejoining session:', currentSessionIdRef.current);
+        telemetrySock.emit('session:join', { sessionId: currentSessionIdRef.current });
+      }
     });
 
         telemetrySock.on('disconnect', (reason) => {
