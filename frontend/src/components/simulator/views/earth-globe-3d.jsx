@@ -43,7 +43,6 @@ import {
   animateCommLink
 } from "./components/CommLink"
 import {
-  createSatelliteLabel,
   createStationLabel,
   updateTextLabel,
   createCardinalLabels
@@ -97,38 +96,6 @@ function LoadingOverlay() {
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
         <span className="text-sm text-muted-foreground">Loading Globe...</span>
       </div>
-    </div>
-  )
-}
-
-/** Orbital info display panel */
-function OrbitalInfoPanel({ 
-  altitude, 
-  inclination, 
-  lat, 
-  lon 
-}) {
-  return (
-    <div className="absolute top-3 left-3 bg-card/90 backdrop-blur border border-border rounded-lg p-3 z-10">
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
-        Orbital View
-      </div>
-      <div className="space-y-1 text-xs font-mono">
-        <InfoRow label="ALT" value={`${altitude.toFixed(0)} km`} />
-        <InfoRow label="INC" value={`${inclination.toFixed(1)}°`} />
-        <InfoRow label="LAT" value={`${lat.toFixed(2)}°`} />
-        <InfoRow label="LON" value={`${lon.toFixed(2)}°`} />
-      </div>
-    </div>
-  )
-}
-
-/** Single info row */
-function InfoRow({ label, value }) {
-  return (
-    <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground">{value}</span>
     </div>
   )
 }
@@ -518,17 +485,7 @@ export function EarthGlobe3D({
     scene.add(satellite)
     satelliteRef.current = satellite
 
-    // Create satellite label (Phase 3)
-    if (showLabels) {
-      const satLabel = createSatelliteLabel({
-        altitude,
-        velocity: calculateOrbitalVelocity(),
-        lat: 0,
-        lon: 0
-      })
-      satellite.add(satLabel)
-      satLabelRef.current = satLabel
-    }
+    // Satellite label removed - use OrbitalViewPanel instead
 
     // Create orbit path
     if (showOrbit) {
@@ -769,11 +726,7 @@ export function EarthGlobe3D({
         satelliteRef.current.position.copy(satPosVec)
         satelliteRef.current.lookAt(0, 0, 0)
 
-        // Update satellite label (Phase 3)
-        if (satLabelRef.current && showLabels) {
-          const newText = `ALT: ${altitude.toFixed(0)}km\nVEL: ${calculateOrbitalVelocity().toFixed(1)}km/s\nLAT: ${pos.lat.toFixed(2)}°\nLON: ${pos.lon.toFixed(2)}°`
-          updateTextLabel(satLabelRef.current, newText)
-        }
+        // Satellite label removed - use OrbitalViewPanel instead
 
         // Update orbit gradient
         if (orbitLineRef.current && orbitLineRef.current.material.uniforms) {
@@ -913,13 +866,6 @@ export function EarthGlobe3D({
   return (
     <div ref={containerRef} className={`relative w-full h-full ${className}`}>
       {!isLoaded && <LoadingOverlay />}
-      
-      <OrbitalInfoPanel 
-        altitude={altitude}
-        inclination={inclination}
-        lat={satPos.lat}
-        lon={satPos.lon}
-      />
       
       <ViewModeBadge />
       

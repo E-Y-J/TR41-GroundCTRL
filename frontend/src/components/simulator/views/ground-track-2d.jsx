@@ -149,44 +149,6 @@ function EquatorIndicator({ inclination }) {
   )
 }
 
-/** Coordinate display bar */
-function CoordinateDisplay({ 
-  lat, 
-  lon, 
-  altitude 
-}) {
-  const latDir = lat >= 0 ? "N" : "S"
-  const lonDir = lon >= 0 ? "E" : "W"
-  const latDisplay = `${Math.abs(lat).toFixed(1)}°${latDir}`
-  const lonDisplay = `${Math.abs(lon).toFixed(1)}°${lonDir}`
-  
-  return (
-    <g transform="translate(360, 350)">
-      <rect 
-        x="-90" 
-        y="-12" 
-        width="180" 
-        height="20" 
-        rx="4" 
-        fill="#0f172a" 
-        fillOpacity="0.9" 
-        stroke="#334155" 
-        strokeWidth="0.5" 
-      />
-      <text 
-        x="0" 
-        y="2" 
-        fill="#94a3b8" 
-        fontSize="10" 
-        fontFamily="ui-monospace, monospace" 
-        textAnchor="middle"
-      >
-        {latDisplay}  {lonDisplay}  Alt: {altitude.toFixed(0)}km
-      </text>
-    </g>
-  )
-}
-
 // ============================================================================
 // Main Component
 // ============================================================================
