@@ -6,26 +6,24 @@
  */
 
 /**
- * Left Column - for ADCS, EPS, Propulsion panels
- * Color: Blue tint for attitude/orientation systems
+ * Left Column - for HUD panels
  */
 export function LeftDockColumn({ children, dockedPanels = [] }) {
   return (
-    <div className="w-[320px] border-r border-blue-500/20 bg-blue-950/20 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-y-auto">
-      {/* Render children directly - no portals needed */}
+    <div className="w-[320px] border-r border-border bg-card/30 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-hidden">
+      {/* Render children directly - no scrolling */}
       {children}
     </div>
   )
 }
 
 /**
- * Right Column - for TM/TC Console, Comms, Command Console panels
- * Color: Green tint for communications systems
+ * Right Column - for HUD panels
  */
 export function RightDockColumn({ children, dockedPanels = [] }) {
   return (
-    <div className="w-95 border-l border-green-500/20 bg-green-950/20 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-y-auto">
-      {/* Render children directly - no portals needed */}
+    <div className="w-[380px] border-l border-border bg-card/30 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-hidden">
+      {/* Render children directly - no scrolling */}
       {children}
     </div>
   )

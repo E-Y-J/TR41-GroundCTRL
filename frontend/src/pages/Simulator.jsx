@@ -367,33 +367,32 @@ export default function Simulator() {
           <>
             <DockContainerLayout
                 topContent={
-                  <>
-                    {/* Top HUD Area - Mission-critical orbital data */}
-                    <div className="text-xs text-purple-300">
-                      <span className="font-bold">ALT:</span> {telemetry?.orbit?.altitude_km?.toFixed(1) || '415.0'} km
+                  <div className="w-full flex items-center justify-between px-2">
+                    {/* Propulsion status - compact */}
+                    <div className="flex items-center gap-3 text-xs">
+                      <span className="font-bold text-orange-400">🚀 PROPULSION:</span>
+                      <span>{telemetry?.subsystems?.propulsion?.fuelRemaining || 100}% Fuel</span>
                     </div>
-                    <div className="text-xs text-purple-300">
-                      <span className="font-bold">VEL:</span> {telemetry?.orbit?.velocity_km_s?.toFixed(2) || '7.70'} km/s
+                    
+                    {/* Orbital telemetry - compact */}
+                    <div className="flex items-center gap-4 text-xs">
+                      <span><strong>ALT:</strong> {telemetry?.orbit?.altitude_km?.toFixed(1) || '415.0'} km</span>
+                      <span><strong>VEL:</strong> {telemetry?.orbit?.velocity_km_s?.toFixed(2) || '7.70'} km/s</span>
+                      <span><strong>INC:</strong> {telemetry?.orbit?.inclination_degrees?.toFixed(1) || '51.6'}°</span>
+                      <span><strong>PERIOD:</strong> {telemetry?.orbit?.period_minutes?.toFixed(1) || '92.7'} min</span>
                     </div>
-                    <div className="text-xs text-purple-300">
-                      <span className="font-bold">INC:</span> {telemetry?.orbit?.inclination_degrees?.toFixed(1) || '51.6'}°
-                    </div>
-                    <div className="text-xs text-purple-300">
-                      <span className="font-bold">PERIOD:</span> {telemetry?.orbit?.period_minutes?.toFixed(1) || '92.7'} min
-                    </div>
-                  </>
+                  </div>
                 }
                 leftPanels={
                   <>
-                    {/* Left Column - Subsystem Monitoring (compact sizes) */}
+                    {/* Left Dock - Attitude & Power Systems */}
                     <ADCSPanel telemetry={telemetry} status="nominal" />
                     <EPSPanel telemetry={telemetry} status="nominal" />
-                    <PropulsionPanel telemetry={telemetry} status="nominal" />
                   </>
                 }
                 rightPanels={
                   <>
-                    {/* Right Column - Communications and Control (compact sizes) */}
+                    {/* Right Dock - Communications & Control */}
                     <CommsPanel telemetry={telemetry} status="nominal" />
                     <CommandConsoleHUD />
                   </>
