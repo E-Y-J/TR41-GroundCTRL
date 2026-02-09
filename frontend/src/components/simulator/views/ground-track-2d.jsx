@@ -180,6 +180,18 @@ export function GroundTrack2D({
   // Support both flat structure (lat/lon) and nested structure (orbit.latitude/longitude)
   const lat = telemetry?.orbit?.latitude ?? telemetry?.lat
   const lon = telemetry?.orbit?.longitude ?? telemetry?.lon
+  
+  // DEBUG: Log telemetry to see what we're receiving
+  useEffect(() => {
+    console.log('[GroundTrack2D] Telemetry received:', {
+      hasTelemetry: !!telemetry,
+      hasOrbit: !!telemetry?.orbit,
+      lat,
+      lon,
+      fullTelemetry: telemetry
+    });
+  }, [telemetry, lat, lon]);
+  
   const satPos = (lat != null && lon != null)
     ? latLonToSvg(lat, lon)
     : getSatellitePosition(0, inclination, orbitProgress)
@@ -190,12 +202,12 @@ export function GroundTrack2D({
   const nextOrbit = generateGroundTrack(-22.5, inclination, 200)
   
   return (
-    <div className={`relative w-full h-full overflow-hidden flex items-end ${className}`}>
+    <div className={`relative w-full h-full overflow-hidden flex items-stretch justify-center ${className}`}>
       <svg 
         viewBox="0 0 720 360" 
-        className="w-full"
+        className="w-full h-full"
         preserveAspectRatio="xMidYMid meet"
-        style={{ display: 'block', maxHeight: '100%' }}
+        style={{ display: 'block' }}
         role="img"
         aria-label="Satellite ground track visualization"
       >
