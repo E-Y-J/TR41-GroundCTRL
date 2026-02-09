@@ -38,12 +38,14 @@ function SimulatorContent({
   showCommsPanel, 
   showPropulsionPanel, 
   showTimeControlPanel,
+  showOrbitalViewPanel,
   setShowTMTCConsole,
   setShowADCSPanel,
   setShowEPSPanel,
   setShowCommsPanel,
   setShowPropulsionPanel,
-  setShowTimeControlPanel
+  setShowTimeControlPanel,
+  setShowOrbitalViewPanel
 }) {
   return (
     <>
@@ -91,6 +93,13 @@ function SimulatorContent({
         <TimeControlPanel
           sessionId={contextSessionId || sessionIdParam}
           onClose={() => setShowTimeControlPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showOrbitalViewPanel && (
+        <OrbitalViewPanel
+          telemetry={sessionData?.telemetry}
+          onClose={() => setShowOrbitalViewPanel(false)}
         />
       )}
     </>
@@ -580,12 +589,14 @@ export default function Simulator() {
           showCommsPanel={showCommsPanel}
           showPropulsionPanel={showPropulsionPanel}
           showTimeControlPanel={showTimeControlPanel}
+          showOrbitalViewPanel={showOrbitalViewPanel}
           setShowTMTCConsole={setShowTMTCConsole}
           setShowADCSPanel={setShowADCSPanel}
           setShowEPSPanel={setShowEPSPanel}
           setShowCommsPanel={setShowCommsPanel}
           setShowPropulsionPanel={setShowPropulsionPanel}
           setShowTimeControlPanel={setShowTimeControlPanel}
+          setShowOrbitalViewPanel={setShowOrbitalViewPanel}
         />
       </DockingProvider>
     </>
