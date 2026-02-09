@@ -14,7 +14,9 @@ import { OperatorPrompt } from "@/components/simulator/operator-prompt"
 import { PerformanceMetrics } from "@/components/simulator/performance-metrics"
 import { VisualizationSwitcher } from "@/components/simulator/views"
 import { StaticTMTCConsole } from "@/components/simulator/StaticTMTCConsole"
-import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel } from "@/components/simulator/panels"
+import { CompactADCS } from "@/components/simulator/panels/CompactADCS"
+import { CompactEPS } from "@/components/simulator/panels/CompactEPS"
+import { CompactComms } from "@/components/simulator/panels/CompactComms"
 import { DockContainerLayout } from "@/components/simulator/DockContainer"
 import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
@@ -384,18 +386,20 @@ export default function Simulator() {
                   </div>
                 }
                 leftPanels={
-                  <>
+                  <div className="flex flex-col gap-3 h-full">
                     {/* Left Dock - Attitude & Power Systems */}
-                    <ADCSPanel telemetry={telemetry} status="nominal" />
-                    <EPSPanel telemetry={telemetry} status="nominal" />
-                  </>
+                    <CompactADCS telemetry={telemetry} />
+                    <CompactEPS telemetry={telemetry} />
+                  </div>
                 }
                 rightPanels={
-                  <>
-                    {/* Right Dock - Communications & Control */}
-                    <CommsPanel telemetry={telemetry} status="nominal" />
-                    <CommandConsoleHUD />
-                  </>
+                  <div className="flex flex-col gap-3 h-full">
+                    {/* Right Dock - Communications & Command */}
+                    <CompactComms telemetry={telemetry} />
+                    <div className="flex-1 min-h-0">
+                      <CommandConsoleHUD />
+                    </div>
+                  </div>
                 }
               >
                 {/* Center: 3D/2D Visualization - Always visible in grid */}
