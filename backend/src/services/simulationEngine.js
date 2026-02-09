@@ -9,17 +9,19 @@ const CommandQueue = require("./commandQueue");
 const StepValidator = require("./stepValidator");
 const VisibilityCalculator = require("./visibilityCalculator");
 const AnomalyInjector = require("./anomalyInjector");
+const OrbitalMechanics = require("./orbitalMechanics");
 const { GROUND_STATIONS } = require("../constants/groundStations");
 
 class SimulationEngine {
 	constructor(sessionManager) {
 		this.sessionManager = sessionManager;
-		this.activeSimulations = new Map(); // sessionId -> { interval, satellite, startTime, commands, state, commandQueue, beaconInterval, anomalyEffects }
+		this.activeSimulations = new Map(); // sessionId -> { interval, satellite, startTime, commands, state, commandQueue, beaconInterval, anomalyEffects, tle }
 
 		// Mission Control Enhancement services
 		this.stepValidator = new StepValidator();
 		this.visibilityCalculator = new VisibilityCalculator();
 		this.anomalyInjector = new AnomalyInjector();
+		this.orbitalMechanics = new OrbitalMechanics();
 		this.groundStations = GROUND_STATIONS;
 	}
 
@@ -64,6 +66,7 @@ class SimulationEngine {
 					simulation.state.currentState,
 					elapsedSeconds,
 					simulation.state.commandEffects,
+					sessionId, // Pass sessionId to get TLE for SGP4
 				);
 
 				simulation.state.currentState = newState;
@@ -87,6 +90,13 @@ class SimulationEngine {
 		const commandQueue = new CommandQueue(sessionId, this);
 		commandQueue.start();
 
+		// Generate TLE for orbital mechanics calculations
+		const tle = this.orbitalMechanics.generateTLEFromParams({
+			altitude_km: satellite.orbit?.altitude_km || 415,
+			inclination_degrees: satellite.orbit?.inclination_degrees || 51.6,
+			eccentricity: satellite.orbit?.eccentricity || 0.0001
+		});
+
 		this.activeSimulations.set(sessionId, {
 			interval,
 			satellite,
@@ -95,6 +105,7 @@ class SimulationEngine {
 			commandQueue,
 			beaconInterval: null,
 			deploymentTimeout: null,
+			tle: tle // Store TLE for orbital calculations
 		});
 
 		// Start beacon transmitter (first beacon after 45 minutes, then every 2 minutes)
@@ -247,6 +258,7 @@ class SimulationEngine {
 	 * @param {object} currentState - Current simulation state
 	 * @param {number} elapsedSeconds - Elapsed time since simulation start
 	 * @param {object} commandEffects - Active command effects
+	 * @param {string} sessionId - Session ID for getting TLE
 	 * @returns {object} Updated simulation state
 	 */
 	computeNextState(
@@ -254,18 +266,24 @@ class SimulationEngine {
 		currentState,
 		elapsedSeconds,
 		commandEffects = {},
+		sessionId = null,
 	) {
 		// Initialize state if empty
 		if (!currentState.orbit) {
 			currentState = this.initializeState(satellite);
 		}
 
-		// Simulate orbital mechanics (simplified model)
+		// Get TLE for accurate orbital propagation
+		const simulation = sessionId ? this.activeSimulations.get(sessionId) : null;
+		const tle = simulation?.tle;
+
+		// Simulate orbital mechanics using SGP4
 		const orbit = this.simulateOrbit(
 			satellite,
 			currentState.orbit,
 			elapsedSeconds,
 			commandEffects.orbitalManeuver,
+			tle,
 		);
 
 		// Simulate power subsystem
@@ -361,11 +379,49 @@ class SimulationEngine {
 	}
 
 	/**
-	 * Simulate orbital motion
+	 * Simulate orbital motion using SGP4 propagation
+	 * @param {object} satellite - Satellite configuration
+	 * @param {object} currentOrbit - Current orbital state
+	 * @param {number} elapsedSeconds - Elapsed time since simulation start
+	 * @param {object} maneuverEffect - Active orbital maneuver effect
+	 * @param {object} tle - Two-Line Element set for SGP4
+	 * @returns {object} Updated orbital state
 	 */
-	simulateOrbit(satellite, currentOrbit, _elapsedSeconds, maneuverEffect) {
+	simulateOrbit(satellite, currentOrbit, elapsedSeconds, maneuverEffect, tle) {
+		// Use SGP4 if TLE is available
+		if (tle && tle.line1 && tle.line2) {
+			const currentTime = Date.now();
+			const position = this.orbitalMechanics.getSatellitePosition(
+				tle.line1,
+				tle.line2,
+				currentTime
+			);
+
+			if (position) {
+				// Apply maneuver altitude change if active
+				let altitudeAdjustment = 0;
+				if (maneuverEffect) {
+					const elapsed = Date.now() - maneuverEffect.startTime;
+					if (elapsed < maneuverEffect.duration) {
+						const targetDelta = maneuverEffect.targetAltitude - position.altitude;
+						altitudeAdjustment = targetDelta * 0.05; // Gradual altitude change
+					}
+				}
+
+				return {
+					altitude_km: position.altitude + altitudeAdjustment,
+					inclination_degrees: currentOrbit.inclination_degrees,
+					eccentricity: currentOrbit.eccentricity,
+					latitude: position.latitude,
+					longitude: position.longitude,
+					velocity_km_s: position.velocity.magnitude,
+				};
+			}
+		}
+
+		// Fallback to simplified model if SGP4 unavailable
 		const orbitalPeriod = 5580; // ~93 minutes in seconds for LEO
-		const angle = (_elapsedSeconds / orbitalPeriod) * 360; // degrees
+		const angle = (elapsedSeconds / orbitalPeriod) * 360; // degrees
 
 		let altitudeChange = (Math.random() - 0.5) * 0.1;
 
@@ -375,14 +431,14 @@ class SimulationEngine {
 			if (elapsed < maneuverEffect.duration) {
 				const targetDelta =
 					maneuverEffect.targetAltitude - currentOrbit.altitude_km;
-				altitudeChange += targetDelta * 0.05; // Gradual altitude change
+				altitudeChange += targetDelta * 0.05;
 			}
 		}
 
 		return {
 			...currentOrbit,
 			altitude_km: currentOrbit.altitude_km + altitudeChange,
-			longitude: (angle * 4) % 360, // 4 orbits per day approximation
+			longitude: (angle * 4) % 360,
 			latitude:
 				currentOrbit.inclination_degrees * Math.sin((angle * Math.PI) / 180),
 		};
