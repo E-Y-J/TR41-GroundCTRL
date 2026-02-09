@@ -336,18 +336,12 @@ async function keepUsersCleanup() {
   console.log('\n✅ This will PRESERVE:');
   console.log('   • Firebase Auth users');
   console.log('   • Users collection in Firestore');
-  console.log('\n🚨 THIS OPERATION CANNOT BE UNDONE! 🚨\n');
+  console.log('\n💡 This is the SAFE option for resetting test data.\n');
   
-  // Confirmation
-  const confirm1 = await askQuestion('Are you sure you want to continue? (yes/no): ');
-  if (confirm1.toLowerCase() !== 'yes') {
+  // Single confirmation (safer mode doesn't need double confirm)
+  const confirm = await askQuestion('Continue with cleanup? (yes/no): ');
+  if (confirm.toLowerCase() !== 'yes') {
     console.log('\n❌ Cleanup cancelled.');
-    return false;
-  }
-  
-  const confirm2 = await askQuestion('\n⚠️  Type "DELETE EXCEPT USERS" to confirm: ');
-  if (confirm2 !== 'DELETE EXCEPT USERS') {
-    console.log('\n❌ Cleanup cancelled. Confirmation text did not match.');
     return false;
   }
   
