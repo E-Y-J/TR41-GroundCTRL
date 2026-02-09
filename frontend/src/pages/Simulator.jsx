@@ -28,7 +28,7 @@ const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat")
 
 // SimulatorContent - Renders all panels (they decide where to render based on docked state)
 function SimulatorContent({ 
-  sessionData,
+  telemetry,
   contextSessionId, 
   sessionIdParam, 
   missionStarted,
@@ -59,7 +59,7 @@ function SimulatorContent({
       
       {missionStarted && showADCSPanel && (
         <ADCSPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           status="nominal"
           onClose={() => setShowADCSPanel(false)}
         />
@@ -67,7 +67,7 @@ function SimulatorContent({
       
       {missionStarted && showEPSPanel && (
         <EPSPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           status="nominal"
           onClose={() => setShowEPSPanel(false)}
         />
@@ -75,7 +75,7 @@ function SimulatorContent({
       
       {missionStarted && showCommsPanel && (
         <CommsPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           status="nominal"
           onClose={() => setShowCommsPanel(false)}
         />
@@ -83,7 +83,7 @@ function SimulatorContent({
       
       {missionStarted && showPropulsionPanel && (
         <PropulsionPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           status="nominal"
           onClose={() => setShowPropulsionPanel(false)}
         />
@@ -98,7 +98,7 @@ function SimulatorContent({
       
       {missionStarted && showOrbitalViewPanel && (
         <OrbitalViewPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           onClose={() => setShowOrbitalViewPanel(false)}
         />
       )}
@@ -132,7 +132,8 @@ export default function Simulator() {
     initializeSession, 
     startMission,
     sessionId: contextSessionId,
-    connected 
+    connected,
+    telemetry
   } = useSimulatorState()
   
   // Import WebSocket context to manually connect
@@ -579,7 +580,7 @@ export default function Simulator() {
         
         {/* HUD Enhancement - All Panels (only renders floating ones, docked are in containers) */}
         <SimulatorContent
-          sessionData={sessionData}
+          telemetry={telemetry}
           contextSessionId={contextSessionId}
           sessionIdParam={sessionIdParam}
           missionStarted={missionStarted}
