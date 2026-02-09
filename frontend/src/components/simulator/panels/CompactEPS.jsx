@@ -14,53 +14,54 @@ export function CompactEPS({ telemetry }) {
 
   return (
     <div className="space-y-1 text-xs">
-      {/* Header */}
-      <div className="font-bold text-yellow-400 border-b border-yellow-900/50 pb-1">
-        ⚡ ELECTRICAL POWER
+      {/* Header - Professional subdued colors */}
+      <div className="font-mono text-[10px] text-slate-400 border-b border-slate-700/50 pb-1 flex items-center gap-2">
+        <span className="text-amber-400/80">⚡</span>
+        <span>POWER</span>
       </div>
       
       {/* Battery SOC */}
       <div className="py-1">
         <div className="flex justify-between mb-1">
-          <span className="text-muted-foreground">Battery SOC</span>
-          <span className="font-mono text-green-400 font-bold">{battery}%</span>
+          <span className="text-slate-500">Battery SOC</span>
+          <span className="font-mono text-emerald-400/90 font-bold">{battery}%</span>
         </div>
-        <div className="w-full bg-muted/30 rounded-full h-2">
+        <div className="w-full bg-slate-800/50 rounded-full h-1.5">
           <div 
-            className="bg-green-500 h-2 rounded-full transition-all" 
+            className="bg-emerald-500/80 h-1.5 rounded-full transition-all" 
             style={{ width: `${battery}%` }}
           />
         </div>
       </div>
       
       {/* Battery Details */}
-      <div className="grid grid-cols-3 gap-1 py-1 border-t border-border/30">
-        <div><span className="text-muted-foreground">Voltage:</span> <span className="font-mono">28.50 V</span></div>
-        <div><span className="text-muted-foreground">Current:</span> <span className="font-mono">2.50 A</span></div>
-        <div><span className="text-muted-foreground">Temp:</span> <span className="font-mono">20.0°C</span></div>
+      <div className="grid grid-cols-3 gap-1 py-1 border-t border-slate-800/50">
+        <div><span className="text-slate-500">V:</span> <span className="font-mono text-slate-300">28.50</span></div>
+        <div><span className="text-slate-500">A:</span> <span className="font-mono text-slate-300">2.50</span></div>
+        <div><span className="text-slate-500">T:</span> <span className="font-mono text-slate-300">20.0°C</span></div>
       </div>
       
       {/* Solar Arrays */}
-      <div className="py-1 border-t border-border/30">
+      <div className="py-1 border-t border-slate-800/50">
         <div className="flex justify-between mb-1">
-          <span className="text-muted-foreground">Solar Arrays</span>
-          <span className="font-mono text-yellow-400">☀️ {solar}W</span>
+          <span className="text-slate-500">Solar Arrays</span>
+          <span className="font-mono text-amber-400/90">{solar}W</span>
         </div>
         <div className="grid grid-cols-2 gap-1">
           {solarArrays.map((sa) => (
-            <div key={sa.id} className="flex justify-between">
-              <span className="text-muted-foreground">SA{sa.id}:</span>
-              <span className="font-mono text-green-400">{sa.output} W</span>
+            <div key={sa.id} className="flex justify-between bg-slate-900/30 px-1.5 py-1 rounded">
+              <span className="text-slate-500">SA{sa.id}</span>
+              <span className="font-mono text-emerald-400/90">{sa.output}W</span>
             </div>
           ))}
         </div>
       </div>
       
       {/* Charge Rate */}
-      <div className="py-1 border-t border-border/30">
+      <div className="py-1 border-t border-slate-800/50">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Charge Rate:</span>
-          <span className="font-mono text-green-400">71.3 W</span>
+          <span className="text-slate-500">Charge Rate</span>
+          <span className="font-mono text-emerald-400/90">+71.3 W</span>
         </div>
       </div>
     </div>

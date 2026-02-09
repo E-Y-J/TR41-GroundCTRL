@@ -17,6 +17,7 @@ import { StaticTMTCConsole } from "@/components/simulator/StaticTMTCConsole"
 import { CompactADCS } from "@/components/simulator/panels/CompactADCS"
 import { CompactEPS } from "@/components/simulator/panels/CompactEPS"
 import { CompactComms } from "@/components/simulator/panels/CompactComms"
+import { CompactTMTC } from "@/components/simulator/panels/CompactTMTC"
 import { DockContainerLayout } from "@/components/simulator/DockContainer"
 import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
@@ -394,8 +395,11 @@ export default function Simulator() {
                 }
                 rightPanels={
                   <div className="flex flex-col gap-3 h-full">
-                    {/* Right Dock - Communications & Command */}
+                    {/* Right Dock - Communications, TM/TC, & Command */}
                     <CompactComms telemetry={telemetry} />
+                    <div className="flex-1 min-h-0">
+                      <CompactTMTC />
+                    </div>
                     <div className="flex-1 min-h-0">
                       <CommandConsoleHUD />
                     </div>

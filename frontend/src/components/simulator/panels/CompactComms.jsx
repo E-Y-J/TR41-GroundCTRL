@@ -13,62 +13,61 @@ export function CompactComms({ telemetry }) {
 
   return (
     <div className="space-y-1 text-xs">
-      {/* Header */}
-      <div className="font-bold text-green-400 border-b border-green-900/50 pb-1">
-        📡 COMMUNICATIONS
+      {/* Header - Professional subdued colors */}
+      <div className="font-mono text-[10px] text-slate-400 border-b border-slate-700/50 pb-1 flex items-center gap-2">
+        <span className="text-sky-400/80">◉</span>
+        <span>COMMS</span>
       </div>
       
       {/* Signal Strength */}
       <div className="py-1">
         <div className="flex justify-between mb-1">
-          <span className="text-muted-foreground">Signal Strength</span>
-          <span className="font-mono text-yellow-400 font-bold">{signalStrength} dBm</span>
+          <span className="text-slate-500">Signal Strength</span>
+          <span className="font-mono text-amber-400/90 font-bold">{signalStrength} dBm</span>
         </div>
-        <div className="text-[10px] text-orange-400">WARNING</div>
+        <div className="text-[10px] text-amber-500/80">MARGINAL</div>
       </div>
       
       {/* Data Rates */}
-      <div className="grid grid-cols-2 gap-2 py-1 border-t border-border/30">
-        <div className="bg-blue-950/30 p-1.5 rounded">
-          <div className="text-muted-foreground mb-0.5">UPLINK</div>
-          <div className="font-mono text-blue-400">{uplink} kbps</div>
+      <div className="grid grid-cols-2 gap-2 py-1 border-t border-slate-800/50">
+        <div className="bg-slate-900/30 p-1.5 rounded border border-slate-800/50">
+          <div className="text-slate-500 mb-0.5 text-[10px]">↑ UPLINK</div>
+          <div className="font-mono text-sky-400/90">{uplink} kbps</div>
         </div>
-        <div className="bg-green-950/30 p-1.5 rounded">
-          <div className="text-muted-foreground mb-0.5">DOWNLINK</div>
-          <div className="font-mono text-green-400">{downlink} kbps</div>
+        <div className="bg-slate-900/30 p-1.5 rounded border border-slate-800/50">
+          <div className="text-slate-500 mb-0.5 text-[10px]">↓ DOWNLINK</div>
+          <div className="font-mono text-emerald-400/90">{downlink} kbps</div>
         </div>
       </div>
       
       {/* Packet Loss */}
-      <div className="py-1 border-t border-border/30">
+      <div className="py-1 border-t border-slate-800/50">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Packet Loss</span>
-          <span className="font-mono">{packetLoss} %</span>
+          <span className="text-slate-500">Packet Loss</span>
+          <span className="font-mono text-slate-300">{packetLoss}%</span>
         </div>
       </div>
       
       {/* Ground Station */}
-      <div className="py-1 border-t border-border/30">
-        <div className="flex justify-between items-center">
-          <span className="text-muted-foreground">GROUND STATION</span>
-        </div>
-        <div className="flex items-center justify-between mt-1 bg-green-950/30 p-1.5 rounded">
-          <div className="flex items-center gap-1">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            <span className="font-mono text-green-400">{groundStation}</span>
+      <div className="py-1 border-t border-slate-800/50">
+        <div className="text-slate-500 text-[10px] mb-1">GROUND STATION</div>
+        <div className="flex items-center justify-between bg-slate-900/30 p-1.5 rounded border border-slate-800/50">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span className="font-mono text-slate-300">{groundStation}</span>
           </div>
-          <span className="text-[10px] text-green-400">ACTIVE</span>
+          <span className="text-[9px] text-emerald-400/90">LOCK</span>
         </div>
-        <div className="text-[10px] text-muted-foreground mt-1">
+        <div className="text-[10px] text-slate-600 mt-1">
           Next AOS: 08:15:32
         </div>
       </div>
       
       {/* Antenna Status */}
-      <div className="py-1 border-t border-border/30">
+      <div className="py-1 border-t border-slate-800/50">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Antenna</span>
-          <span className="font-mono text-green-400">TRACKING</span>
+          <span className="text-slate-500">Antenna</span>
+          <span className="font-mono text-sky-400/90">TRACK</span>
         </div>
       </div>
     </div>
