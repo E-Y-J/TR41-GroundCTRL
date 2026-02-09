@@ -256,10 +256,10 @@ export function FloatingNovaChat({
     ? "left-6 bottom-6" 
     : "right-6 bottom-6"
 
-  // Initial position for draggable panel
+  // Initial position for draggable panel - position it safely on screen
   const initialPanelPosition = position === "left"
-    ? { x: 24, y: window.innerHeight - 696 } // 24px left, 696px = ~600px height + 96px from bottom
-    : { x: window.innerWidth - 408, y: window.innerHeight - 696 } // 408px = 384px width + 24px right
+    ? { x: 100, y: Math.max(100, window.innerHeight - 700) } // Safe position, at least 100px from top
+    : { x: window.innerWidth - 500, y: Math.max(100, window.innerHeight - 700) }
 
   return (
     <>
