@@ -154,6 +154,7 @@ function EquatorIndicator({ inclination }) {
 // ============================================================================
 
 export function GroundTrack2D({ 
+  telemetry,
   inclination = 53, 
   altitude = 415,
   showFootprint = true,
@@ -163,7 +164,7 @@ export function GroundTrack2D({
 }) {
   const [orbitProgress, setOrbitProgress] = useState(0)
   
-  // Animate satellite position along the orbit
+  // Animate satellite position along the orbit (fallback if no telemetry)
   useEffect(() => {
     const interval = setInterval(() => {
       setOrbitProgress((prev) => {
@@ -175,8 +176,10 @@ export function GroundTrack2D({
     return () => clearInterval(interval)
   }, [])
   
-  // Calculate current satellite position
-  const satPos = getSatellitePosition(0, inclination, orbitProgress)
+  // Use telemetry if available, otherwise calculate
+  const satPos = (telemetry?.orbit?.latitude != null && telemetry?.orbit?.longitude != null)
+    ? latLonToSvg(telemetry.orbit.latitude, telemetry.orbit.longitude)
+    : getSatellitePosition(0, inclination, orbitProgress)
   
   // Generate ground tracks
   const currentOrbit = generateGroundTrack(0, inclination, 200)
