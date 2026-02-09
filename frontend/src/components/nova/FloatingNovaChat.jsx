@@ -263,8 +263,13 @@ export function FloatingNovaChat({
 
   return (
     <>
-      {/* Floating Chat Panel - TEMPORARILY WITHOUT Draggable for debugging */}
+      {/* Floating Chat Panel - Draggable with proper configuration */}
       {isOpen && (
+        <Draggable
+          handle=".drag-handle"
+          bounds="parent"
+          nodeRef={draggableRef}
+        >
           <div 
             ref={draggableRef}
             className={`fixed w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
@@ -460,6 +465,7 @@ export function FloatingNovaChat({
           </>
           )}
           </div>
+        </Draggable>
       )}
 
       {/* Floating Button with Beaconing Animation */}
