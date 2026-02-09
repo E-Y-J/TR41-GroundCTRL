@@ -181,6 +181,8 @@ export function DraggablePanel({
         {/* Header with drag handle */}
         <div
           className={`p-2 border-b border-border bg-muted/30 flex items-center justify-between rounded-t-lg ${headerClassName}`}
+          onDoubleClick={handleDockToggle}
+          title="Double-click to undock"
         >
           <div className="flex items-center gap-2">
             <GripVertical className="w-4 h-4 text-muted-foreground" />
