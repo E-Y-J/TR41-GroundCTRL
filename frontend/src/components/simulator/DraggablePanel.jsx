@@ -166,9 +166,17 @@ export function DraggablePanel({
       }
     }
     
-    // Normal position update (not docking)
-    setPosition(prev => ({ ...prev, x: d.x, y: d.y }))
-  }, [docking, id, dockType])
+    // For uncontrolled mode: DON'T call setPosition - let react-rnd manage it
+    // Just save to localStorage directly
+    const newPos = { ...position, x: d.x, y: d.y }
+    if (newPos.x !== 0 || newPos.y !== 0) {
+      try {
+        localStorage.setItem(`panel-position-${id}`, JSON.stringify(newPos))
+      } catch (error) {
+        console.warn(`[DraggablePanel] Failed to save position:`, error)
+      }
+    }
+  }, [docking, id, dockType, position])
 
   // Handle manual dock toggle
   const handleDockToggle = useCallback(() => {
