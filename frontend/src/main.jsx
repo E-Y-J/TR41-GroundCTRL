@@ -45,12 +45,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </HelmetProvider>
   </React.StrictMode>,
 )
-
-// Hide loading screen once React app is ready
-const loadingScreen = document.getElementById('loading-screen')
-if (loadingScreen) {
-  console.log('Hiding loading screen')
-  loadingScreen.style.display = 'none'
-} else {
-  console.log('Loading screen not found')
-}

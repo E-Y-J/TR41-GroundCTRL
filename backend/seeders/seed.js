@@ -390,6 +390,18 @@ async function seedLeaderboard(scenarioMap) {
     return 0;
   }
   
+  // Fetch ground station IDs for converting codes to IDs
+  console.log('   Fetching ground stations...');
+  const groundStationMap = {};
+  const gsSnapshot = await db.collection('ground_stations').get();
+  gsSnapshot.forEach((doc) => {
+    const data = doc.data();
+    if (data.code) {
+      groundStationMap[data.code] = doc.id;
+    }
+  });
+  console.log(`   Found ${Object.keys(groundStationMap).length} ground stations`);
+  
   let count = 0;
   let skipped = 0;
   
@@ -404,6 +416,14 @@ async function seedLeaderboard(scenarioMap) {
     const sessionData = { ...session };
     delete sessionData.scenarioCode;
     sessionData.scenarioId = scenarioId;
+    
+    // Convert ground station codes to IDs
+    if (sessionData.groundStationCodes && Array.isArray(sessionData.groundStationCodes)) {
+      sessionData.groundStationIds = sessionData.groundStationCodes
+        .map(code => groundStationMap[code])
+        .filter(id => id); // Remove any undefined values
+      delete sessionData.groundStationCodes;
+    }
     
     const now = new Date().toISOString();
     sessionData.createdAt = sessionData.createdAt || now;

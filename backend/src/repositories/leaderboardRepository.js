@@ -58,6 +58,7 @@ async function getTopOperators(options = {}) {
 		const dateThreshold = getDateThreshold(period);
 
 		// Query scenario sessions for completed missions
+		let query = db
 		let query = getDb()
 			.collection("scenario_sessions")
 			.where("status", "==", "completed");
@@ -201,6 +202,7 @@ async function getScenarioLeaderboard(scenarioId, options = {}) {
 		logger.debug("Fetching scenario leaderboard", { scenarioId, limit });
 
 		// Query sessions for specific scenario
+		const snapshot = await db
 		const snapshot = await getDb()
 			.collection("scenario_sessions")
 			.where("scenarioId", "==", scenarioId)

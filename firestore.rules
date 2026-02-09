@@ -39,6 +39,10 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update, delete: if isAuthenticated() && 
                               (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Allow reading published scenarios without authentication for public access
+      allow get: if resource.data.isPublished == true;
+      allow list: if isAuthenticated();
     }
 
     // Scenario Steps collection - authenticated users can read, only owners can write
@@ -71,12 +75,65 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       allow read: if isAuthenticated() && 
                      (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated();
       allow write: if isAdmin();
     }
 
     // Token blacklist - only system/admin can access
     match /tokenBlacklist/{tokenId} {
       allow read, write: if isAdmin();
+    }
+
+    // User Progress collection - users can read/write their own progress
+    match /user_progress/{progressId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                       (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAuthenticated() && 
+                       (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Help Center collection - readable by all authenticated users, writable by admins
+    match /help_center/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Help categories subcollection
+    match /help_center/categories/{categoryId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Help articles subcollection
+    match /help_center/articles/{articleId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Help FAQs subcollection
+    match /help_center/faqs/{faqId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Leaderboard collection - readable by all authenticated users
+    match /leaderboard/{entryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && 
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                       (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Tutorials collection - readable by all authenticated users, writable by admins
+    match /tutorials/{tutorialId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
     // Default deny all for any other collections

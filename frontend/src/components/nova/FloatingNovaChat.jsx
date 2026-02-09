@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react"
 import { Bot, Sparkles, Lightbulb, HelpCircle, Send, Loader2, X, Minimize2, Maximize2 } from "lucide-react"
+import Draggable from "react-draggable"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +36,7 @@ export function FloatingNovaChat({
   const [conversationId, setConversationId] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const messagesEndRef = useRef(null)
+  const draggableRef = useRef(null) // For react-draggable
 
   const isAuthenticated = !!user
   const hasActiveSession = isAuthenticated && !!sessionId
@@ -246,21 +248,51 @@ export function FloatingNovaChat({
     ? "left-6 bottom-6" 
     : "right-6 bottom-6"
 
-  const panelPositionClasses = position === "left"
-    ? "left-6 bottom-24"
-    : "right-6 bottom-24"
+  // Initial position for draggable panel
+  const initialPanelPosition = position === "left"
+    ? { x: 24, y: window.innerHeight - 696 } // 24px left, 696px = ~600px height + 96px from bottom
+    : { x: window.innerWidth - 408, y: window.innerHeight - 696 } // 408px = 384px width + 24px right
 
   return (
     <>
-      {/* Floating Chat Panel */}
+      {/* Floating Chat Panel - Draggable but NOT Dockable */}
       {isOpen && (
-        <div 
-          className={`fixed ${panelPositionClasses} z-50 w-96 bg-card border border-border rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
-            isMinimized ? 'h-16' : 'h-150'
-          } ${className}`}
+        <Draggable
+          handle=".drag-handle"
+          defaultPosition={initialPanelPosition}
+          bounds={{
+            left: 0,
+            top: 0,
+            right: window.innerWidth - 384, // 384px = panel width
+            bottom: window.innerHeight - (isMinimized ? 64 : 600) // Adjust for panel height
+          }}
+          cancel="button, input, .messages-area"
+          nodeRef={draggableRef}
         >
-          {/* Header */}
-          <div className="p-4 border-b border-border bg-muted/50 flex items-center justify-between">
+          <div 
+            ref={draggableRef}
+            className={`fixed z-9999 w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
+              isMinimized ? 'h-16' : 'h-150'
+            } ${className}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation()
+            }}
+            onMouseUp={(e) => {
+              e.stopPropagation()
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation()
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation()
+            }}
+          >
+          {/* Header - Draggable Handle */}
+          <div className="drag-handle p-4 border-b border-border bg-muted/50 flex items-center justify-between cursor-move">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Bot className="w-4 h-4 text-primary" />
@@ -302,7 +334,7 @@ export function FloatingNovaChat({
           {!isMinimized && (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="messages-area flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -418,17 +450,18 @@ export function FloatingNovaChat({
                     )}
                   </Button>
                 </form>
-              </div>
-            </>
+            </div>
+          </>
           )}
-        </div>
+          </div>
+        </Draggable>
       )}
 
       {/* Floating Button with Beaconing Animation */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className={`fixed ${positionClasses} z-50 group ${className}`}
+          className={`fixed ${positionClasses} z-9999 group ${className}`}
           aria-label="Open NOVA Chat"
         >
           {/* Beaconing/Pulsing Rings */}

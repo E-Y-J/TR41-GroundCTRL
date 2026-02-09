@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { onAuthChange, signIn, signUp, signOut, resetPassword, signInWithGoogle } from "@/lib/firebase/auth"
-import { fetchUserProfile } from "@/lib/firebase/userProfile"
-import { loginWithFirebaseToken } from "@/lib/api/authService"
+import { loginWithFirebaseToken, getCurrentUser } from "@/lib/api/authService"
 import { setBackendTokens, clearBackendTokens } from "@/lib/api/httpClient"
 import { auth } from "@/lib/firebase/config"
 
@@ -18,39 +17,46 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthChange(async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // Fetch user profile from Firestore
-          const profile = await fetchUserProfile(firebaseUser.uid)
-          setUser({ 
-            ...firebaseUser, 
-            callSign: profile?.callSign || "",
-            isAdmin: profile?.isAdmin || false
-          })
+          // Exchange Firebase ID token for backend JWT tokens FIRST
+          const firebaseIdToken = await firebaseUser.getIdToken()
+          const backendResponse = await loginWithFirebaseToken(firebaseIdToken)
           
-          console.log('✅ Authenticated with Firebase', { isAdmin: profile?.isAdmin })
+          // Extract tokens from response structure: { user: {...}, tokens: { accessToken, refreshToken } }
+          const accessToken = backendResponse.tokens?.accessToken || backendResponse.accessToken
+          const refreshToken = backendResponse.tokens?.refreshToken || backendResponse.refreshToken
           
-          // Exchange Firebase ID token for backend JWT tokens
+          // Store backend JWT tokens
+          if (accessToken && refreshToken) {
+            setBackendTokens(accessToken, refreshToken)
+            console.log('✅ Backend JWT tokens obtained and stored')
+          } else {
+            console.warn('⚠️ Backend login successful but no tokens received:', backendResponse)
+          }
+          
+          // Now fetch user profile from backend API (using the JWT tokens we just stored)
           try {
-            const firebaseIdToken = await firebaseUser.getIdToken()
-            const backendResponse = await loginWithFirebaseToken(firebaseIdToken)
+            const profile = await getCurrentUser()
+            const userData = profile?.data || profile
             
-            // Extract tokens from response structure: { user: {...}, tokens: { accessToken, refreshToken } }
-            const accessToken = backendResponse.tokens?.accessToken || backendResponse.accessToken
-            const refreshToken = backendResponse.tokens?.refreshToken || backendResponse.refreshToken
+            setUser({ 
+              ...firebaseUser, 
+              callSign: userData?.callSign || "",
+              isAdmin: userData?.isAdmin || false
+            })
             
-            // Store backend JWT tokens
-            if (accessToken && refreshToken) {
-              setBackendTokens(accessToken, refreshToken)
-              console.log('✅ Backend JWT tokens obtained and stored')
-            } else {
-              console.warn('⚠️ Backend login successful but no tokens received:', backendResponse)
-            }
-          } catch (tokenError) {
-            console.error('❌ Failed to exchange Firebase token for backend JWT:', tokenError)
-            // Don't throw - user is still authenticated with Firebase
-            // They can still view pages, just API calls will fail until they refresh
+            console.log('✅ User profile loaded from backend', { isAdmin: userData?.isAdmin })
+          } catch (profileError) {
+            console.warn('⚠️ Failed to fetch profile from backend, using Firebase data only:', profileError)
+            // Fallback to Firebase user data only
+            setUser({ 
+              ...firebaseUser, 
+              callSign: "", 
+              isAdmin: false 
+            })
           }
         } catch (e) {
-          console.error('Failed to fetch profile:', e)
+          console.error('❌ Failed to authenticate with backend:', e)
+          // Still set user with Firebase data so they can at least view public pages
           setUser({ ...firebaseUser, callSign: "", isAdmin: false })
         }
       } else {
