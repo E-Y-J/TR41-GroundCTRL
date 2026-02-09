@@ -330,6 +330,7 @@ function setupLighting(scene) {
 // ============================================================================
 
 export function EarthGlobe3D({
+  telemetry,
   altitude = 415,
   inclination = 51.6,
   eccentricity = 0.0001,
@@ -377,7 +378,20 @@ export function EarthGlobe3D({
   // Derived values
   const orbitRadius = EARTH_RADIUS + (altitude / EARTH_RADIUS_KM)
 
-  // Calculate satellite position from orbital elements
+  // Convert lat/lon from telemetry to 3D position
+  const latLonToPosition = useCallback((lat, lon, alt = altitude) => {
+    const radius = EARTH_RADIUS + (alt / EARTH_RADIUS_KM)
+    const phi = (90 - lat) * DEG_TO_RAD
+    const theta = (lon + 180) * DEG_TO_RAD
+
+    const x = -(radius * Math.sin(phi) * Math.cos(theta))
+    const z = radius * Math.sin(phi) * Math.sin(theta)
+    const y = radius * Math.cos(phi)
+
+    return { x, y, z, lat, lon, alt }
+  }, [altitude])
+
+  // Calculate satellite position from orbital elements (fallback)
   const calculateSatellitePosition = useCallback((
     anomaly,
     radius,
@@ -719,9 +733,21 @@ export function EarthGlobe3D({
 
       // Atmosphere shader uses built-in cameraPosition uniform, no need to update
 
-      // Update satellite position
+      // Update satellite position - use telemetry if available, otherwise calculate
       if (satelliteRef.current) {
-        const pos = calculateSatellitePosition(trueAnomaly, orbitRadius, inclination, raan)
+        let pos
+        if (telemetry?.orbit?.latitude != null && telemetry?.orbit?.longitude != null) {
+          // Use real-time telemetry from backend
+          pos = latLonToPosition(
+            telemetry.orbit.latitude,
+            telemetry.orbit.longitude,
+            telemetry.orbit.altitude_km || altitude
+          )
+        } else {
+          // Fallback to calculated position
+          pos = calculateSatellitePosition(trueAnomaly, orbitRadius, inclination, raan)
+        }
+        
         const satPosVec = new THREE.Vector3(pos.x, pos.y, pos.z)
         satelliteRef.current.position.copy(satPosVec)
         satelliteRef.current.lookAt(0, 0, 0)
@@ -843,10 +869,12 @@ export function EarthGlobe3D({
     return () => cancelAnimationFrame(animationRef.current)
   }, [
     isLoaded, 
+    telemetry,
     altitude, 
     inclination, 
     raan, 
     orbitRadius, 
+    latLonToPosition,
     calculateSatellitePosition, 
     calculateOrbitalVelocity,
     trueAnomaly, 
