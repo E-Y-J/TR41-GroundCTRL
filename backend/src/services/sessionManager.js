@@ -159,7 +159,7 @@ class SessionManager {
 	 * @param {string} userId - User ID
 	 * @param {object} socket - Socket.IO socket instance
 	 */
-	disconnectFromSession(sessionId, userId, socket) {
+	async disconnectFromSession(sessionId, userId, socket) {
 		try {
 			socket.leave(`session:${sessionId}`);
 
@@ -176,6 +176,32 @@ class SessionManager {
 
 				// Clean up session if no users remain
 				if (sessionInfo.users.size === 0) {
+					// Explicitly save final state before cleanup
+					const finalState = sessionInfo.state;
+					
+					if (finalState) {
+						try {
+							await scenarioSessionRepository.patch(sessionId, {
+								state: finalState,
+								last_activity_at: new Date()
+							});
+							
+							logger.info('Final session state saved to Firestore', {
+								sessionId,
+								hasTelemetry: !!finalState.telemetry,
+								elapsedTime: finalState.elapsedTime,
+								lat: finalState.telemetry?.orbit?.latitude,
+								lon: finalState.telemetry?.orbit?.longitude
+							});
+						} catch (saveError) {
+							logger.error('Failed to save final session state', {
+								sessionId,
+								error: saveError.message
+							});
+						}
+					}
+					
+					// Now safe to delete from memory and stop simulation
 					this.activeSessions.delete(sessionId);
 
 					// Stop simulation if engine is available

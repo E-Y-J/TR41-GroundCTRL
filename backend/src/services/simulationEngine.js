@@ -29,7 +29,7 @@ class SimulationEngine {
 	 * Start simulation for a session
 	 * @param {string} sessionId - Scenario session ID
 	 * @param {object} satellite - Satellite configuration
-	 * @param {object} initialState - Initial simulation state
+	 * @param {object} initialState - Initial simulation state (may contain saved telemetry and elapsedTime)
 	 * @param {string} scenarioDifficulty - Scenario difficulty level (BEGINNER, INTERMEDIATE, ADVANCED)
 	 */
 	startSimulation(
@@ -43,7 +43,17 @@ class SimulationEngine {
 			return;
 		}
 
-		const startTime = Date.now();
+		// Restore start time from saved elapsed time if resuming a session
+		const savedElapsedTime = initialState.elapsedTime || 0;
+		const startTime = Date.now() - (savedElapsedTime * 1000);
+		
+		logger.info("Starting simulation", {
+			sessionId,
+			resuming: savedElapsedTime > 0,
+			savedElapsedTime,
+			hasSavedTelemetry: !!initialState.telemetry
+		});
+
 		const simState = {
 			satellite,
 			startTime,
@@ -339,9 +349,58 @@ class SimulationEngine {
 	/**
 	 * Initialize simulation state from satellite configuration
 	 * @param {object} satellite - Satellite configuration
+	 * @param {object} savedTelemetry - Saved telemetry from previous session (optional)
 	 * @returns {object} Initial state
 	 */
-	initializeState(satellite) {
+	initializeState(satellite, savedTelemetry = null) {
+		// If we have saved telemetry, restore from it
+		if (savedTelemetry?.orbit) {
+			logger.info("Restoring simulation state from saved telemetry", {
+				savedLat: savedTelemetry.orbit.latitude,
+				savedLon: savedTelemetry.orbit.longitude,
+				savedAlt: savedTelemetry.orbit.altitude_km
+			});
+			
+			return {
+				orbit: {
+					altitude_km: savedTelemetry.orbit.altitude_km || satellite.orbit?.altitude_km || 415,
+					inclination_degrees: savedTelemetry.orbit.inclination_degrees || satellite.orbit?.inclination_degrees || 53,
+					eccentricity: savedTelemetry.orbit.eccentricity || satellite.orbit?.eccentricity || 0.0,
+					latitude: savedTelemetry.orbit.latitude || 0,
+					longitude: savedTelemetry.orbit.longitude || 0,
+					velocity_km_s: savedTelemetry.orbit.velocity_km_s || 7.66,
+				},
+				power: {
+					currentCharge_percent: savedTelemetry.power?.currentCharge_percent || satellite.power?.currentCharge_percent || 95,
+					solarPower_watts: savedTelemetry.power?.solarPower_watts || satellite.power?.solarPower_watts || 100,
+					consumption_watts: savedTelemetry.power?.consumption_watts || satellite.power?.consumption_watts || 45,
+					status: savedTelemetry.power?.status || "nominal",
+				},
+				attitude: {
+					roll_degrees: savedTelemetry.attitude?.roll_degrees || 0,
+					pitch_degrees: savedTelemetry.attitude?.pitch_degrees || 0,
+					yaw_degrees: savedTelemetry.attitude?.yaw_degrees || 0,
+					mode: savedTelemetry.attitude?.mode || "nominal",
+					status: savedTelemetry.attitude?.status || "nominal",
+				},
+				thermal: {
+					temperature_celsius: savedTelemetry.thermal?.temperature_celsius || satellite.thermal?.temperature_celsius || 20,
+					status: savedTelemetry.thermal?.status || "nominal",
+				},
+				propulsion: {
+					fuel_percent: savedTelemetry.propulsion?.fuel_percent || satellite.propulsion?.fuel_percent || 100,
+					status: savedTelemetry.propulsion?.status || "nominal",
+				},
+				payload: {
+					status: savedTelemetry.payload?.status || satellite.payload?.status || "nominal",
+					dataCollected_mb: savedTelemetry.payload?.dataCollected_mb || 0,
+				},
+			};
+		}
+		
+		// Otherwise, initialize fresh state from satellite defaults
+		logger.info("Initializing fresh simulation state from satellite configuration");
+		
 		return {
 			orbit: {
 				altitude_km: satellite.orbit?.altitude_km || 415,
@@ -349,7 +408,7 @@ class SimulationEngine {
 				eccentricity: satellite.orbit?.eccentricity || 0.0,
 				longitude: 0,
 				latitude: 0,
-				velocity_mps: 7660,
+				velocity_km_s: 7.66,
 			},
 			power: {
 				currentCharge_percent: satellite.power?.currentCharge_percent || 95,

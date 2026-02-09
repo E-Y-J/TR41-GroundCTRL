@@ -13,20 +13,98 @@ import { TimeControlDisplay } from "@/components/simulator/time-control-display"
 import { OperatorPrompt } from "@/components/simulator/operator-prompt"
 import { PerformanceMetrics } from "@/components/simulator/performance-metrics"
 import { VisualizationSwitcher } from "@/components/simulator/views"
-import { StaticTMTCConsole } from "@/components/simulator/StaticTMTCConsole"
-import { CompactADCS } from "@/components/simulator/panels/CompactADCS"
-import { CompactEPS } from "@/components/simulator/panels/CompactEPS"
-import { CompactComms } from "@/components/simulator/panels/CompactComms"
-import { CompactTMTC } from "@/components/simulator/panels/CompactTMTC"
+import { FloatingTMTCConsole } from "@/components/simulator/FloatingTMTCConsole"
+import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel, TimeControlPanel, OrbitalViewPanel } from "@/components/simulator/panels"
+import { DockingProvider, useDocking } from "@/contexts/DockingContext"
 import { DockContainerLayout } from "@/components/simulator/DockContainer"
 import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
 import { fetchSessionById, markSessionInProgress } from "@/lib/firebase/sessionService"
-import { Loader2, AlertCircle, Satellite, Radio } from "lucide-react"
+import { Loader2, AlertCircle, Satellite, Radio, Clock, Battery, Antenna, Zap, Globe } from "lucide-react"
 
 // Lazy load heavy components
 const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat").then(module => ({ default: module.FloatingNovaChat })))
+
+// SimulatorContent - Renders all panels (they decide where to render based on docked state)
+function SimulatorContent({ 
+  telemetry,
+  contextSessionId, 
+  sessionIdParam, 
+  missionStarted,
+  showTMTCConsole, 
+  showADCSPanel, 
+  showEPSPanel, 
+  showCommsPanel, 
+  showPropulsionPanel, 
+  showTimeControlPanel,
+  showOrbitalViewPanel,
+  setShowTMTCConsole,
+  setShowADCSPanel,
+  setShowEPSPanel,
+  setShowCommsPanel,
+  setShowPropulsionPanel,
+  setShowTimeControlPanel,
+  setShowOrbitalViewPanel
+}) {
+  return (
+    <>
+      {/* Render all panels - they handle docked/floating internally */}
+      {missionStarted && showTMTCConsole && (
+        <FloatingTMTCConsole
+          sessionId={contextSessionId || sessionIdParam}
+          onClose={() => setShowTMTCConsole(false)}
+        />
+      )}
+      
+      {missionStarted && showADCSPanel && (
+        <ADCSPanel
+          telemetry={telemetry}
+          status="nominal"
+          onClose={() => setShowADCSPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showEPSPanel && (
+        <EPSPanel
+          telemetry={telemetry}
+          status="nominal"
+          onClose={() => setShowEPSPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showCommsPanel && (
+        <CommsPanel
+          telemetry={telemetry}
+          status="nominal"
+          onClose={() => setShowCommsPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showPropulsionPanel && (
+        <PropulsionPanel
+          telemetry={telemetry}
+          status="nominal"
+          onClose={() => setShowPropulsionPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showTimeControlPanel && (
+        <TimeControlPanel
+          sessionId={contextSessionId || sessionIdParam}
+          onClose={() => setShowTimeControlPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showOrbitalViewPanel && (
+        <OrbitalViewPanel
+          telemetry={telemetry}
+          onClose={() => setShowOrbitalViewPanel(false)}
+        />
+      )}
+    </>
+  )
+}
 
 export default function Simulator() {
   const navigate = useNavigate()
@@ -38,7 +116,16 @@ export default function Simulator() {
   const [sessionLoading, setSessionLoading] = useState(true)
   const [sessionError, setSessionError] = useState(null)
   const [sessionData, setSessionData] = useState(null)
-  const [viewMode, setViewMode] = useState("3d")
+  
+  // HUD Enhancement - Panel visibility state (all start closed, user opens via icon toggles)
+  const [showTMTCConsole, setShowTMTCConsole] = useState(false)
+  const [showADCSPanel, setShowADCSPanel] = useState(false)
+  const [showEPSPanel, setShowEPSPanel] = useState(false)
+  const [showCommsPanel, setShowCommsPanel] = useState(false)
+  const [showPropulsionPanel, setShowPropulsionPanel] = useState(false)
+  const [showTimeControlPanel, setShowTimeControlPanel] = useState(false)
+  const [showOrbitalViewPanel, setShowOrbitalViewPanel] = useState(false)
+  const [viewMode, setViewMode] = useState("2d")
   
   // Use simulator state context
   const { 
@@ -143,37 +230,49 @@ export default function Simulator() {
         }
       }) || []
       
-      // Create initial telemetry from session satellite data
-      // Always provide default telemetry even if satellite data is missing
+      // Restore saved telemetry if resuming a session
       const satelliteData = sessionData.satellite || {}
+      const savedTelemetry = sessionData.state?.telemetry
+      const savedElapsedTime = sessionData.state?.elapsedTime || 0
+      
+      console.log('[Simulator] Session data loaded', {
+        hasSavedTelemetry: !!savedTelemetry,
+        savedElapsedTime,
+        savedLat: savedTelemetry?.orbit?.latitude,
+        savedLon: savedTelemetry?.orbit?.longitude
+      })
+      
+      // Create initial telemetry - restore from saved state if available
       const initialTelemetry = {
         timestamp: Date.now(),
         orbit: {
-          altitude_km: satelliteData.orbit?.altitude_km || 415,
-          perigee_km: satelliteData.orbit?.altitude_km || 415,
-          apogee_km: satelliteData.orbit?.altitude_km || 415,
-          inclination_degrees: satelliteData.orbit?.inclination_degrees || 51.6,
+          altitude_km: savedTelemetry?.orbit?.altitude_km || satelliteData.orbit?.altitude_km || 415,
+          perigee_km: savedTelemetry?.orbit?.altitude_km || satelliteData.orbit?.altitude_km || 415,
+          apogee_km: savedTelemetry?.orbit?.altitude_km || satelliteData.orbit?.altitude_km || 415,
+          inclination_degrees: savedTelemetry?.orbit?.inclination_degrees || satelliteData.orbit?.inclination_degrees || 51.6,
           period_minutes: 92.7,
-          eccentricity: satelliteData.orbit?.eccentricity || 0.0,
-          velocity_km_s: 7.7
+          eccentricity: savedTelemetry?.orbit?.eccentricity || satelliteData.orbit?.eccentricity || 0.0,
+          velocity_km_s: savedTelemetry?.orbit?.velocity_km_s || 7.7,
+          latitude: savedTelemetry?.orbit?.latitude || 0,  // ✅ Restore saved position
+          longitude: savedTelemetry?.orbit?.longitude || 0  // ✅ Restore saved position
         },
         position: {
-          latitude: 0,
-          longitude: 0
+          latitude: savedTelemetry?.orbit?.latitude || 0,
+          longitude: savedTelemetry?.orbit?.longitude || 0
         },
         subsystems: {
           power: {
-            batterySoc: satelliteData.power?.currentCharge_percent || 95,
-            solarArrayOutput: satelliteData.power?.solarPower_watts || 1800,
-            status: 'nominal'
+            batterySoc: savedTelemetry?.power?.currentCharge_percent || satelliteData.power?.currentCharge_percent || 95,
+            solarArrayOutput: savedTelemetry?.power?.solarPower_watts || satelliteData.power?.solarPower_watts || 1800,
+            status: savedTelemetry?.power?.status || 'nominal'
           },
           thermal: {
-            temperature_celsius: satelliteData.thermal?.temperature_celsius || 20,
-            status: 'nominal'
+            temperature_celsius: savedTelemetry?.thermal?.temperature_celsius || satelliteData.thermal?.temperature_celsius || 20,
+            status: savedTelemetry?.thermal?.status || 'nominal'
           },
           propulsion: {
-            fuelRemaining: satelliteData.propulsion?.fuel_percent || 100,
-            status: 'nominal'
+            fuelRemaining: savedTelemetry?.propulsion?.fuel_percent || satelliteData.propulsion?.fuel_percent || 100,
+            status: savedTelemetry?.propulsion?.status || 'nominal'
           }
         },
         communications: {
@@ -190,9 +289,12 @@ export default function Simulator() {
           name: sessionData.scenario?.title || 'Mission',
           steps: steps,
           satellite: sessionData.satellite, // Include satellite snapshot
-          savedProgress: savedProgress // Pass saved progress
+          savedProgress: {
+            ...savedProgress,
+            elapsedTime: savedElapsedTime  // ✅ Pass saved elapsed time
+          }
         },
-        initialTelemetry // Provide initial telemetry so UI isn't stuck loading
+        initialTelemetry // Provide initial telemetry (restored from saved state if available)
       )
     }
   }, [user, sessionData, contextSessionId, initializeSession])
@@ -322,88 +424,135 @@ export default function Simulator() {
       <Helmet>
         <title>Simulator - GroundCTRL</title>
       </Helmet>
-      <div className="h-screen min-h-150 flex flex-col bg-background overflow-hidden">
-        <AppHeader />
-        
-        {/* Mission Steps Panel - Shows current objectives */}
-        {missionStarted && <MissionStepsPanel />}
-        
-        {/* Mission Control - Ground Station Indicator, View Toggle, and Performance Metrics */}
-        {missionStarted && (
-          <div className="px-4 py-2 border-b border-border bg-muted/30">
-            <div className="flex items-center justify-between">
-              <GroundStationIndicator />
-              
-              {/* 2D/3D View Toggle */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setViewMode("2d")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === "2d" 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  2D Map
-                </button>
-                <button
-                  onClick={() => setViewMode("3d")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === "3d" 
-                      ? "bg-primary text-primary-foreground" 
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  3D Globe
-                </button>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <PerformanceMetrics sessionId={contextSessionId || sessionIdParam} />
+      <DockingProvider>
+        <div className="h-screen min-h-150 flex flex-col bg-background overflow-hidden">
+          <AppHeader />
+          
+          {/* Mission Steps Panel - Shows current objectives */}
+          {missionStarted && <MissionStepsPanel />}
+          
+          {/* Mission Control Enhancement - Ground Station Indicator + Panel Controls */}
+          {missionStarted && (
+            <div className="px-4 py-2 border-b border-border bg-muted/30">
+              <div className="flex items-center justify-between">
+                <GroundStationIndicator />
+                
+                {/* Panel Toggle Icons - Show icons for closed panels with abbreviated labels */}
+                <div className="flex items-center gap-2">
+                  {!showTimeControlPanel && (
+                    <button
+                      onClick={() => setShowTimeControlPanel(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show Time Control"
+                      aria-label="Show Time Control"
+                    >
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">TIME</span>
+                    </button>
+                  )}
+                  {!showTMTCConsole && (
+                    <button
+                      onClick={() => setShowTMTCConsole(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show TM/TC Console"
+                      aria-label="Show TM/TC Console"
+                    >
+                      <Radio className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">TMTC</span>
+                    </button>
+                  )}
+                  {!showADCSPanel && (
+                    <button
+                      onClick={() => setShowADCSPanel(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show ADCS Panel"
+                      aria-label="Show ADCS Panel"
+                    >
+                      <Satellite className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">ADCS</span>
+                    </button>
+                  )}
+                  {!showEPSPanel && (
+                    <button
+                      onClick={() => setShowEPSPanel(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show EPS Panel"
+                      aria-label="Show EPS Panel"
+                    >
+                      <Battery className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">EPS</span>
+                    </button>
+                  )}
+                  {!showCommsPanel && (
+                    <button
+                      onClick={() => setShowCommsPanel(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show Comms Panel"
+                      aria-label="Show Comms Panel"
+                    >
+                      <Antenna className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">COMM</span>
+                    </button>
+                  )}
+                  {!showPropulsionPanel && (
+                    <button
+                      onClick={() => setShowPropulsionPanel(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show Propulsion Panel"
+                      aria-label="Show Propulsion Panel"
+                    >
+                      <Zap className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">PROP</span>
+                    </button>
+                  )}
+                  {!showOrbitalViewPanel && (
+                    <button
+                      onClick={() => setShowOrbitalViewPanel(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show Orbital View"
+                      aria-label="Show Orbital View"
+                    >
+                      <Satellite className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">ORBIT</span>
+                    </button>
+                  )}
+                  
+                  {/* 2D/3D View Toggle */}
+                  <button
+                    onClick={() => setViewMode(prev => prev === "2d" ? "3d" : "2d")}
+                    className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                    title={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
+                    aria-label={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
+                  >
+                    <Globe className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">{viewMode === "2d" ? "3D" : "2D"}</span>
+                  </button>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <PerformanceMetrics sessionId={contextSessionId || sessionIdParam} />
+                </div>
               </div>
             </div>
-          </div>
-        )}
-        
-        {/* Fixed Grid Layout - NASA-style mission control with all panels visible */}
-        {missionStarted ? (
-          <>
-            <DockContainerLayout
-                topContent={
-                  <div className="w-full flex items-center justify-between px-2">
-                    {/* Propulsion status - compact */}
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="font-bold text-orange-400">🚀 PROPULSION:</span>
-                      <span>{telemetry?.subsystems?.propulsion?.fuelRemaining || 100}% Fuel</span>
+          )}
+          
+          {/* Fixed Grid Layout - Always visible with locked columns */}
+          {missionStarted ? (
+            <>
+              <DockContainerLayout
+                leftContent={
+                  <>
+                    {/* Left column - Reserved for future docked panels */}
+                    <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                      {/* Placeholder - panels can dock here */}
                     </div>
-                    
-                    {/* Orbital telemetry - compact */}
-                    <div className="flex items-center gap-4 text-xs">
-                      <span><strong>ALT:</strong> {telemetry?.orbit?.altitude_km?.toFixed(1) || '415.0'} km</span>
-                      <span><strong>VEL:</strong> {telemetry?.orbit?.velocity_km_s?.toFixed(2) || '7.70'} km/s</span>
-                      <span><strong>INC:</strong> {telemetry?.orbit?.inclination_degrees?.toFixed(1) || '51.6'}°</span>
-                      <span><strong>PERIOD:</strong> {telemetry?.orbit?.period_minutes?.toFixed(1) || '92.7'} min</span>
-                    </div>
-                  </div>
+                  </>
                 }
-                leftPanels={
-                  <div className="flex flex-col gap-3 h-full">
-                    {/* Left Dock - Attitude & Power Systems */}
-                    <CompactADCS telemetry={telemetry} />
-                    <CompactEPS telemetry={telemetry} />
-                  </div>
-                }
-                rightPanels={
-                  <div className="flex flex-col gap-3 h-full">
-                    {/* Right Dock - Communications, TM/TC, & Command */}
-                    <CompactComms telemetry={telemetry} />
-                    <div className="flex-1 min-h-0">
-                      <CompactTMTC />
-                    </div>
-                    <div className="flex-1 min-h-0">
-                      <CommandConsoleHUD />
-                    </div>
-                  </div>
+                rightContent={
+                  <>
+                    {/* Command Console docked in right column */}
+                    <CommandConsoleHUD />
+                  </>
                 }
               >
                 {/* Center: 3D/2D Visualization - Always visible in grid */}
@@ -419,49 +568,72 @@ export default function Simulator() {
                   groundStationsData={groundStations}
                   className="h-full w-full"
                 />
-            </DockContainerLayout>
-            
-            {/* Enhanced Footer (outside grid, full width at bottom) */}
-            <SimulatorFooter 
-              missionStarted={missionStarted} 
-              sessionId={contextSessionId || sessionIdParam}
-              satellite={sessionData?.satellite}
-            />
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-muted-foreground">Waiting for mission start...</p>
-          </div>
+              </DockContainerLayout>
+              
+              {/* Enhanced Footer (outside grid, full width at bottom) */}
+              <SimulatorFooter 
+                missionStarted={missionStarted} 
+                sessionId={contextSessionId || sessionIdParam}
+                satellite={sessionData?.satellite}
+              />
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-muted-foreground">Waiting for mission start...</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Alert Panel - displays system alerts */}
+        <AlertPanel />
+        
+        {/* Mission Control Enhancement - Operator Prompt for time acceleration */}
+        {missionStarted && (
+          <OperatorPrompt sessionId={contextSessionId || sessionIdParam} />
         )}
-      </div>
-      
-      {/* Alert Panel - displays system alerts */}
-      <AlertPanel />
-      
-      {/* Mission Control Enhancement - Operator Prompt for time acceleration */}
-      {missionStarted && (
-        <OperatorPrompt sessionId={contextSessionId || sessionIdParam} />
-      )}
-      
-      {/* Mission Start Modal - shows before mission begins */}
-      {!missionStarted && sessionData && (
-        <MissionStartModal 
-          missionId={sessionData.scenario_id} 
-          onStart={handleStartMission}
-        />
-      )}
-      
-      {/* Floating NOVA Chat - Always floating, never docked */}
-      {missionStarted && (
-        <Suspense fallback={null}>
-          <FloatingNovaChat 
-            sessionId={contextSessionId || sessionIdParam} 
-            stepId={sessionData?.scenario_id}
-            context="simulator"
-            position="left"
+        
+        {/* Mission Start Modal - shows before mission begins */}
+        {!missionStarted && sessionData && (
+          <MissionStartModal 
+            missionId={sessionData.scenario_id} 
+            onStart={handleStartMission}
           />
-        </Suspense>
-      )}
+        )}
+        
+        {/* Floating NOVA Chat - Always floating, never docked */}
+        {missionStarted && (
+          <Suspense fallback={null}>
+            <FloatingNovaChat 
+              sessionId={contextSessionId || sessionIdParam} 
+              stepId={sessionData?.scenario_id}
+              context="simulator"
+              position="left"
+            />
+          </Suspense>
+        )}
+        
+        {/* HUD Enhancement - All Panels (only renders floating ones, docked are in containers) */}
+        <SimulatorContent
+          telemetry={telemetry}
+          contextSessionId={contextSessionId}
+          sessionIdParam={sessionIdParam}
+          missionStarted={missionStarted}
+          showTMTCConsole={showTMTCConsole}
+          showADCSPanel={showADCSPanel}
+          showEPSPanel={showEPSPanel}
+          showCommsPanel={showCommsPanel}
+          showPropulsionPanel={showPropulsionPanel}
+          showTimeControlPanel={showTimeControlPanel}
+          showOrbitalViewPanel={showOrbitalViewPanel}
+          setShowTMTCConsole={setShowTMTCConsole}
+          setShowADCSPanel={setShowADCSPanel}
+          setShowEPSPanel={setShowEPSPanel}
+          setShowCommsPanel={setShowCommsPanel}
+          setShowPropulsionPanel={setShowPropulsionPanel}
+          setShowTimeControlPanel={setShowTimeControlPanel}
+          setShowOrbitalViewPanel={setShowOrbitalViewPanel}
+        />
+      </DockingProvider>
     </>
   )
 }
