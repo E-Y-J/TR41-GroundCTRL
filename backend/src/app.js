@@ -83,6 +83,28 @@ app.use(
 			includeSubDomains: true,
 			preload: true,
 		},
+		permissionsPolicy: {
+			features: {
+				geolocation: ["'none'"],
+				"payment": ["'none'"],
+				usb: ["'none'"],
+				accelerometer: ["'none'"],
+				gyroscope: ["'none'"],
+				magnetometer: ["'none'"],
+				microphone: ["'none'"],
+				speaker: ["'none'"],
+				"fullscreen": ["'none'"],
+				"ambient-light-sensor": ["'none'"],
+				"autoplay": ["'none'"],
+				"camera": ["'none'"],
+				"encrypted-media": ["'none'"],
+				"display-capture": ["'none'"],
+				"document-domain": ["'none'"],
+				"midi": ["'none'"],
+				"vr": ["'none'"],
+				"xr-spatial-tracking": ["'none'"],
+			},
+		},
 	}),
 );
 
