@@ -93,6 +93,18 @@ describe('Scenario Seed Data - Integration Tests', () => {
 
     app = require('../../../src/app');
 
+    const email = `seedtest-${Date.now()}@example.com`;
+    const registerResponse = await request(app)
+      .post('/api/v1/auth/register')
+      .send({
+        email,
+        password: 'TestPass123!',
+        callSign: 'SEED-TEST'
+      });
+
+    const testUserId = registerResponse.body.payload.user.uid;
+    testToken = registerResponse.body.payload.tokens.accessToken;
+
     // Load seed data
     const satellites = require('../../../seeders/data/satellites');
     const scenarios = require('../../../seeders/data/scenarios');
@@ -106,7 +118,7 @@ describe('Scenario Seed Data - Integration Tests', () => {
       await db.collection('satellites').doc(satellite.code).set({
         ...satellite.data,
         code: satellite.code,
-        createdBy: '5usOQ3eOm7OjXmDOFjEmKSQovs42',
+        createdBy: testUserId,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     }
@@ -116,7 +128,7 @@ describe('Scenario Seed Data - Integration Tests', () => {
       const scenarioRef = await db.collection('scenarios').add({
         ...scenario.data,
         code: scenario.code, // Add code field
-        createdBy: '5usOQ3eOm7OjXmDOFjEmKSQovs42',
+        createdBy: testUserId,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
       console.log(`Seeded scenario: ${scenario.code} with ID: ${scenarioRef.id}`);
@@ -129,7 +141,7 @@ describe('Scenario Seed Data - Integration Tests', () => {
           ...step.data,
           scenarioId: scenarioRef.id,
           order: step.data.stepOrder, // Map stepOrder to order
-          createdBy: '5usOQ3eOm7OjXmDOFjEmKSQovs42',
+          createdBy: testUserId,
           createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
         console.log(`Seeded step: ${step.data.title} for scenario ${scenarioRef.id}`);
@@ -140,21 +152,10 @@ describe('Scenario Seed Data - Integration Tests', () => {
     for (const command of commands) {
       await db.collection('commands').add({
         ...command.data,
-        createdBy: '5usOQ3eOm7OjXmDOFjEmKSQovs42',
+        createdBy: testUserId,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     }
-
-    const email = `seedtest-${Date.now()}@example.com`;
-    const registerResponse = await request(app)
-      .post('/api/v1/auth/register')
-      .send({
-        email,
-        password: 'TestPass123!',
-        callSign: 'SEED-TEST'
-      });
-
-    testToken = registerResponse.body.payload.tokens.accessToken;
   });
 
   describe('SEED-001: Satellite Seed Data Validation', () => {
@@ -298,13 +299,12 @@ describe('Scenario Seed Data - Integration Tests', () => {
         const db = admin.firestore();
         const stepsSnapshot = await db.collection('scenario_steps')
           .where('scenarioId', '==', guidedScenario.id)
-          .orderBy('order', 'asc')
           .get();
         
         expect(stepsSnapshot.docs.length).toBeGreaterThan(0);
         
         // Demo scenarios should have sequential steps
-        const steps = stepsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const steps = stepsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.order - b.order);
         steps.forEach((step, index) => {
           expect(step).toHaveProperty('order');
           expect(step.order).toBe(index + 1); // Should be sequential starting from 1

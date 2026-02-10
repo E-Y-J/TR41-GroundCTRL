@@ -8,15 +8,6 @@
 const { getFirestore } = require("../config/firebase");
 const logger = require("../utils/logger");
 
-// Lazy getter for Firestore instance (initialized when needed)
-let _db = null;
-function getDb() {
-	if (!_db) {
-		_db = getFirestore();
-	}
-	return _db;
-}
-
 /**
  * Validate Firebase emulator configuration in test/CI environments
  */
@@ -58,16 +49,15 @@ async function getTopOperators(options = {}) {
 		const dateThreshold = getDateThreshold(period);
 
 		// Query scenario sessions for completed missions
-		let query = db
-		let query = getDb()
-			.collection("scenario_sessions")
+		let _query = getFirestore()
+			.collection("scenarioSessions")
 			.where("status", "==", "completed");
 
 		if (dateThreshold) {
-			query = query.where("endTime", ">=", dateThreshold.toISOString());
+			_query = _query.where("endTime", ">=", dateThreshold.toISOString());
 		}
 
-		const snapshot = await query.get();
+		const snapshot = await _query.get();
 
 		// Handle empty results gracefully
 		if (snapshot.empty) {
@@ -84,7 +74,7 @@ async function getTopOperators(options = {}) {
 				userCallSign: firstDoc.userCallSign,
 				status: firstDoc.status,
 				hasPerformance: !!firstDoc.performance,
-				overallScore: firstDoc.performance?.overallScore
+				overallScore: firstDoc.performance?.overallScore,
 			});
 		}
 
@@ -202,9 +192,8 @@ async function getScenarioLeaderboard(scenarioId, options = {}) {
 		logger.debug("Fetching scenario leaderboard", { scenarioId, limit });
 
 		// Query sessions for specific scenario
-		const snapshot = await db
-		const snapshot = await getDb()
-			.collection("scenario_sessions")
+		const snapshot = await getFirestore()
+			.collection("scenarioSessions")
 			.where("scenarioId", "==", scenarioId)
 			.where("status", "==", "completed")
 			.get();
