@@ -5,7 +5,7 @@
  * Provides efficient queries for rankings and statistics
  */
 
-const { db } = require("../config/firebase");
+const { getFirestore } = require("../config/firebase");
 const logger = require("../utils/logger");
 
 /**
@@ -49,15 +49,15 @@ async function getTopOperators(options = {}) {
 		const dateThreshold = getDateThreshold(period);
 
 		// Query scenario sessions for completed missions
-		let query = db
+		let _query = getFirestore()
 			.collection("scenarioSessions")
 			.where("status", "==", "completed");
 
 		if (dateThreshold) {
-			query = query.where("endTime", ">=", dateThreshold.toISOString());
+			_query = _query.where("endTime", ">=", dateThreshold.toISOString());
 		}
 
-		const snapshot = await query.get();
+		const snapshot = await _query.get();
 
 		// Handle empty results gracefully
 		if (snapshot.empty) {
@@ -179,7 +179,7 @@ async function getScenarioLeaderboard(scenarioId, options = {}) {
 		logger.debug("Fetching scenario leaderboard", { scenarioId, limit });
 
 		// Query sessions for specific scenario
-		const snapshot = await db
+		const snapshot = await getFirestore()
 			.collection("scenarioSessions")
 			.where("scenarioId", "==", scenarioId)
 			.where("status", "==", "completed")
