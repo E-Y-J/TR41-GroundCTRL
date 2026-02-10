@@ -9,7 +9,6 @@
  * Separate from existing AlertPanel (parallel system)
  */
 
-import { useSimulatorState } from "@/contexts/SimulatorStateContext";
 
 export default function AlarmPanel({ alarms, onAcknowledge }) {
   // Filter for latched and unacknowledged alarms only
