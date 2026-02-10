@@ -194,8 +194,6 @@ async function getScenarioLeaderboard(scenarioId, options = {}) {
 		logger.debug("Fetching scenario leaderboard", { scenarioId, limit });
 
 		// Query sessions for specific scenario
-		const snapshot = await getDb()
-			.collection("scenario_sessions")
 		const snapshot = await getFirestore()
 			.collection("scenarioSessions")
 			.where("scenarioId", "==", scenarioId)
