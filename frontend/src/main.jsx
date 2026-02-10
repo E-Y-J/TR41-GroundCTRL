@@ -5,6 +5,8 @@ import { HelmetProvider } from 'react-helmet-async'
 import App from './App.jsx'
 import './index.css'
 
+console.log('main.jsx loaded')
+
 // Load fonts asynchronously to prevent render blocking
 const loadFonts = () => {
   // Load critical fonts first (used in initial UI)
@@ -27,7 +29,7 @@ const loadFonts = () => {
 }
 
 // Start loading fonts
-loadFonts()
+// loadFonts()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
