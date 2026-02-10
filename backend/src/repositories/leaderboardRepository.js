@@ -8,15 +8,6 @@
 const { getFirestore } = require("../config/firebase");
 const logger = require("../utils/logger");
 
-// Lazy getter for Firestore instance (initialized when needed)
-let _db = null;
-function getDb() {
-	if (!_db) {
-		_db = getFirestore();
-	}
-	return _db;
-}
-
 /**
  * Validate Firebase emulator configuration in test/CI environments
  */
@@ -83,7 +74,7 @@ async function getTopOperators(options = {}) {
 				userCallSign: firstDoc.userCallSign,
 				status: firstDoc.status,
 				hasPerformance: !!firstDoc.performance,
-				overallScore: firstDoc.performance?.overallScore
+				overallScore: firstDoc.performance?.overallScore,
 			});
 		}
 
