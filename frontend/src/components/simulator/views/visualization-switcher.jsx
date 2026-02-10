@@ -129,6 +129,12 @@ export function VisualizationSwitcher({
             showOrbit={true}
             showAtmosphere={true}
             showStars={true}
+            showGroundStations={true}
+            showVisibilityCones={true}
+            showCommLinks={true}
+            showLabels={true}
+            showOrbitalNodes={false}
+            animationSpeed={120}
             className="w-full h-full"
           />
         </Suspense>

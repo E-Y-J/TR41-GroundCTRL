@@ -17,6 +17,34 @@ import {
   getNextLockedMission
 } from "@/lib/firebase/userProgressService"
 
+// Helper mapping functions for backend data
+const mapTierToCategory = (tier) => {
+  const tierMap = {
+    ROOKIE_PILOT: 'Fundamentals',
+    MISSION_SPECIALIST: 'Advanced Operations',
+    MISSION_COMMANDER: 'Expert',
+  }
+  return tierMap[tier] || 'Other'
+}
+
+const mapDifficultyToLabel = (difficulty) => {
+  const difficultyMap = {
+    BEGINNER: 'Beginner',
+    INTERMEDIATE: 'Intermediate',
+    ADVANCED: 'Advanced',
+  }
+  return difficultyMap[difficulty] || 'Beginner'
+}
+
+const mapDifficultyToNumber = (difficulty) => {
+  const difficultyMap = {
+    BEGINNER: 1,
+    INTERMEDIATE: 3,
+    ADVANCED: 5,
+  }
+  return difficultyMap[difficulty] || 1
+}
+
 export function SimulatorGrid({ authView, onAuthViewChange, authError }) {
   const { user } = useAuth()
   const [scenarios, setScenarios] = useState([])
@@ -33,7 +61,7 @@ export function SimulatorGrid({ authView, onAuthViewChange, authError }) {
       setLoading(true)
       setError(null)
 
-      // Fetch scenarios first (this should work)
+      // Fetch published scenarios from Firestore (same as Missions page)
       const scenariosData = await fetchPublishedScenarios()
       setScenarios(scenariosData)
 

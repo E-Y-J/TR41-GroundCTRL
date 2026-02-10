@@ -17,6 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  LineChart, Line, AreaChart, Area, RadarChart, Radar, PolarGrid, 
+  PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, CartesianGrid, 
+  Tooltip, Legend, ResponsiveContainer
+} from 'recharts'
 
 /**
  * Performance Analytics Page
@@ -179,53 +184,115 @@ export default function Analytics() {
                   />
                 </div>
 
-                {/* Metric Breakdown */}
+                {/* Metric Breakdown - Radar Chart */}
                 <div className="bg-muted rounded-lg p-6 border border-border">
                   <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                     <Target className="h-5 w-5" />
                     Performance Metrics Breakdown
                   </h2>
-                  <div className="space-y-4">
-                    <MetricBar
-                      label="Command Accuracy"
-                      value={metricAverages.commandAccuracy}
-                      weight="30%"
-                      description="Success rate of executed commands"
-                    />
-                    <MetricBar
-                      label="Resource Management"
-                      value={metricAverages.resourceManagement}
-                      weight="25%"
-                      description="Efficiency in power and data usage"
-                    />
-                    <MetricBar
-                      label="Response Time"
-                      value={metricAverages.responseTime}
-                      weight="20%"
-                      description="Speed of reactions to events"
-                    />
-                    <MetricBar
-                      label="Completion Time"
-                      value={metricAverages.completionTime}
-                      weight="15%"
-                      description="Mission duration efficiency"
-                    />
-                    <MetricBar
-                      label="Error Avoidance"
-                      value={metricAverages.errorAvoidance}
-                      weight="10%"
-                      description="Minimizing mistakes and failures"
-                    />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Radar Chart */}
+                    <div className="flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <RadarChart data={[
+                          {
+                            metric: 'Command\nAccuracy',
+                            value: metricAverages.commandAccuracy,
+                            fullMark: 100
+                          },
+                          {
+                            metric: 'Response\nTime',
+                            value: metricAverages.responseTime,
+                            fullMark: 100
+                          },
+                          {
+                            metric: 'Resource\nManagement',
+                            value: metricAverages.resourceManagement,
+                            fullMark: 100
+                          },
+                          {
+                            metric: 'Completion\nTime',
+                            value: metricAverages.completionTime,
+                            fullMark: 100
+                          },
+                          {
+                            metric: 'Error\nAvoidance',
+                            value: metricAverages.errorAvoidance,
+                            fullMark: 100
+                          }
+                        ]}>
+                          <PolarGrid stroke="hsl(var(--border))" />
+                          <PolarAngleAxis 
+                            dataKey="metric" 
+                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                          />
+                          <PolarRadiusAxis 
+                            angle={90} 
+                            domain={[0, 100]}
+                            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                          />
+                          <Radar 
+                            name="Performance" 
+                            dataKey="value" 
+                            stroke="hsl(var(--primary))" 
+                            fill="hsl(var(--primary))" 
+                            fillOpacity={0.6}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* Metric Bars */}
+                    <div className="space-y-4">
+                      <MetricBar
+                        label="Command Accuracy"
+                        value={metricAverages.commandAccuracy}
+                        weight="30%"
+                        description="Success rate of executed commands"
+                      />
+                      <MetricBar
+                        label="Resource Management"
+                        value={metricAverages.resourceManagement}
+                        weight="25%"
+                        description="Efficiency in power and data usage"
+                      />
+                      <MetricBar
+                        label="Response Time"
+                        value={metricAverages.responseTime}
+                        weight="20%"
+                        description="Speed of reactions to events"
+                      />
+                      <MetricBar
+                        label="Completion Time"
+                        value={metricAverages.completionTime}
+                        weight="15%"
+                        description="Mission duration efficiency"
+                      />
+                      <MetricBar
+                        label="Error Avoidance"
+                        value={metricAverages.errorAvoidance}
+                        weight="10%"
+                        description="Minimizing mistakes and failures"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Recent Missions Chart */}
+                {/* Score Trend - Line Chart */}
+                <div className="bg-muted rounded-lg p-6 border border-border">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Score Over Time
+                  </h2>
+                  <ScoreTrendChart sessions={completedSessions} />
+                </div>
+
+                {/* Performance Area Chart */}
                 <div className="bg-muted rounded-lg p-6 border border-border">
                   <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    Score Trend
+                    Performance History
                   </h2>
-                  <ScoreChart sessions={completedSessions.slice(-10)} />
+                  <PerformanceAreaChart sessions={completedSessions.slice(-15)} />
                 </div>
 
                 {/* Insights */}
@@ -306,7 +373,133 @@ function MetricBar({ label, value, weight, description }) {
 }
 
 /**
- * Score Chart Component (Simple Bar Chart)
+ * Score Trend Line Chart Component
+ */
+function ScoreTrendChart({ sessions }) {
+  if (sessions.length === 0) {
+    return (
+      <div className="h-80 flex items-center justify-center text-muted-foreground">
+        No data available
+      </div>
+    )
+  }
+
+  const chartData = sessions.map((session, idx) => ({
+    name: new Date(session.startTime).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    }),
+    score: session.performance?.overallScore || 0,
+    mission: session.scenarioName || `Mission ${idx + 1}`
+  }))
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+        <XAxis 
+          dataKey="name" 
+          stroke="hsl(var(--muted-foreground))"
+          tick={{ fill: 'hsl(var(--muted-foreground))' }}
+        />
+        <YAxis 
+          domain={[0, 100]}
+          stroke="hsl(var(--muted-foreground))"
+          tick={{ fill: 'hsl(var(--muted-foreground))' }}
+        />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'hsl(var(--background))', 
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '0.5rem'
+          }}
+          labelStyle={{ color: 'hsl(var(--foreground))' }}
+        />
+        <Legend />
+        <Line 
+          type="monotone" 
+          dataKey="score" 
+          stroke="hsl(var(--primary))" 
+          strokeWidth={2}
+          dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+          activeDot={{ r: 6 }}
+          name="Score"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
+/**
+ * Performance Area Chart Component
+ */
+function PerformanceAreaChart({ sessions }) {
+  if (sessions.length === 0) {
+    return (
+      <div className="h-80 flex items-center justify-center text-muted-foreground">
+        No data available
+      </div>
+    )
+  }
+
+  const chartData = sessions.map((session, idx) => {
+    const metrics = session.performance?.metrics || {}
+    return {
+      name: `M${idx + 1}`,
+      score: session.performance?.overallScore || 0,
+      accuracy: metrics.commandAccuracy || 0,
+      resources: metrics.resourceManagement || 0,
+      date: new Date(session.startTime).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      })
+    }
+  })
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+        <XAxis 
+          dataKey="name" 
+          stroke="hsl(var(--muted-foreground))"
+          tick={{ fill: 'hsl(var(--muted-foreground))' }}
+        />
+        <YAxis 
+          domain={[0, 100]}
+          stroke="hsl(var(--muted-foreground))"
+          tick={{ fill: 'hsl(var(--muted-foreground))' }}
+        />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'hsl(var(--background))', 
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '0.5rem'
+          }}
+          labelStyle={{ color: 'hsl(var(--foreground))' }}
+          formatter={(value) => [`${value}/100`, '']}
+        />
+        <Area 
+          type="monotone" 
+          dataKey="score" 
+          stroke="hsl(var(--primary))" 
+          fillOpacity={1} 
+          fill="url(#colorScore)"
+          name="Overall Score"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  )
+}
+
+/**
+ * Score Chart Component (Legacy - Kept for reference)
  */
 function ScoreChart({ sessions }) {
   if (sessions.length === 0) return null

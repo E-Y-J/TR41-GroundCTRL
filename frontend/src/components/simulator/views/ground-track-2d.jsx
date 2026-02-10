@@ -225,9 +225,9 @@ export function GroundTrack2D({
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
       <svg 
         viewBox="0 0 720 360" 
-        className="absolute inset-0 w-full h-full"
-        preserveAspectRatio="xMidYMid slice"
-        style={{ display: 'block' }}
+        className="w-full h-full"
+        preserveAspectRatio="xMidYMid meet"
+        style={{ display: 'block', maxHeight: '100%' }}
         role="img"
         aria-label="Satellite ground track visualization"
       >

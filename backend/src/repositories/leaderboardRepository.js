@@ -8,6 +8,15 @@
 const { getFirestore } = require("../config/firebase");
 const logger = require("../utils/logger");
 
+// Lazy getter for Firestore instance (initialized when needed)
+let _db = null;
+function getDb() {
+	if (!_db) {
+		_db = getFirestore();
+	}
+	return _db;
+}
+
 /**
  * Validate Firebase emulator configuration in test/CI environments
  */
@@ -63,6 +72,19 @@ async function getTopOperators(options = {}) {
 		if (snapshot.empty) {
 			logger.info("No completed sessions found for leaderboard", { period });
 			return [];
+		}
+
+		// DEBUG: Log what we found
+		logger.info(`Found ${snapshot.size} scenario sessions in database`);
+		if (snapshot.size > 0) {
+			const firstDoc = snapshot.docs[0].data();
+			logger.info("Sample session data:", {
+				userId: firstDoc.userId,
+				userCallSign: firstDoc.userCallSign,
+				status: firstDoc.status,
+				hasPerformance: !!firstDoc.performance,
+				overallScore: firstDoc.performance?.overallScore
+			});
 		}
 
 		// Aggregate scores by user

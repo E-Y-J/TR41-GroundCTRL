@@ -450,6 +450,15 @@ export default function MissionBriefingPage() {
                 <VolumeOff className="h-4 w-4" />
               )}
             </Button>
+            {sessionId && (
+              <Button
+                variant="ghost"
+                onClick={() => navigate(`/simulator?session=${sessionId}`)}
+                className="text-sm"
+              >
+                Skip to Simulator
+              </Button>
+            )}
           </div>
         </div>
         
@@ -534,6 +543,15 @@ export default function MissionBriefingPage() {
                 <VolumeOff className="h-4 w-4" />
               )}
             </Button>
+            {sessionId && (
+              <Button
+                variant="ghost"
+                onClick={() => navigate(`/simulator?session=${sessionId}`)}
+                className="text-sm"
+              >
+                Skip to Simulator
+              </Button>
+            )}
           </div>
         </div>
         

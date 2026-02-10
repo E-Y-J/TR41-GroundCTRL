@@ -7,6 +7,57 @@ const CREATED_BY_UID = '5usOQ3eOm7OjXmDOFjEmKSQovs42';
 
 const scenarios = [
   {
+    code: 'HUD_INTRODUCTION',
+    data: {
+      satellite_code: 'TRAINING_SAT_01',
+      title: '🎯 Satellite HUD Introduction',
+      description: 'Welcome to Mission Control! Learn to navigate the Heads-Up Display (HUD) interface, monitor satellite telemetry, and understand the essential systems that keep your satellite operational.',
+      difficulty: 'BEGINNER',
+      tier: 'ROOKIE_PILOT',
+      type: 'GUIDED',
+      estimatedDurationMinutes: 10,
+      status: 'PUBLISHED',
+      isActive: true,
+      isCore: true,
+      isPublic: true,
+      
+      timeControl: {
+        initialScale: 'real_time',
+        allowedScales: ['real_time', '2x', '5x', '10x'],
+        autoAccelerate: false,
+      },
+      
+      initialState: {
+        missionElapsedTime: 0,
+        communications: {
+          antennaDeployed: true,
+          beaconCount: 3,
+        },
+        power: {
+          currentCharge_percent: 75,
+        },
+        attitude: {
+          mode: 'NADIR',
+          error_degrees: 2.0,
+        },
+      },
+      
+      tags: ['hud', 'interface', 'introduction', 'basics', 'tutorial'],
+      objectives: [
+        'Familiarize yourself with the HUD layout',
+        'Monitor real-time satellite telemetry',
+        'Understand power system indicators',
+        'View orbital position and altitude',
+        'Check communications status',
+        'Review satellite health metrics',
+      ],
+      prerequisites: [],
+      createdBy: CREATED_BY_UID,
+    },
+  },
+  
+  /* Disabled other scenarios - only seeding HUD_INTRODUCTION for now
+  {
     code: 'ROOKIE_COMMISSIONING_101',
     data: {
       satellite_code: 'TRAINING_SAT_01',
@@ -342,6 +393,7 @@ const scenarios = [
       createdBy: CREATED_BY_UID,
     },
   },
+  */
 ];
 
 module.exports = scenarios;
