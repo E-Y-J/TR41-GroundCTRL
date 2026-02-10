@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/hooks/use-auth"
-import { Loader2, Rocket, Shield } from "lucide-react"
+import { Loader2, Rocket } from "lucide-react"
 import { PasswordStrengthMeter, calculateStrength } from "@/components/password-strength-meter"
 
 /**
