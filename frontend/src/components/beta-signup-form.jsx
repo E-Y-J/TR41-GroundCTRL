@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/hooks/use-auth"
-import { Loader2, Rocket } from "lucide-react"
-import zxcvbn from "zxcvbn"
+import { Loader2, Rocket, Shield } from "lucide-react"
+import { PasswordStrengthMeter, calculateStrength } from "@/components/password-strength-meter"
 
 /**
  * Beta Signup Form - Low Friction
@@ -26,9 +26,6 @@ export function BetaSignupForm() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  const passwordStrength = password ? zxcvbn(password) : null
-  const strengthLabels = ["Very Weak", "Weak", "Fair", "Good", "Strong"]
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
@@ -38,16 +35,10 @@ export function BetaSignupForm() {
       return
     }
 
-    if (password.length < 12) {
-      setError("Password must be at least 12 characters")
-      return
-    }
-    if (!/[A-Z]/.test(password)) {
-      setError("Password must include at least one uppercase letter")
-      return
-    }
-    if (!/[^A-Za-z0-9]/.test(password)) {
-      setError("Password must include at least one special character")
+    // Validate NASA-grade password requirements
+    const passwordStrength = calculateStrength(password)
+    if (passwordStrength.level < 5) {
+      setError("🚫 Mission abort! Password does not meet NASA-grade security requirements. All checks must be green.")
       return
     }
 
@@ -75,25 +66,25 @@ export function BetaSignupForm() {
   }
 
   return (
-    <div className="w-full max-w-md space-y-4">
-      <div className="text-center space-y-1">
-        <div className="flex items-center justify-center mb-2">
-          <Rocket className="h-10 w-10 text-primary" />
+    <div className="w-full max-w-md space-y-2">
+      <div className="text-center space-y-0.5">
+        <div className="flex items-center justify-center mb-1">
+          <Rocket className="h-8 w-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Join the Beta</h2>
-        <p className="text-xs text-muted-foreground">
+        <h2 className="text-xl font-bold text-foreground">Join the Beta</h2>
+        <p className="text-[10px] text-muted-foreground">
           Get early access to GroundCTRL satellite operations simulator
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-2">
         {error && (
-          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs">
             {error}
           </div>
         )}
 
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <label htmlFor="email" className="text-xs font-medium text-foreground">
             Email <span className="text-red-500">*</span>
           </label>
@@ -108,8 +99,8 @@ export function BetaSignupForm() {
           />
         </div>
 
-        <div className="space-y-1">
-          <label htmlFor="password" className="text-xs font-medium text-foreground">
+        <div className="space-y-0.5">
+          <label htmlFor="password" className="text-[10px] font-medium text-foreground">
             Password <span className="text-red-500">*</span>
           </label>
           <Input
@@ -123,77 +114,13 @@ export function BetaSignupForm() {
             minLength={12}
           />
           
-          {/* Password Strength Meter */}
-          {password && (
-            <div className="mt-2">
-              <div className="w-full h-1.5 bg-border rounded">
-                <div
-                  className={`h-1.5 rounded transition-all duration-300 ${
-                    passwordStrength.score === 0 ? "bg-red-500 w-1/5" :
-                    passwordStrength.score === 1 ? "bg-orange-500 w-2/5" :
-                    passwordStrength.score === 2 ? "bg-yellow-500 w-3/5" :
-                    passwordStrength.score === 3 ? "bg-blue-500 w-4/5" :
-                    "bg-green-600 w-full"
-                  }`}
-                />
-              </div>
-              <div className="text-[10px] mt-1 text-muted-foreground flex justify-between">
-                <span>Password strength:</span>
-                <span className={
-                  passwordStrength.score < 2 ? "text-red-500" :
-                  passwordStrength.score === 2 ? "text-yellow-600" :
-                  passwordStrength.score === 3 ? "text-blue-600" :
-                  "text-green-600"
-                }>
-                  {strengthLabels[passwordStrength.score]}
-                </span>
-              </div>
-            </div>
-          )}
-          
-          {/* Password Requirements Checklist */}
-          <div className="mt-2 space-y-1.5">
-            <p className="text-[10px] font-medium text-muted-foreground">Password must contain:</p>
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-1.5 text-[10px]">
-                <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                  password.length >= 12 ? 'bg-green-500' : 'bg-gray-300'
-                }`}>
-                  {password.length >= 12 && <span className="text-white text-[8px]">✓</span>}
-                </div>
-                <span className={password.length >= 12 ? 'text-green-600' : 'text-muted-foreground'}>
-                  At least 12 characters
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-1.5 text-[10px]">
-                <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                  /[A-Z]/.test(password) ? 'bg-green-500' : 'bg-gray-300'
-                }`}>
-                  {/[A-Z]/.test(password) && <span className="text-white text-[8px]">✓</span>}
-                </div>
-                <span className={/[A-Z]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}>
-                  One uppercase letter (A-Z)
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-1.5 text-[10px]">
-                <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
-                  /[^A-Za-z0-9]/.test(password) ? 'bg-green-500' : 'bg-gray-300'
-                }`}>
-                  {/[^A-Za-z0-9]/.test(password) && <span className="text-white text-[8px]">✓</span>}
-                </div>
-                <span className={/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}>
-                  One special character (!@#$%^&*)
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* NASA-Grade Password Strength Meter */}
+          {password && <PasswordStrengthMeter password={password} className="mt-1" />}
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
-            <label htmlFor="firstName" className="text-xs font-medium text-foreground">
+          <div className="space-y-0.5">
+            <label htmlFor="firstName" className="text-[10px] font-medium text-foreground">
               First Name
             </label>
             <Input
@@ -206,8 +133,8 @@ export function BetaSignupForm() {
             />
           </div>
           
-          <div className="space-y-1">
-            <label htmlFor="lastName" className="text-xs font-medium text-foreground">
+          <div className="space-y-0.5">
+            <label htmlFor="lastName" className="text-[10px] font-medium text-foreground">
               Last Name
             </label>
             <Input
@@ -221,13 +148,13 @@ export function BetaSignupForm() {
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label htmlFor="role" className="text-xs font-medium text-foreground">
+        <div className="space-y-0.5">
+          <label htmlFor="role" className="text-[10px] font-medium text-foreground">
             Primary Role
           </label>
           <select
             id="role"
-            className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="w-full px-2 py-1.5 text-xs rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
@@ -242,7 +169,7 @@ export function BetaSignupForm() {
           </select>
         </div>
 
-        <div className="space-y-2 pt-1">
+        <div className="space-y-1 pt-0.5">
           <div className="flex items-start gap-2">
             <Checkbox
               id="terms"
@@ -250,7 +177,7 @@ export function BetaSignupForm() {
               onCheckedChange={setAgreedToTerms}
               className="mt-1"
             />
-            <label htmlFor="terms" className="text-xs text-foreground leading-tight cursor-pointer">
+            <label htmlFor="terms" className="text-[10px] text-foreground leading-tight cursor-pointer">
               I agree to the{" "}
               <a href="/terms" target="_blank" className="text-primary hover:underline">
                 Terms of Service
@@ -270,19 +197,19 @@ export function BetaSignupForm() {
               onCheckedChange={setWantsUpdates}
               className="mt-1"
             />
-            <label htmlFor="updates" className="text-xs text-muted-foreground leading-tight cursor-pointer">
+            <label htmlFor="updates" className="text-[10px] text-muted-foreground leading-tight cursor-pointer">
               I'm ok receiving occasional GroundCTRL updates
             </label>
           </div>
         </div>
 
-        <Button type="submit" className="w-full rounded-lg" disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          <Rocket className="mr-2 h-4 w-4" />
+        <Button type="submit" className="w-full rounded-lg text-sm py-1.5" disabled={loading}>
+          {loading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+          <Rocket className="mr-1.5 h-3.5 w-3.5" />
           Request Beta Access
         </Button>
 
-        <p className="text-[10px] text-center text-muted-foreground leading-tight">
+        <p className="text-[9px] text-center text-muted-foreground leading-tight">
           Beta access is currently limited. You'll be notified when approved.
         </p>
       </form>
