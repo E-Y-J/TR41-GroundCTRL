@@ -6,6 +6,30 @@ const CREATED_BY_UID = '5usOQ3eOm7OjXmDOFjEmKSQovs42';
 
 const steps = [
   {
+    scenarioCode: 'HUD_INTRODUCTION',
+    data: {
+      title: 'Observe HUD Layout',
+      instructions: 'Take a moment to familiarize yourself with the Heads-Up Display layout. Note the different panels and information displayed.',
+      stepOrder: 1,
+      validationType: 'TIME_BASED',
+      expectedDurationSeconds: 15,
+      hints: ['The HUD shows satellite status, telemetry, and controls', 'Panels include power, attitude, communications, and more'],
+      createdBy: CREATED_BY_UID,
+    },
+  },
+  {
+    scenarioCode: 'HUD_INTRODUCTION',
+    data: {
+      title: 'Monitor Satellite Telemetry',
+      instructions: 'Observe the real-time telemetry data in the HUD. Pay attention to power levels, attitude, and communications status.',
+      stepOrder: 2,
+      validationType: 'TIME_BASED',
+      expectedDurationSeconds: 20,
+      hints: ['Telemetry updates automatically', 'Green indicators show normal operation'],
+      createdBy: CREATED_BY_UID,
+    },
+  },
+  {
     scenarioCode: 'ROOKIE_COMMISSIONING_101',
     data: {
       title: 'Wait for Beacon Signal',
