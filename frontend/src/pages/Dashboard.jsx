@@ -8,6 +8,7 @@ import { SystemMetrics } from "@/components/dashboard/system-metrics"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 import { CurrentMission } from "@/components/dashboard/current-mission"
+import { ExploreLearnSection } from "@/components/dashboard/explore-learn-section"
 import { useAuth } from "@/hooks/use-auth"
 import { Loader2, Satellite, Radio, Clock, Play } from "lucide-react"
 import { Footer } from "@/components/footer"
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [missionTime, setMissionTime] = useState({ hours: 0, minutes: 0, seconds: 0 })
   const [loadingMissionTime, setLoadingMissionTime] = useState(true)
   const [inProgressSession, setInProgressSession] = useState(null)
+  const [sessions, setSessions] = useState([])
 
   useEffect(() => {
     if (!loading && !user) {
@@ -37,12 +39,13 @@ export default function Dashboard() {
       
       try {
         setLoadingMissionTime(true)
-        const sessions = await fetchUserProgress(user.uid)
-        const totalTime = getTotalMissionTime(sessions)
+        const userSessions = await fetchUserProgress(user.uid)
+        setSessions(userSessions)
+        const totalTime = getTotalMissionTime(userSessions)
         setMissionTime(totalTime)
         
         // Get in-progress session
-        const activeSession = getInProgressSession(sessions)
+        const activeSession = getInProgressSession(userSessions)
         setInProgressSession(activeSession)
       } catch (error) {
         console.error('Error loading mission data:', error)
@@ -114,7 +117,7 @@ export default function Dashboard() {
 
             {/* Top row - Overview cards */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-              <SystemMetrics />
+              <SystemMetrics sessions={sessions} />
             </div>
             
             {/* Main content */}
@@ -128,6 +131,7 @@ export default function Dashboard() {
               {/* Right column - Activity and actions */}
               <div className="space-y-6">
                 <QuickActions />
+                <ExploreLearnSection />
                 <RecentActivity />
               </div>
             </div>

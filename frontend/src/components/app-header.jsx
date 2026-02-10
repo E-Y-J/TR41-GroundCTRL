@@ -27,6 +27,7 @@ export default function AppHeader({ onAuthViewChange }) {
         { href: "/dashboard", label: "Dashboard" },
         { href: "/missions", label: "Missions" },
         { href: "/simulator", label: "Simulator" },
+        { href: "/leaderboard", label: "Leaderboard" },
         { href: "/help", label: "Help" },
       ]
     : []
@@ -146,6 +147,31 @@ export default function AppHeader({ onAuthViewChange }) {
                     Account
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={`/profile/${user.uid}`}>
+                    <User className="mr-2 h-4 w-4" />
+                    My Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/achievements">
+                    <span className="mr-2">🏆</span>
+                    Achievements
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/history">
+                    <span className="mr-2">📜</span>
+                    Mission History
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/analytics">
+                    <span className="mr-2">📊</span>
+                    Analytics
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/settings">
                     <Settings className="mr-2 h-4 w-4" />
