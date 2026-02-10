@@ -56,7 +56,6 @@ const scenarios = [
     },
   },
   
-  /* Disabled other scenarios - only seeding HUD_INTRODUCTION for now
   {
     code: 'ROOKIE_COMMISSIONING_101',
     data: {
@@ -393,7 +392,6 @@ const scenarios = [
       createdBy: CREATED_BY_UID,
     },
   },
-  */
 ];
 
 module.exports = scenarios;
