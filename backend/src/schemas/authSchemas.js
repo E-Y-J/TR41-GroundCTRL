@@ -18,6 +18,7 @@ const loginSchema = z
 /**
  * Register schema
  * Updated to align with SECURITY_REQUIREMENTS_CHECKLIST_UPDATED.md
+ * Includes optional beta program fields
  */
 const registerSchema = z
 	.object({
@@ -47,6 +48,11 @@ const registerSchema = z
 			.min(2, "Display name must be at least 2 characters")
 			.max(50, "Display name must not exceed 50 characters")
 			.optional(),
+		// Beta program fields
+		role: z.enum(["beta", "user", "admin"]).optional(),
+		primaryRole: z.string().max(50).optional(),
+		onboardingComplete: z.boolean().optional(),
+		wantsUpdates: z.boolean().optional(),
 	})
 	.strict();
 

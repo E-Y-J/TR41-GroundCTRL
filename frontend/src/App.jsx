@@ -13,6 +13,7 @@ import TutorialOverlay from '@/components/tutorial/TutorialOverlay'
 
 // Pages
 const HomePage = lazy(() => import('@/pages/Index.jsx'))
+const BetaWelcomePage = lazy(() => import('@/pages/BetaWelcome.jsx'))
 const DashboardPage = lazy(() => import('@/pages/Dashboard.jsx'))
 const SimulatorPage = lazy(() => import('@/pages/Simulator.jsx'))
 const MissionsPage = lazy(() => import('@/pages/Missions.jsx'))
@@ -46,6 +47,7 @@ function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/beta-welcome" element={<BetaWelcomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/simulator" element={<SimulatorPage />} />
           <Route path="/missions" element={<MissionsPage />} />

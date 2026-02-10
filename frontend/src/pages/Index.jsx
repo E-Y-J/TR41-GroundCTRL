@@ -1,29 +1,40 @@
-import { useState, useEffect } from "react"
-import { useSearchParams, Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { useSearchParams, useNavigate } from "react-router-dom"
 import { Helmet } from "react-helmet-async"
 import { Rocket, Radio, Gauge } from "lucide-react"
 import AppHeader from "@/components/app-header"
 import { Footer } from "@/components/footer"
+import { BetaSignupForm } from "@/components/beta-signup-form"
 import { AuthForm } from "@/components/auth-form"
-import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 
 export default function Index() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [authView, setAuthView] = useState("login")
-  const [authError, setAuthError] = useState(null)
+  const navigate = useNavigate()
   const { user } = useAuth()
+  const [showLogin, setShowLogin] = useState(false)
 
-  // Check for auth error from URL
+  // Redirect logged-in users
   useEffect(() => {
-    const error = searchParams.get("error")
-    if (error === "auth_required") {
-      setAuthError("You must be logged in to access the simulator.")
-      // Clear the error from URL
-      searchParams.delete("error")
-      setSearchParams(searchParams, { replace: true })
+    if (user) {
+      // Check if user has beta role
+      if (user.role === "beta") {
+        navigate("/beta-welcome")
+      } else {
+        navigate("/dashboard")
+      }
     }
-  }, [searchParams, setSearchParams])
+  }, [user, navigate])
+  
+  // Check URL parameter for view
+  useEffect(() => {
+    const view = searchParams.get("view")
+    if (view === "login") {
+      setShowLogin(true)
+    } else {
+      setShowLogin(false)
+    }
+  }, [searchParams])
 
   return (
     <>
@@ -32,7 +43,7 @@ export default function Index() {
         <meta name="description" content="Browser-based training simulator for satellite operations. Learn fundamentals through interactive, guided missions with real-time AI guidance." />
       </Helmet>
       <div className="min-h-screen flex flex-col">
-        <AppHeader onAuthViewChange={setAuthView} />
+        <AppHeader />
         
         <main className="flex-1 flex">
           {/* Hero Section */}
@@ -93,48 +104,34 @@ export default function Index() {
             </div>
           </section>
 
-          {/* Auth Sidebar */}
-          <aside className="w-[25%] min-w-[320px] border-l border-border bg-card flex items-center justify-center p-8">
-            <div className="w-full space-y-4">
-              {authError && (
-                <div className="p-3 text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg">
-                  {authError}
+          {/* Auth Sidebar - Toggle between signup and login */}
+          <aside className="w-[25%] min-w-[320px] max-w-112.5 border-l border-border bg-card flex flex-col items-center justify-center p-8">
+            {showLogin ? (
+              <>
+                <AuthForm />
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => setShowLogin(false)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    ← Back to Beta Signup
+                  </button>
                 </div>
-              )}
-              
-              {!user ? (
-                <AuthForm view={authView} onViewChange={setAuthView} />
-              ) : (
-                <div className="space-y-6">
-                  {/* Welcome Message */}
-                  <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-bold text-foreground">
-                      Welcome back, {user.displayName || "Operator"}!
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      Ready for your next mission?
-                    </p>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="space-y-3">
-                    <Button asChild variant="outline" className="w-full" size="lg">
-                      <Link to="/dashboard">
-                        <Gauge className="w-4 h-4 mr-2" />
-                        Go to Dashboard
-                      </Link>
-                    </Button>
-                    
-                    <Button asChild variant="outline" className="w-full" size="lg">
-                      <Link to="/missions">
-                        <Rocket className="w-4 h-4 mr-2" />
-                        Browse All Missions
-                      </Link>
-                    </Button>
-                  </div>
+              </>
+            ) : (
+              <>
+                <BetaSignupForm />
+                <div className="mt-4 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Already have an account?</p>
+                  <button
+                    onClick={() => setShowLogin(true)}
+                    className="text-xs text-primary hover:underline font-medium"
+                  >
+                    Sign In →
+                  </button>
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </aside>
         </main>
         

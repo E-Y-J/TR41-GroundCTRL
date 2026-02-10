@@ -371,6 +371,11 @@ function sanitizeUser(user) {
 		sanitized.lastLoginAt = sanitized.lastLoginAt.toDate().toISOString();
 	}
 
+	// Ensure role field is included (default to "user" if missing)
+	if (!sanitized.role) {
+		sanitized.role = "user";
+	}
+
 	return sanitized;
 }
 

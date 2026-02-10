@@ -39,6 +39,10 @@ const ACTIONS = {
   ACKNOWLEDGE_ALERT: 'ACKNOWLEDGE_ALERT',
   CLEAR_ALERT: 'CLEAR_ALERT',
   
+  // NASA-style alarms (separate system)
+  ADD_NASA_ALARM: 'ADD_NASA_ALARM',
+  ACKNOWLEDGE_NASA_ALARM: 'ACKNOWLEDGE_NASA_ALARM',
+  
   // Reset
   RESET_STATE: 'RESET_STATE'
 };
@@ -68,6 +72,9 @@ const initialState = {
   
   // Alerts and notifications
   alerts: [],
+  
+  // NASA-style alarms (separate system with latched behavior)
+  nasaAlarms: [],
   
   // Sync status
   lastSyncTime: null,
@@ -236,6 +243,25 @@ function simulatorReducer(state, action) {
         ...state,
         alerts: state.alerts.filter(alert => alert.id !== action.payload)
       };
+    
+    case ACTIONS.ADD_NASA_ALARM:
+      return {
+        ...state,
+        nasaAlarms: [action.payload, ...state.nasaAlarms]
+      };
+    
+    case ACTIONS.ACKNOWLEDGE_NASA_ALARM: {
+      const updatedAlarms = state.nasaAlarms.map(alarm =>
+        alarm.id === action.payload
+          ? { ...alarm, acknowledged: true, acknowledgedAt: Date.now() }
+          : alarm
+      );
+      
+      return {
+        ...state,
+        nasaAlarms: updatedAlarms
+      };
+    }
     
     case ACTIONS.UPDATE_SESSION_DATA:
       return {
@@ -469,6 +495,34 @@ export function SimulatorStateProvider({ children }) {
   }, []);
   
   /**
+   * Add a NASA-style alarm (with latched behavior)
+   */
+  const addNasaAlarm = useCallback((alarm) => {
+    const newAlarm = {
+      id: `alarm-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
+      latched: true,
+      acknowledged: false,
+      ...alarm
+    };
+    
+    dispatch({
+      type: ACTIONS.ADD_NASA_ALARM,
+      payload: newAlarm
+    });
+  }, []);
+  
+  /**
+   * Acknowledge a NASA-style alarm
+   */
+  const acknowledgeNasaAlarm = useCallback((alarmId) => {
+    dispatch({
+      type: ACTIONS.ACKNOWLEDGE_NASA_ALARM,
+      payload: alarmId
+    });
+  }, []);
+  
+  /**
    * Get commands since start
    */
   const getCommandHistory = useCallback(() => {
@@ -632,6 +686,10 @@ export function SimulatorStateProvider({ children }) {
     // Alerts
     addAlert,
     acknowledgeAlert,
+    
+    // NASA Alarms (separate system)
+    addNasaAlarm,
+    acknowledgeNasaAlarm,
     
     // Connection status
     connected

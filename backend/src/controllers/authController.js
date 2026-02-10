@@ -73,13 +73,21 @@ async function register(req, res, next) {
 			throw new ValidationError("Validation failed", validation.error.errors);
 		}
 
-		const { email, password, callSign, displayName } = validation.data;
+		const { email, password, callSign, displayName, role, primaryRole, onboardingComplete, wantsUpdates } = validation.data;
+
+		// Build metadata object from optional fields
+		const metadata = {};
+		if (role) metadata.role = role;
+		if (primaryRole) metadata.primaryRole = primaryRole;
+		if (onboardingComplete !== undefined) metadata.onboardingComplete = onboardingComplete;
+		if (wantsUpdates !== undefined) metadata.wantsUpdates = wantsUpdates;
 
 		const result = await authService.register(
 			email,
 			password,
 			callSign,
 			displayName,
+			metadata,
 		);
 
 		const auditEntry = auditFactory.createRegisterAudit(

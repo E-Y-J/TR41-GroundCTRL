@@ -21,19 +21,15 @@ export default function AppHeader({ onAuthViewChange }) {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   
-  // Define nav links based on authentication state
-  const navLinks = user
+  // Define nav links - only show for authenticated non-beta users
+  const navLinks = user && user.role !== "beta"
     ? [
         { href: "/dashboard", label: "Dashboard" },
         { href: "/missions", label: "Missions" },
         { href: "/simulator", label: "Simulator" },
         { href: "/help", label: "Help" },
       ]
-    : [
-        { href: "/missions", label: "Missions" },
-        { href: "/simulator", label: "Simulator" },
-        { href: "/help", label: "Help" },
-      ]
+    : []
 
   const handleSignOut = async () => {
     await signOut()
@@ -60,42 +56,60 @@ export default function AppHeader({ onAuthViewChange }) {
         <span className="text-foreground">GroundCTRL</span>
       </Link>
 
-      {/* Navigation */}
-      <nav className="flex items-center gap-6">
-        {navLinks.map((link) => (
+      {/* Navigation - Beta users see only Beta Program link */}
+      {user && user.role === "beta" && (
+        <nav className="flex items-center gap-6">
           <Link
-            key={link.href}
-            to={link.href}
+            to="/beta-welcome"
             className={`text-sm font-medium transition-colors ${
-              isActive(link.href)
+              pathname === "/beta-welcome"
                 ? "text-primary border-b-2 border-primary pb-0.5"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {link.label}
+            Beta Program
           </Link>
-        ))}
-        
-        {/* Admin Link - Only visible for admins */}
-        {user?.isAdmin && (
-          <Link
-            to="/admin/scenarios"
-            className={`text-sm font-medium transition-colors flex items-center gap-1.5 ${
-              pathname.startsWith("/admin")
-                ? "text-primary border-b-2 border-primary pb-0.5"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Shield className="h-3.5 w-3.5" />
-            Admin
-          </Link>
-        )}
-      </nav>
+        </nav>
+      )}
+      
+      {/* Navigation - Only show full nav for authenticated non-beta users */}
+      {user && user.role !== "beta" && (
+        <nav className="flex items-center gap-6">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className={`text-sm font-medium transition-colors ${
+                isActive(link.href)
+                  ? "text-primary border-b-2 border-primary pb-0.5"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+          
+          {/* Admin Link - Only visible for admins */}
+          {user.isAdmin && (
+            <Link
+              to="/admin/scenarios"
+              className={`text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                pathname.startsWith("/admin")
+                  ? "text-primary border-b-2 border-primary pb-0.5"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Shield className="h-3.5 w-3.5" />
+              Admin
+            </Link>
+          )}
+        </nav>
+      )}
 
       {/* Right section */}
       <div className="flex items-center gap-3">
-        {/* Tutorial Toggle */}
-        <TutorialToggle compact />
+        {/* Tutorial Toggle - Only for logged-in non-beta users */}
+        {user && user.role !== "beta" && <TutorialToggle compact />}
         
         {/* Theme Toggle */}
         <ThemeToggle />
@@ -147,15 +161,15 @@ export default function AppHeader({ onAuthViewChange }) {
             ) : onAuthViewChange ? (
               <>
                 <DropdownMenuItem onSelect={() => onAuthViewChange("login")}>Sign In</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onAuthViewChange("register")}>Register</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onAuthViewChange("register")}>Join Beta</DropdownMenuItem>
               </>
             ) : (
               <>
                 <DropdownMenuItem asChild>
-                  <Link to="/">Sign In</Link>
+                  <Link to="/?view=login">Sign In</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/">Register</Link>
+                  <Link to="/">Join Beta</Link>
                 </DropdownMenuItem>
               </>
             )}

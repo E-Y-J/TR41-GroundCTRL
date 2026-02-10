@@ -7,10 +7,11 @@
 
 /**
  * Left Column - for HUD panels
+ * Color coded: Blue
  */
 export function LeftDockColumn({ children, dockedPanels = [] }) {
   return (
-    <div className="w-[320px] border-r border-border bg-card/30 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-hidden">
+    <div className="w-[320px] border-r-4 border-blue-500/50 bg-blue-500/10 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-hidden">
       {/* Render children directly - no scrolling */}
       {children}
     </div>
@@ -19,10 +20,11 @@ export function LeftDockColumn({ children, dockedPanels = [] }) {
 
 /**
  * Right Column - for HUD panels
+ * Color coded: Green
  */
 export function RightDockColumn({ children, dockedPanels = [] }) {
   return (
-    <div className="w-95 border-l border-border bg-card/30 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-hidden">
+    <div className="w-95 border-l-4 border-green-500/50 bg-green-500/10 backdrop-blur-sm flex flex-col gap-2 p-2 overflow-hidden">
       {/* Render children directly - no scrolling */}
       {children}
     </div>
@@ -31,13 +33,13 @@ export function RightDockColumn({ children, dockedPanels = [] }) {
 
 /**
  * Top Dock Bar - for orbital data, mission stats above center visualization only
- * Neutral color to match background
+ * Color coded: Purple
  */
 export function TopDockBar({ children }) {
   return (
-    <div className="h-20 border-b border-border bg-muted/30 backdrop-blur-sm p-2 flex items-center gap-4">
+    <div className="h-20 border-b-4 border-purple-500/50 bg-purple-500/10 backdrop-blur-sm p-2 flex items-center gap-4">
       {children || (
-        <div className="w-full text-center text-xs text-muted-foreground/60">
+        <div className="w-full text-center text-xs text-purple-300/80">
           Top HUD Area - Orbital Data & Mission Stats
         </div>
       )}

@@ -195,6 +195,7 @@ async function syncOAuthProfile(uid, profileData = {}) {
 				callSign: finalCallSign,
 				displayName: displayName || finalCallSign,
 				isAdmin: false,
+				role: "user",
 			},
 			accessToken,
 			refreshToken,
@@ -215,9 +216,10 @@ async function syncOAuthProfile(uid, profileData = {}) {
  * @param {string} password - User password
  * @param {string} callSign - User's call sign
  * @param {string} displayName - User's display name (optional)
+ * @param {object} metadata - Additional user metadata (role, primaryRole, onboardingComplete, wantsUpdates, etc.)
  * @returns {Promise<object>} Created user with tokens
  */
-async function register(email, password, callSign = null, displayName = null) {
+async function register(email, password, callSign = null, displayName = null, metadata = {}) {
 	const db = getFirestore();
 
 	try {
@@ -243,7 +245,7 @@ async function register(email, password, callSign = null, displayName = null) {
 
 		logger.info("Firebase user created", { uid, email });
 
-		// Create user document in Firestore
+		// Create user document in Firestore with metadata
 		const userData = {
 			uid,
 			email,
@@ -255,11 +257,16 @@ async function register(email, password, callSign = null, displayName = null) {
 			updatedAt: new Date(),
 			lastLoginAt: null,
 			isActive: true,
+			// Beta program and onboarding metadata
+			role: metadata.role || "beta", // Default to "beta" - admin must approve to upgrade to "user"
+			primaryRole: metadata.primaryRole || null, // Student, Engineer, etc.
+			onboardingComplete: metadata.onboardingComplete !== undefined ? metadata.onboardingComplete : false,
+			wantsUpdates: metadata.wantsUpdates || false,
 		};
 
 		await db.collection("users").doc(uid).set(userData);
 
-		logger.info("User registered", { uid, callSign: finalCallSign });
+		logger.info("User registered", { uid, callSign: finalCallSign, role: userData.role });
 
 		// ✅ NEW: Create audit log entry
 		const auditEntry = auditFactory.createAuditEntry(
@@ -269,7 +276,7 @@ async function register(email, password, callSign = null, displayName = null) {
 			finalCallSign,
 			"success",
 			"INFO",
-			{ email, method: "self_registration" },
+			{ email, method: "self_registration", role: userData.role },
 		);
 		await auditRepository.logAudit(auditEntry);
 
@@ -285,6 +292,7 @@ async function register(email, password, callSign = null, displayName = null) {
 				callSign: finalCallSign,
 				displayName: displayName || finalCallSign,
 				isAdmin: false,
+				role: userData.role,
 			},
 			accessToken,
 			refreshToken,
@@ -385,6 +393,7 @@ async function login(email, password) {
 				callSign: userData.callSign,
 				displayName: userData.displayName,
 				isAdmin: userData.isAdmin || false,
+				role: userData.role || "user",
 			},
 			accessToken,
 			refreshToken,
@@ -971,6 +980,7 @@ async function exchangeFirebaseToken(firebaseUid) {
 				callSign: userData.callSign,
 				displayName: userData.displayName,
 				isAdmin: userData.isAdmin || false,
+				role: userData.role || "user",
 			},
 			accessToken,
 			refreshToken,

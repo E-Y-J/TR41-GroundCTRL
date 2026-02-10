@@ -8,6 +8,9 @@ import { SimulatorFooter } from "@/components/simulator/simulator-footer"
 import { MissionStartModal } from "@/components/simulator/mission-start-modal"
 import { AlertPanel } from "@/components/simulator/alert-panel"
 import { CommandQueueStatus } from "@/components/simulator/command-queue-status"
+import AlarmPanel from "@/components/simulator/AlarmPanel"
+import FlightDirectorStrip from "@/components/simulator/FlightDirectorStrip"
+import TmTcLog from "@/components/simulator/TmTcLog"
 import { GroundStationIndicator } from "@/components/simulator/ground-station-indicator"
 import { TimeControlDisplay } from "@/components/simulator/time-control-display"
 import { OperatorPrompt } from "@/components/simulator/operator-prompt"
@@ -299,10 +302,13 @@ export default function Simulator() {
     }
   }, [user, sessionData, contextSessionId, initializeSession])
 
-  // Redirect to landing page with error if not authenticated
+  // Redirect to landing page with error if not authenticated or beta user
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/?error=auth_required")
+    } else if (user && user.role === "beta") {
+      // Redirect beta users to their welcome page
+      navigate("/beta-welcome")
     }
   }, [user, authLoading, navigate])
 

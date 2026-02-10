@@ -24,6 +24,9 @@ export default function Dashboard() {
   useEffect(() => {
     if (!loading && !user) {
       navigate("/")
+    } else if (user && user.role === "beta") {
+      // Redirect beta users to their welcome page
+      navigate("/beta-welcome")
     }
   }, [user, loading, navigate])
 

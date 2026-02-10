@@ -11,6 +11,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 
 // Dock zone definitions - match the visible dock containers
+// Note: Bottom zone removed due to footer overlap issues
 export const DOCK_ZONES = {
   left: {
     id: 'left',
@@ -33,20 +34,11 @@ export const DOCK_ZONES = {
   top: {
     id: 'top',
     label: 'Top Dock',
-    position: { x: 240, y: 80 },
-    size: { width: 'calc(100vw - 660px)', maxHeight: 100 },
-    maxPanels: 2,
-    orientation: 'horizontal',
-    allowedTypes: ['status', 'timeline']
-  },
-  bottom: {
-    id: 'bottom',
-    label: 'Bottom Dock',
-    position: { x: 240, y: 'calc(100vh - 150px)' },
-    size: { width: 'calc(100vw - 660px)', maxHeight: 150 },
+    position: { x: 320, y: 100 },
+    size: { width: 'calc(100vw - 640px)', maxHeight: 120 },
     maxPanels: 3,
     orientation: 'horizontal',
-    allowedTypes: ['resources', 'queue', 'status']
+    allowedTypes: ['status', 'timeline', 'monitoring']
   }
 }
 
