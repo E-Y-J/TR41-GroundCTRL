@@ -136,7 +136,6 @@ export default function Simulator() {
     initializeSession, 
     startMission,
     sessionId: contextSessionId,
-    connected,
     telemetry
   } = useSimulatorState()
   
