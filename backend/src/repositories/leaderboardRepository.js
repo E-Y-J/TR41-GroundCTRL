@@ -194,8 +194,6 @@ async function getScenarioLeaderboard(scenarioId, options = {}) {
 		// Query sessions for specific scenario
 		const snapshot = await getFirestore()
 			.collection("scenarioSessions")
-			.get();
-
 		// Aggregate best scores by user
 		const userBestScores = {};
 
