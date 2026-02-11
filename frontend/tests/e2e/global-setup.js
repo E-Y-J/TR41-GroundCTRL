@@ -7,6 +7,9 @@
 
 import { chromium } from '@playwright/test';
 
+// Set test environment for Firebase emulator
+process.env.NODE_ENV = 'test';
+
 export default async function globalSetup() {
   console.log('🔧 Global Setup: Warming up Vite dev server...');
   

@@ -49,6 +49,20 @@ export default defineConfig({
     /* Global timeout for actions (click, fill, etc.) - helps with slow API responses */
     actionTimeout: process.env.CI ? 25000 : 15000, // 25 seconds on CI, 15 locally (increased for React hydration)
     
+    /* Environment variables for testing - bypass Firebase for e2e tests */
+    ...(process.env.NODE_ENV === 'test' && {
+      FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+      FIREBASE_FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
+      // Override Firebase config to use dummy values that won't connect to real Firebase
+      VITE_FIREBASE_API_KEY: 'dummy-api-key-for-testing',
+      VITE_FIREBASE_AUTH_DOMAIN: 'test-domain.firebaseapp.com',
+      VITE_FIREBASE_PROJECT_ID: 'test-project-id',
+      VITE_FIREBASE_STORAGE_BUCKET: 'test-project-id.appspot.com',
+      VITE_FIREBASE_MESSAGING_SENDER_ID: '123456789',
+      VITE_FIREBASE_APP_ID: '1:123456789:web:abcdef123456',
+      VITE_FIREBASE_MEASUREMENT_ID: 'G-TEST123456',
+    }),
+    
     /* Navigation timeout - generous timeout for page loads during API delays */
     navigationTimeout: process.env.CI ? 60000 : 30000, // 60 seconds on CI, 30 locally
     

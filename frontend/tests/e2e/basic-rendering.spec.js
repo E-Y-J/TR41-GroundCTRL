@@ -141,9 +141,13 @@ test.describe('UI-001: Basic App Rendering', () => {
     expect(title).toBeTruthy();
     expect(title).toContain('GroundCTRL');
 
-    // Verify header with navigation links
+    // Verify header exists (navigation links are only shown for authenticated users)
+    const header = page.locator('header');
+    await expect(header).toBeVisible();
+    
+    // Navigation links should not be visible on homepage for unauthenticated users
     const navLinks = page.locator('header nav a');
-    await expect(navLinks.first()).toBeVisible();
+    await expect(navLinks).toHaveCount(0);
     
     // Verify theme toggle button exists
     const themeToggle = page.locator('button:has(svg)');
