@@ -354,7 +354,7 @@ class OrbitalMechanics {
 		// Calculate mean motion (revolutions per day)
 		const mu = 398600.4418; // km^3/s^2
 		const a = this.earthRadius + altitude; // semi-major axis
-		const n = Math.sqrt(mu / Math.pow(a, 3)); // rad/s
+		const n = Math.sqrt(mu / a ** 3); // rad/s
 		const meanMotion = (n * 86400) / (2 * Math.PI); // rev/day
 
 		// Format mean motion for TLE (8 digits after decimal)

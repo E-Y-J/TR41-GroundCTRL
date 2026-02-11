@@ -80,7 +80,7 @@ async function getAll(options = {}) {
 
 		// Get all matching documents
 		const snapshot = await query.get();
-		let scenarios = snapshot.docs.map((doc) => ({
+		const scenarios = snapshot.docs.map((doc) => ({
 			id: doc.id,
 			...doc.data(),
 		}));

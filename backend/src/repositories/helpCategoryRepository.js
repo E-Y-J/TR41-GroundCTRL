@@ -117,7 +117,7 @@ async function deleteById(id) {
  */
 async function existsByCode(code, excludeId = null) {
 	const db = getFirestore();
-	let query = db.collection(COLLECTION).where("code", "==", code);
+	const query = db.collection(COLLECTION).where("code", "==", code);
 
 	const snapshot = await query.get();
 

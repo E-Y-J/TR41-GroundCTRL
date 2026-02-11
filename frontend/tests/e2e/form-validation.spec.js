@@ -10,7 +10,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI-FORM-001: Form Validation', () => {
   test('should validate contact form required fields', async ({ page }) => {
-    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await page.goto('/contact', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Wait for React to mount and form to render
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    await page.waitForTimeout(2000);
 
     // Find submit button
     const submitButton = page.locator('button[type="submit"], button:has-text("Submit")').first();

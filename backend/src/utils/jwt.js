@@ -95,7 +95,7 @@ function decodeToken(token) {
  */
 function getTokenExpiry(token) {
 	const decoded = decodeToken(token);
-	if (decoded && decoded.exp) {
+	if (decoded?.exp) {
 		return new Date(decoded.exp * 1000);
 	}
 	return null;

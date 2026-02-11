@@ -14,10 +14,11 @@ const { AuthError } = require("../utils/errors");
 const logger = require("../utils/logger");
 
 // Lockout configuration
-const LOCKOUT_THRESHOLD = parseInt(process.env.LOCKOUT_THRESHOLD) || 5;
+const LOCKOUT_THRESHOLD = parseInt(process.env.LOCKOUT_THRESHOLD, 10) || 5;
 const LOCKOUT_DURATION_MINUTES =
-	parseInt(process.env.LOCKOUT_DURATION_MINUTES) || 15;
-const LOCKOUT_WINDOW_HOURS = parseInt(process.env.LOCKOUT_WINDOW_HOURS) || 1;
+	parseInt(process.env.LOCKOUT_DURATION_MINUTES, 10) || 15;
+const LOCKOUT_WINDOW_HOURS =
+	parseInt(process.env.LOCKOUT_WINDOW_HOURS, 10) || 1;
 
 /**
  * Check if account is locked out
@@ -47,7 +48,7 @@ async function checkAccountLockout(userId, callSign) {
 
 			if (new Date() < lockoutExpiry) {
 				const remainingMinutes = Math.ceil(
-					(lockoutExpiry - new Date()) / 1000 / 60,
+					(lockoutExpiry - Date.now()) / 1000 / 60,
 				);
 
 				// Log lockout attempt
@@ -192,7 +193,7 @@ async function getLockoutStatus(userId) {
 
 			if (new Date() < lockoutExpiry) {
 				const remainingMinutes = Math.ceil(
-					(lockoutExpiry - new Date()) / 1000 / 60,
+					(lockoutExpiry - Date.now()) / 1000 / 60,
 				);
 				return {
 					isLocked: true,

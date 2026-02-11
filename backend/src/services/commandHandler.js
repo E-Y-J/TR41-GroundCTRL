@@ -289,8 +289,8 @@ class CommandHandler {
 
 		let v_new, a_new, e_new;
 		let i_new = i;
-		let raan_new = raan;
-		let argP_new = argP;
+		const raan_new = raan;
+		const argP_new = argP;
 
 		switch (direction) {
 			case "prograde":
@@ -473,11 +473,10 @@ class CommandHandler {
 			const currentAnomaly = trueAnomaly;
 
 			// Calculate angle to periapsis
-			let angleToPeriapsis = (360 + targetAnomaly - currentAnomaly) % 360;
+			const angleToPeriapsis = (360 + targetAnomaly - currentAnomaly) % 360;
 
 			// Calculate orbital period
-			const period =
-				2 * Math.PI * Math.sqrt(Math.pow(a, 3) / CONSTANTS.MU_EARTH);
+			const period = 2 * Math.PI * Math.sqrt(a ** 3 / CONSTANTS.MU_EARTH);
 
 			// Time to periapsis
 			const timeToPeriapsis = (angleToPeriapsis / 360) * period;
@@ -493,10 +492,9 @@ class CommandHandler {
 			const targetAnomaly = 180;
 			const currentAnomaly = trueAnomaly;
 
-			let angleToApoapsis = (360 + targetAnomaly - currentAnomaly) % 360;
+			const angleToApoapsis = (360 + targetAnomaly - currentAnomaly) % 360;
 
-			const period =
-				2 * Math.PI * Math.sqrt(Math.pow(a, 3) / CONSTANTS.MU_EARTH);
+			const period = 2 * Math.PI * Math.sqrt(a ** 3 / CONSTANTS.MU_EARTH);
 			const timeToApoapsis = (angleToApoapsis / 360) * period;
 
 			return {

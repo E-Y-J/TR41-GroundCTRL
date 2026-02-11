@@ -3,7 +3,7 @@
  * Common functions for all test suites
  */
 
-const admin = require('firebase-admin');
+const admin = require("firebase-admin");
 
 let appInstance = null;
 
@@ -13,18 +13,20 @@ let appInstance = null;
  * @returns {Express} The Express app instance
  */
 function getTestApp() {
-  if (!appInstance) {
-    // Set test environment and mock emulator hosts
-    process.env.NODE_ENV = 'test';
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
-    process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+	if (!appInstance) {
+		// Set test environment and mock emulator hosts
+		process.env.NODE_ENV = "test";
+		process.env.LOG_LEVEL = "error"; // Suppress logs in tests
+		process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
+		process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
 
-    // Clear the require cache to ensure fresh initialization
-    delete require.cache[require.resolve('../../src/app')];
+		// Clear the require cache to ensure fresh initialization
+		delete require.cache[require.resolve("../../src/utils/logger")];
+		delete require.cache[require.resolve("../../src/app")];
 
-    appInstance = require('../../src/app');
-  }
-  return appInstance;
+		appInstance = require("../../src/app");
+	}
+	return appInstance;
 }
 
 /**
@@ -33,21 +35,21 @@ function getTestApp() {
  * @param {string} password - User password
  * @returns {Promise<admin.auth.UserRecord>} Created user record
  */
-async function createTestUser(email, password = 'TestPassword123!') {
-  try {
-    const userRecord = await admin.auth().createUser({
-      email,
-      password,
-      emailVerified: true,
-    });
-    return userRecord;
-  } catch (error) {
-    if (error.code === 'auth/email-already-exists') {
-      const existingUser = await admin.auth().getUserByEmail(email);
-      return existingUser;
-    }
-    throw error;
-  }
+async function createTestUser(email, password = "TestPassword123!") {
+	try {
+		const userRecord = await admin.auth().createUser({
+			email,
+			password,
+			emailVerified: true,
+		});
+		return userRecord;
+	} catch (error) {
+		if (error.code === "auth/email-already-exists") {
+			const existingUser = await admin.auth().getUserByEmail(email);
+			return existingUser;
+		}
+		throw error;
+	}
 }
 
 /**
@@ -55,13 +57,13 @@ async function createTestUser(email, password = 'TestPassword123!') {
  * @param {string} uid - User ID
  */
 async function deleteTestUser(uid) {
-  try {
-    await admin.auth().deleteUser(uid);
-  } catch (error) {
-    if (error.code !== 'auth/user-not-found') {
-      throw error;
-    }
-  }
+	try {
+		await admin.auth().deleteUser(uid);
+	} catch (error) {
+		if (error.code !== "auth/user-not-found") {
+			throw error;
+		}
+	}
 }
 
 /**
@@ -70,7 +72,7 @@ async function deleteTestUser(uid) {
  * @returns {Promise<string>} Custom token
  */
 async function generateTestToken(uid) {
-  return admin.auth().createCustomToken(uid);
+	return admin.auth().createCustomToken(uid);
 }
 
 /**
@@ -79,11 +81,11 @@ async function generateTestToken(uid) {
  * @param {string} password - User password
  * @returns {Promise<string>} ID token
  */
-async function signInTestUser(email, password) {
-  // This would normally use Firebase Client SDK
-  // For now, create a custom token
-  const user = await admin.auth().getUserByEmail(email);
-  return generateTestToken(user.uid);
+async function signInTestUser(email, _password) {
+	// This would normally use Firebase Client SDK
+	// For now, create a custom token
+	const user = await admin.auth().getUserByEmail(email);
+	return generateTestToken(user.uid);
 }
 
 /**
@@ -91,15 +93,15 @@ async function signInTestUser(email, password) {
  * @param {string} collection - Collection name
  */
 async function cleanupTestData(collection) {
-  const db = admin.firestore();
-  const snapshot = await db.collection(collection).get();
-  
-  const batch = db.batch();
-  snapshot.docs.forEach(doc => batch.delete(doc.ref));
-  
-  if (snapshot.docs.length > 0) {
-    await batch.commit();
-  }
+	const db = admin.firestore();
+	const snapshot = await db.collection(collection).get();
+
+	const batch = db.batch();
+	snapshot.docs.forEach((doc) => void batch.delete(doc.ref));
+
+	if (snapshot.docs.length > 0) {
+		await batch.commit();
+	}
 }
 
 /**
@@ -107,7 +109,7 @@ async function cleanupTestData(collection) {
  * @param {number} ms - Milliseconds to wait
  */
 function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -118,14 +120,14 @@ function delay(ms) {
  * @returns {Promise<any>} Function result
  */
 async function retryOperation(fn, retries = 3, delayMs = 1000) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (i === retries - 1) throw error;
-      await delay(delayMs);
-    }
-  }
+	for (let i = 0; i < retries; i++) {
+		try {
+			return await fn();
+		} catch (error) {
+			if (i === retries - 1) throw error;
+			await delay(delayMs);
+		}
+	}
 }
 
 /**
@@ -133,18 +135,18 @@ async function retryOperation(fn, retries = 3, delayMs = 1000) {
  * @param {string} prefix - Email prefix
  * @returns {string} Unique email
  */
-function generateUniqueEmail(prefix = 'test') {
-  return `${prefix}-${Date.now()}-${require('crypto').randomBytes(4).toString('hex')}@example.com`;
+function generateUniqueEmail(prefix = "test") {
+	return `${prefix}-${Date.now()}-${require("node:crypto").randomBytes(4).toString("hex")}@example.com`;
 }
 
 module.exports = {
-  getTestApp,
-  createTestUser,
-  deleteTestUser,
-  generateTestToken,
-  signInTestUser,
-  cleanupTestData,
-  delay,
-  retryOperation,
-  generateUniqueEmail,
+	getTestApp,
+	createTestUser,
+	deleteTestUser,
+	generateTestToken,
+	signInTestUser,
+	cleanupTestData,
+	delay,
+	retryOperation,
+	generateUniqueEmail,
 };

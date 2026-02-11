@@ -23,8 +23,8 @@ async function listConversation(req, res, next) {
 		const { page, limit, sortOrder, since, role } = req.query;
 
 		const result = await aiMessagesRepository.getMessagesBySession(session_id, {
-			page: parseInt(page) || 1,
-			limit: parseInt(limit) || 50,
+			page: parseInt(page, 10) || 1,
+			limit: parseInt(limit, 10) || 50,
 			sortOrder: sortOrder || "asc",
 			since,
 			role,

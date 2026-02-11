@@ -259,7 +259,7 @@ class AnomalyInjector {
 			sessionId,
 			difficulty,
 			checkInterval: config.checkIntervalMinutes,
-			anomalyChance: config.anomalyChance * 100 + "%",
+			anomalyChance: `${config.anomalyChance * 100}%`,
 		});
 	}
 

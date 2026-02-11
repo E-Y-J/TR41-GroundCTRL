@@ -116,7 +116,7 @@ async function getAll(options = {}) {
 
 	const snapshot = await query.get();
 
-	let data = snapshot.docs.map((doc) => ({
+	const data = snapshot.docs.map((doc) => ({
 		id: doc.id,
 		...doc.data(),
 	}));
@@ -293,7 +293,7 @@ async function getPopular(limit = 4) {
 	const db = getFirestore();
 
 	// Get all published, active articles
-	let query = db
+	const query = db
 		.collection(COLLECTION)
 		.where("status", "==", "PUBLISHED")
 		.where("isActive", "==", true);

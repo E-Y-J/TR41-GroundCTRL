@@ -7,7 +7,9 @@ const express = require("express");
 const router = express.Router();
 const missionControl = require("../config/missionControl");
 const { authMiddleware } = require("../middleware/authMiddleware");
-const { restrictBetaUsers } = require("../middleware/betaRestrictionMiddleware");
+const {
+	restrictBetaUsers,
+} = require("../middleware/betaRestrictionMiddleware");
 
 // Import route modules
 const healthRoutes = require("./health");
@@ -32,18 +34,44 @@ const leaderboardRoutes = require("./leaderboard");
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 
+// CSP violation reports (public endpoint)
+router.post("/csp-report", express.json(), (req, res) => {
+	const logger = require("../utils/logger");
+	logger.warn("CSP Violation Report", {
+		report: req.body,
+		userAgent: req.get("User-Agent"),
+		ip: req.ip,
+	});
+	res.status(204).end(); // No content response
+});
+
 // Protected routes (auth required + beta restriction)
 router.use("/users", authMiddleware, restrictBetaUsers, userRoutes);
 router.use("/satellites", authMiddleware, restrictBetaUsers, satelliteRoutes);
 router.use("/scenarios", authMiddleware, restrictBetaUsers, scenarioRoutes);
-router.use("/scenario-steps", authMiddleware, restrictBetaUsers, scenarioStepRoutes);
-router.use("/scenario-sessions", authMiddleware, restrictBetaUsers, scenarioSessionRoutes);
+router.use(
+	"/scenario-steps",
+	authMiddleware,
+	restrictBetaUsers,
+	scenarioStepRoutes,
+);
+router.use(
+	"/scenario-sessions",
+	authMiddleware,
+	restrictBetaUsers,
+	scenarioSessionRoutes,
+);
 router.use("/tutorials", authMiddleware, restrictBetaUsers, tutorialRoutes);
 // AI routes handle their own auth (some endpoints use optionalAuth)
 router.use("/ai", aiRoutes);
 router.use("/commands", authMiddleware, restrictBetaUsers, commandRoutes);
 router.use("/help", authMiddleware, restrictBetaUsers, helpRoutes);
-router.use("/websocket-logs", authMiddleware, restrictBetaUsers, websocketLogsRoutes);
+router.use(
+	"/websocket-logs",
+	authMiddleware,
+	restrictBetaUsers,
+	websocketLogsRoutes,
+);
 router.use("/leaderboard", leaderboardRoutes); // Leaderboard routes handle their own auth
 
 // Root API endpoint

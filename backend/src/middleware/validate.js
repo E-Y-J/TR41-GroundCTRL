@@ -22,7 +22,7 @@ const { ValidationError } = require("../utils/errors");
  * router.post('/login', validate(schema), controller.login);
  */
 const validate = (schema) => {
-	return (req, res, next) => {
+	return (req, _res, next) => {
 		try {
 			// Unified parsing: validate body, query, and params together
 			const result = schema.safeParse({

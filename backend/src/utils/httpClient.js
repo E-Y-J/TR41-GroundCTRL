@@ -18,7 +18,7 @@ const httpClient = axios.create({
 	// FIXED: Add baseURL for consistent endpoint routing
 	baseURL: process.env.API_BASE_URL || "http://localhost:8080/api/v1",
 
-	timeout: parseInt(process.env.HTTP_CLIENT_TIMEOUT_MS) || 8000,
+	timeout: parseInt(process.env.HTTP_CLIENT_TIMEOUT_MS, 10) || 8000,
 	headers: {
 		"Content-Type": "application/json",
 	},

@@ -10,16 +10,27 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI-OAUTH-001: Google Sign-in UI Elements', () => {
   test('should display Google sign-in button on login page', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/', { waitUntil: 'networkidle', timeout: 30000 });
 
-    // Look for Google sign-in button
-    const googleSignIn = page.locator('[data-testid="google-signin"], button:has-text("Sign in with Google"), button:has-text("Sign up with Google")').first();
+    // Wait for React to mount and header to appear first
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    
+    // Wait for auth container to initialize (Firebase auth takes time)
+    await page.waitForTimeout(2000);
 
-    // Button should be visible
-    await expect(googleSignIn).toBeVisible();
+    // Look for Google sign-in button with flexible matching
+    const googleSignIn = page.getByRole('button', { name: /google/i }).or(
+      page.locator('[data-testid="google-signin"], button:has-text("Sign in with Google"), button:has-text("Sign up with Google"), button:has-text("Continue with Google")')
+    ).first();
+
+    // Button should be visible with extended timeout for auth init
+    await expect(googleSignIn).toBeVisible({ timeout: 25000 });
+
+    // Wait for button to be enabled (handles browser-specific timing differences)
+    await page.waitForSelector('[data-testid="google-signin"]:not([disabled]), button:has-text("Sign in with Google"):not([disabled])', { timeout: 10000 });
 
     // Button should be enabled
-    await expect(googleSignIn).toBeEnabled();
+    await expect(googleSignIn).toBeEnabled({ timeout: 10000 });
 
     // Button should contain Google logo (SVG)
     const googleLogo = googleSignIn.locator('svg');
@@ -27,26 +38,21 @@ test.describe('UI-OAUTH-001: Google Sign-in UI Elements', () => {
   });
 
   test('should display Google sign-in button on registration page', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/', { waitUntil: 'networkidle', timeout: 30000 });
 
-    // Switch to registration mode (look for register tab or button)
-    const registerTab = page.locator('button:has-text("Register"), button:has-text("Sign Up"), [data-testid="register-tab"]').first();
+    // Wait for React to mount
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    await page.waitForTimeout(2000);
 
-    if (await registerTab.isVisible()) {
-      await registerTab.click();
-    } else {
-      // Try clicking a register link
-      const registerLink = page.locator('a:has-text("Register"), a:has-text("Sign Up")').first();
-      if (await registerLink.isVisible()) {
-        await registerLink.click();
-      }
-    }
-
+    // The default view is the beta signup form (registration), so no need to switch tabs
     // Look for Google sign-in button
     const googleSignIn = page.locator('[data-testid="google-signin"], button:has-text("Sign in with Google"), button:has-text("Sign up with Google")').first();
 
     // Button should be visible
     await expect(googleSignIn).toBeVisible();
+
+    // Wait for button to be enabled (handles browser-specific timing differences)
+    await page.waitForSelector('[data-testid="google-signin"]:not([disabled]), button:has-text("Sign up with Google"):not([disabled])', { timeout: 10000 });
 
     // Button should be enabled
     await expect(googleSignIn).toBeEnabled();

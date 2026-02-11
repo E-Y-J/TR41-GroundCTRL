@@ -46,7 +46,7 @@ function shouldNormalizeError(req) {
  * @param {object} res - Express response object
  * @param {Function} next - Next middleware function
  */
-function authErrorNormalizer(err, req, res, next) {
+function authErrorNormalizer(err, req, _res, next) {
 	// Only normalize errors for POST requests to auth endpoints
 	if (!shouldNormalizeError(req)) {
 		return next(err);

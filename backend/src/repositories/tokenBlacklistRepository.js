@@ -3,7 +3,7 @@
  * Handles persistence of revoked JWT tokens to Firebase Firestore
  */
 
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 const { getFirestore } = require("../config/firebase");
 const logger = require("../utils/logger");
 

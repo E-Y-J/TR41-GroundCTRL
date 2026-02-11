@@ -36,7 +36,7 @@ const crudHandlers = createCrudHandlers(
 		skipAuditOperations: ["LIST"],
 
 		// Custom audit metadata
-		auditMetadata: async (req, operation, result) => {
+		auditMetadata: async (_req, _operation, result) => {
 			return {
 				question: result?.question?.substring(0, 100),
 				categoryId: result?.category_id,
@@ -61,7 +61,7 @@ async function searchFaqs(req, res, next) {
 			category_id: req.query.category_id,
 		};
 
-		const limit = parseInt(req.query.limit) || 10;
+		const limit = parseInt(req.query.limit, 10) || 10;
 
 		const faqs = await helpFaqRepository.search(searchTerm, filters, limit);
 

@@ -86,7 +86,7 @@ router.get(
 	"/global",
 	leaderboardLimiter,
 	authMiddleware,
-	async (req, res, next) => {
+	async (req, res, _next) => {
 		// Declare variables at function scope for catch block access
 		let period = "all-time";
 		let limitNum = 100;
@@ -127,8 +127,8 @@ router.get(
 			}
 
 			// Validate and cap limit - ensure it's a valid number
-			const parsedLimit = parseInt(limit);
-			if (isNaN(parsedLimit)) {
+			const parsedLimit = parseInt(limit, 10);
+			if (Number.isNaN(parsedLimit)) {
 				logger.warn("Invalid limit provided, using default", { limit });
 				limitNum = 100;
 			} else {
@@ -246,7 +246,7 @@ router.get(
 	"/scenario/:scenarioId",
 	leaderboardLimiter,
 	authMiddleware,
-	async (req, res, next) => {
+	async (req, res, _next) => {
 		// Declare variables at function scope for catch block access
 		let limitNum = 100;
 
@@ -275,8 +275,8 @@ router.get(
 			}
 
 			// Validate and cap limit - ensure it's a valid number
-			const parsedLimit = parseInt(limit);
-			if (isNaN(parsedLimit)) {
+			const parsedLimit = parseInt(limit, 10);
+			if (Number.isNaN(parsedLimit)) {
 				logger.warn("Invalid limit provided, using default", { limit });
 				limitNum = 100;
 			} else {
@@ -369,7 +369,7 @@ router.get(
 	"/user/rank",
 	leaderboardLimiter,
 	authMiddleware,
-	async (req, res, next) => {
+	async (req, res, _next) => {
 		try {
 			const userId = req.user?.uid;
 
@@ -457,7 +457,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/cache/clear", authMiddleware, async (req, res, next) => {
+router.post("/cache/clear", authMiddleware, async (req, res, _next) => {
 	try {
 		// Check if user is admin
 		if (!req.user?.isAdmin) {

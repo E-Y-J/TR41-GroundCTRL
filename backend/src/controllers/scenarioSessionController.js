@@ -22,7 +22,7 @@ const hooks = {
 	 * Ownership scoping hook
 	 * Non-admins can only see sessions they created
 	 */
-	ownershipScope: async (req, operation, options) => {
+	ownershipScope: async (req, _operation, options) => {
 		if (req.user?.isAdmin) {
 			return options;
 		}
@@ -44,18 +44,22 @@ const hooks = {
 				if (scenario.name) data.scenario.name = scenario.name;
 				if (scenario.title) data.scenario.title = scenario.title;
 				if (scenario.difficulty) data.scenario.difficulty = scenario.difficulty;
-				if (scenario.satellite_id) data.scenario.satellite_id = scenario.satellite_id;
-				if (scenario.description) data.scenario.description = scenario.description;
-				
+				if (scenario.satellite_id)
+					data.scenario.satellite_id = scenario.satellite_id;
+				if (scenario.description)
+					data.scenario.description = scenario.description;
+
 				logger.debug("Scenario snapshot added", {
 					scenario_id: data.scenario_id,
 					difficulty: scenario.difficulty,
-					scenarioFields: Object.keys(data.scenario)
+					scenarioFields: Object.keys(data.scenario),
 				});
-				
+
 				// Add satellite snapshot if available
 				if (scenario.satellite_id) {
-					const satellite = await satelliteRepository.getById(scenario.satellite_id);
+					const satellite = await satelliteRepository.getById(
+						scenario.satellite_id,
+					);
 					if (satellite) {
 						data.satellite = {};
 						if (satellite.id) data.satellite.id = satellite.id;
@@ -64,20 +68,23 @@ const hooks = {
 						if (satellite.tle) data.satellite.tle = satellite.tle;
 						if (satellite.type) data.satellite.type = satellite.type;
 						if (satellite.status) data.satellite.status = satellite.status;
-						
+
 						logger.info("🛰️ Satellite snapshot added to session", {
 							satelliteName: satellite.name,
 							noradId: satellite.noradId,
-							satelliteFields: Object.keys(data.satellite)
+							satelliteFields: Object.keys(data.satellite),
 						});
 					}
 				}
 			}
 		} catch (error) {
-			logger.error("Failed to snapshot scenario/satellite - simulation will not work!", {
-				scenario_id: data.scenario_id,
-				error: error.message,
-			});
+			logger.error(
+				"Failed to snapshot scenario/satellite - simulation will not work!",
+				{
+					scenario_id: data.scenario_id,
+					error: error.message,
+				},
+			);
 		}
 
 		// Snapshot tutorials for this scenario at session start

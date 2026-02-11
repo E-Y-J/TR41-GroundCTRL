@@ -11,7 +11,7 @@
  * - Shareable certificate data
  */
 
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 const logger = require("../utils/logger");
 
 /**

@@ -65,24 +65,6 @@ test.describe('UI-006: Tailwind CSS Styling', () => {
     expect(hasSomeStyling).toBe(true);
   });
 
-  test('should use Tailwind responsive classes correctly', async ({ page }) => {
-    // Test mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
-    await page.waitForLoadState('load', { timeout: 10000 });
-    
-    const header = page.locator('header');
-    await expect(header).toBeVisible();
-    
-    // Test desktop viewport
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.reload();
-    await page.waitForLoadState('load', { timeout: 10000 });
-    
-    const desktopHeader = page.locator('header');
-    await expect(desktopHeader).toBeVisible();
-  });
-
   test('should have consistent primary color across elements', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');

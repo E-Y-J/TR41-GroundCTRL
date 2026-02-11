@@ -34,7 +34,7 @@ const scenarioHooks = {
 	 * Note: For non-admins, we need to handle ownership at the repository level
 	 * since Firestore doesn't support OR queries directly. We filter after fetching.
 	 */
-	ownershipScope: async (req, operation, options) => {
+	ownershipScope: async (req, _operation, options) => {
 		// Admins can see all
 		if (req.user?.isAdmin) {
 			return options;

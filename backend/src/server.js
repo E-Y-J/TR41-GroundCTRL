@@ -3,7 +3,7 @@
  * Starts the Express server with Socket.IO for real-time communication
  */
 
-const http = require("http");
+const http = require("node:http");
 const app = require("./app");
 const { initializeWebSocket } = require("./websocket/server");
 const logger = require("./utils/logger");

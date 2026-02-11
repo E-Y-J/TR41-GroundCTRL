@@ -10,7 +10,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI-CONTACT-001: Contact Form Functionality', () => {
   test('should load contact page successfully', async ({ page }) => {
-    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await page.goto('/contact', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Wait for React to mount and header to appear
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    await page.waitForTimeout(1500);
 
     // Check for contact page content
     const contactElements = [
@@ -34,7 +38,11 @@ test.describe('UI-CONTACT-001: Contact Form Functionality', () => {
   });
 
   test('should display contact form fields', async ({ page }) => {
-    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await page.goto('/contact', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Wait for React to mount
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    await page.waitForTimeout(1500);
 
     // Look for common contact form fields
     const formFields = [

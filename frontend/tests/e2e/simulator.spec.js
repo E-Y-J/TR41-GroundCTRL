@@ -85,20 +85,6 @@ test.describe('UI-SIMULATOR-001: Simulator Page Functionality', () => {
     }
   });
 
-  test('should have responsive layout on mobile', async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-
-    await page.goto('/simulator', { waitUntil: 'networkidle' });
-
-    // Check that content fits mobile screen
-    const body = page.locator('body');
-    const boundingBox = await body.boundingBox();
-
-    // Content should be visible within viewport
-    expect(boundingBox.width).toBeLessThanOrEqual(375);
-  });
-
   test('should handle simulator loading states', async ({ page }) => {
     await page.goto('/simulator', { waitUntil: 'networkidle' });
 

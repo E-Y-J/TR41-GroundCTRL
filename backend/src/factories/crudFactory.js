@@ -103,7 +103,7 @@ function createCrudHandlers(repository, resourceName, schemas, hooks) {
 
 	// Helper function to check if audit should be skipped
 	const shouldSkipAudit = (operation) => {
-		return skipAuditOperations && skipAuditOperations.includes(operation);
+		return skipAuditOperations?.includes(operation);
 	};
 
 	return {
@@ -121,9 +121,9 @@ function createCrudHandlers(repository, resourceName, schemas, hooks) {
 		getAll: async (req, res, next) => {
 			try {
 				// Normalize and enforce pagination limits
-				let page = Math.max(1, parseInt(req.query.page) || 1);
-				let limit = Math.min(
-					Math.max(1, parseInt(req.query.limit) || 20),
+				const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+				const limit = Math.min(
+					Math.max(1, parseInt(req.query.limit, 10) || 20),
 					MAX_PAGE_LIMIT,
 				);
 

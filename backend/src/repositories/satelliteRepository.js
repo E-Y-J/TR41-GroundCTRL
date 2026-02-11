@@ -49,7 +49,7 @@ async function getAll(options = {}) {
 
 		// Get all matching documents
 		const snapshot = await query.get();
-		let satellites = snapshot.docs.map((doc) => ({
+		const satellites = snapshot.docs.map((doc) => ({
 			id: doc.id,
 			...doc.data(),
 		}));
