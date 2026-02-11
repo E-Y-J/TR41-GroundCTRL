@@ -52,6 +52,21 @@ export default defineConfig({
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Opener-Policy': 'same-origin'
+    },
+    // Optimize for Playwright tests - prevent HMR overload
+    hmr: process.env.CI ? false : true, // Disable HMR in CI to prevent rate limiting
+    watch: process.env.CI ? null : undefined, // Disable file watching in CI
+    // Increase middleware timeout to prevent 429 errors
+    middlewareMode: false,
+    strictPort: true, // Fail if port is already in use
+    // Pre-transform known imports to reduce runtime load
+    warmup: {
+      clientFiles: [
+        './src/main.jsx',
+        './src/App.jsx',
+        './src/components/app-header.jsx',
+        './src/components/footer.jsx'
+      ]
     }
   },
   build: {

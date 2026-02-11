@@ -3,11 +3,13 @@ import { test, expect } from '@playwright/test';
 /**
  * Smoke Test - Basic app health check
  * This should pass if the app loads at all
+ * 
+ * UPDATED: Enhanced with React hydration debugging for CI race conditions
  */
 
 test.describe('Smoke Test', () => {
-  test('should load the application', async ({ page }) => {
-    console.log('=== SMOKE TEST: Attempting to load app ===');
+  test('should load the application and wait for React hydration', async ({ page }) => {
+    console.log('=== SMOKE TEST: Attempting to load app with hydration checks ===');
     
     // Try to load the page
     try {
@@ -168,5 +170,84 @@ test.describe('Smoke Test', () => {
     console.log('React root elements found:', count);
     
     expect(count).toBeGreaterThan(0);
+  });
+
+  test('should wait for React to mount header and navigation', async ({ page }) => {
+    console.log('=== HYDRATION TEST: Checking React mounting sequence ===');
+    
+    const startTime = Date.now();
+    
+    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    console.log('Page loaded (domcontentloaded) in', Date.now() - startTime, 'ms');
+    
+    // Phase 1: Wait for #root
+    await expect(page.locator('#root')).toBeVisible({ timeout: 10000 });
+    console.log('Phase 1: #root visible at', Date.now() - startTime, 'ms');
+    
+    // Phase 2: Wait for networkidle (assets loading)
+    await page.waitForLoadState('networkidle', { timeout: 30000 });
+    console.log('Phase 2: networkidle at', Date.now() - startTime, 'ms');
+    
+    // Phase 3: Wait for header (React component)
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    console.log('Phase 3: Header visible at', Date.now() - startTime, 'ms');
+    
+    // Phase 4: Wait for navigation links
+    const navLinks = page.locator('header nav a');
+    await expect(navLinks.first()).toBeVisible({ timeout: 20000 });
+    const navCount = await navLinks.count();
+    console.log('Phase 4: Navigation links visible at', Date.now() - startTime, 'ms');
+    console.log('Navigation link count:', navCount);
+    
+    // Take screenshots at each phase
+    await page.screenshot({ path: 'test-results/hydration-complete.png', fullPage: true });
+    
+    expect(navCount).toBeGreaterThan(0);
+    console.log('✅ React hydration complete in', Date.now() - startTime, 'ms');
+  });
+
+  test('should detect 429 rate limiting errors', async ({ page }) => {
+    console.log('=== 429 DETECTION TEST: Checking for Vite rate limiting ===');
+    
+    const errors = [];
+    const failedRequests = [];
+    
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+        if (msg.text().includes('429') || msg.text().includes('Too Many Requests')) {
+          console.error('❌ CRITICAL: 429 error detected:', msg.text());
+        }
+        if (msg.text().includes('MIME type') && msg.text().includes('text/html')) {
+          console.error('❌ CRITICAL: Asset loaded as HTML (typical 429 symptom):', msg.text());
+        }
+      }
+    });
+    
+    page.on('requestfailed', request => {
+      failedRequests.push({
+        url: request.url(),
+        failure: request.failure()?.errorText || 'Unknown'
+      });
+    });
+    
+    await page.goto('/', { waitUntil: 'networkidle', timeout: 30000 });
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    
+    // Check for critical errors
+    const has429 = errors.some(e => e.includes('429') || e.includes('Too Many Requests'));
+    const hasMimeErrors = errors.some(e => e.includes('MIME type') && e.includes('text/html'));
+    
+    console.log('Total console errors:', errors.length);
+    console.log('Failed requests:', failedRequests.length);
+    console.log('Has 429 errors:', has429);
+    console.log('Has MIME type errors:', hasMimeErrors);
+    
+    if (has429 || hasMimeErrors) {
+      console.error('⚠️  Vite dev server may be overwhelmed - consider reducing worker count or serving production build');
+    }
+    
+    // Don't fail on 429 in this test, just report
+    console.log(has429 ? '❌ 429 errors detected' : '✅ No 429 errors');
   });
 });

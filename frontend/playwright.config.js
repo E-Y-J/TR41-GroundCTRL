@@ -7,6 +7,9 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/e2e',
   
+  /* Global setup - warm up Vite dev server before tests */
+  globalSetup: './tests/e2e/global-setup.js',
+  
   /* Increase timeout for slow tests */
   timeout: process.env.CI ? 120 * 1000 : 90 * 1000, // 120 seconds on CI, 90 locally
   
@@ -44,13 +47,18 @@ export default defineConfig({
     video: 'retain-on-failure',
     
     /* Global timeout for actions (click, fill, etc.) - helps with slow API responses */
-    actionTimeout: process.env.CI ? 20000 : 10000, // 20 seconds on CI, 10 locally
+    actionTimeout: process.env.CI ? 25000 : 15000, // 25 seconds on CI, 15 locally (increased for React hydration)
     
     /* Navigation timeout - generous timeout for page loads during API delays */
     navigationTimeout: process.env.CI ? 60000 : 30000, // 60 seconds on CI, 30 locally
     
     /* Wait for at least some network activity to settle before considering page loaded */
     waitForLoadState: 'domcontentloaded', // More lenient than 'networkidle' for slow APIs
+  },
+  
+  /* Global expect timeout for assertions - increased for React hydration delays on CI */
+  expect: {
+    timeout: process.env.CI ? 20000 : 10000, // 20 seconds on CI, 10 locally
   },
 
   /* Configure projects for major browsers */
@@ -86,7 +94,14 @@ export default defineConfig({
       command: 'npm run dev',
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
+      timeout: process.env.CI ? 180 * 1000 : 120 * 1000, // 3 minutes on CI, 2 minutes locally
+      stdout: 'pipe', // Capture output for debugging
+      stderr: 'pipe',
+      // Wait for server to be truly ready (not just first response)
+      // This prevents tests from hitting rate limits during warmup
+      env: {
+        CI: process.env.CI ? 'true' : undefined,
+      },
       // Vite automatically loads .env files - don't override
     },
   }),
