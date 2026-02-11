@@ -25,6 +25,9 @@ const logger = require("./utils/logger");
 // Initialize Express app
 const app = express();
 
+// Disable x-powered-by header
+app.disable('x-powered-by');
+
 // Track application readiness
 app.locals.appReady = false;
 app.locals.firebaseInitialized = false;
