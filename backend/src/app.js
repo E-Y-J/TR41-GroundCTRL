@@ -25,6 +25,9 @@ const logger = require("./utils/logger");
 // Initialize Express app
 const app = express();
 
+// Disable x-powered-by header
+app.disable('x-powered-by');
+
 // Track application readiness
 app.locals.appReady = false;
 app.locals.firebaseInitialized = false;
@@ -69,7 +72,6 @@ try {
 // Enable for all environments including tests so security header tests work
 app.use(
 	helmet({
-		xPoweredBy: true, // Keep x-powered-by header
 		contentSecurityPolicy: {
 			directives: {
 				defaultSrc: ["'self'"],
