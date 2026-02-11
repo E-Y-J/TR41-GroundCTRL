@@ -15,6 +15,7 @@ console.log('App.jsx loaded')
 
 // Pages
 const HomePage = lazy(() => import('@/pages/Index.jsx'))
+const BetaWelcomePage = lazy(() => import('@/pages/BetaWelcome.jsx'))
 const DashboardPage = lazy(() => import('@/pages/Dashboard.jsx'))
 const SimulatorPage = lazy(() => import('@/pages/Simulator.jsx'))
 const MissionsPage = lazy(() => import('@/pages/Missions.jsx'))
@@ -30,7 +31,6 @@ const TermsPage = lazy(() => import('@/pages/Terms.jsx'))
 const NotFoundPage = lazy(() => import('@/pages/NotFound.jsx'))
 
 // New Pages
-const AboutPage = lazy(() => import('@/pages/About.jsx'))
 const LeaderboardPage = lazy(() => import('@/pages/Leaderboard.jsx'))
 const SatellitesPage = lazy(() => import('@/pages/Satellites.jsx'))
 const GroundStationsPage = lazy(() => import('@/pages/GroundStations.jsx'))
@@ -66,6 +66,7 @@ function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/beta-welcome" element={<BetaWelcomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/simulator" element={<SimulatorPage />} />
           <Route path="/missions" element={<MissionsPage />} />
@@ -80,7 +81,6 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           
           {/* New Routes */}
-          <Route path="/about" element={<AboutPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/satellites" element={<SatellitesPage />} />
           <Route path="/ground-stations" element={<GroundStationsPage />} />

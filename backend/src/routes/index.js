@@ -7,6 +7,7 @@ const express = require("express");
 const router = express.Router();
 const missionControl = require("../config/missionControl");
 const { authMiddleware } = require("../middleware/authMiddleware");
+const { restrictBetaUsers } = require("../middleware/betaRestrictionMiddleware");
 
 // Import route modules
 const healthRoutes = require("./health");
@@ -31,18 +32,18 @@ const leaderboardRoutes = require("./leaderboard");
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 
-// Protected routes (auth required)
-router.use("/users", authMiddleware, userRoutes);
-router.use("/satellites", authMiddleware, satelliteRoutes);
-router.use("/scenarios", authMiddleware, scenarioRoutes);
-router.use("/scenario-steps", authMiddleware, scenarioStepRoutes);
-router.use("/scenario-sessions", authMiddleware, scenarioSessionRoutes);
-router.use("/tutorials", authMiddleware, tutorialRoutes);
+// Protected routes (auth required + beta restriction)
+router.use("/users", authMiddleware, restrictBetaUsers, userRoutes);
+router.use("/satellites", authMiddleware, restrictBetaUsers, satelliteRoutes);
+router.use("/scenarios", authMiddleware, restrictBetaUsers, scenarioRoutes);
+router.use("/scenario-steps", authMiddleware, restrictBetaUsers, scenarioStepRoutes);
+router.use("/scenario-sessions", authMiddleware, restrictBetaUsers, scenarioSessionRoutes);
+router.use("/tutorials", authMiddleware, restrictBetaUsers, tutorialRoutes);
 // AI routes handle their own auth (some endpoints use optionalAuth)
 router.use("/ai", aiRoutes);
-router.use("/commands", authMiddleware, commandRoutes);
-router.use("/help", authMiddleware, helpRoutes);
-router.use("/websocket-logs", authMiddleware, websocketLogsRoutes);
+router.use("/commands", authMiddleware, restrictBetaUsers, commandRoutes);
+router.use("/help", authMiddleware, restrictBetaUsers, helpRoutes);
+router.use("/websocket-logs", authMiddleware, restrictBetaUsers, websocketLogsRoutes);
 router.use("/leaderboard", leaderboardRoutes); // Leaderboard routes handle their own auth
 
 // Root API endpoint

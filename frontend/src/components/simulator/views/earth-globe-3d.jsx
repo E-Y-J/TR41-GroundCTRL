@@ -1,6 +1,9 @@
 /**
  * EarthGlobe3D - 3D Globe Visualization Component (Phase 3 Integrated)
  * 
+ * Note: This is the active 3D globe implementation.
+ * Backup version (earth-globe-3d.backup.jsx) removed 2026-02-08
+ *
  * Uses Three.js for photorealistic Earth rendering with satellite orbit.
  * Features proper orbital mechanics, camera controls, and follow mode.
  * 
@@ -43,7 +46,6 @@ import {
   animateCommLink
 } from "./components/CommLink"
 import {
-  createSatelliteLabel,
   createStationLabel,
   updateTextLabel,
   createCardinalLabels
@@ -97,38 +99,6 @@ function LoadingOverlay() {
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
         <span className="text-sm text-muted-foreground">Loading Globe...</span>
       </div>
-    </div>
-  )
-}
-
-/** Orbital info display panel */
-function OrbitalInfoPanel({ 
-  altitude, 
-  inclination, 
-  lat, 
-  lon 
-}) {
-  return (
-    <div className="absolute top-3 left-3 bg-card/90 backdrop-blur border border-border rounded-lg p-3 z-10">
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
-        Orbital View
-      </div>
-      <div className="space-y-1 text-xs font-mono">
-        <InfoRow label="ALT" value={`${altitude.toFixed(0)} km`} />
-        <InfoRow label="INC" value={`${inclination.toFixed(1)}°`} />
-        <InfoRow label="LAT" value={`${lat.toFixed(2)}°`} />
-        <InfoRow label="LON" value={`${lon.toFixed(2)}°`} />
-      </div>
-    </div>
-  )
-}
-
-/** Single info row */
-function InfoRow({ label, value }) {
-  return (
-    <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-foreground">{value}</span>
     </div>
   )
 }
@@ -363,6 +333,7 @@ function setupLighting(scene) {
 // ============================================================================
 
 export function EarthGlobe3D({
+  telemetry,
   altitude = 415,
   inclination = 51.6,
   eccentricity = 0.0001,
@@ -410,7 +381,20 @@ export function EarthGlobe3D({
   // Derived values
   const orbitRadius = EARTH_RADIUS + (altitude / EARTH_RADIUS_KM)
 
-  // Calculate satellite position from orbital elements
+  // Convert lat/lon from telemetry to 3D position
+  const latLonToPosition = useCallback((lat, lon, alt = altitude) => {
+    const radius = EARTH_RADIUS + (alt / EARTH_RADIUS_KM)
+    const phi = (90 - lat) * DEG_TO_RAD
+    const theta = (lon + 180) * DEG_TO_RAD
+
+    const x = -(radius * Math.sin(phi) * Math.cos(theta))
+    const z = radius * Math.sin(phi) * Math.sin(theta)
+    const y = radius * Math.cos(phi)
+
+    return { x, y, z, lat, lon, alt }
+  }, [altitude])
+
+  // Calculate satellite position from orbital elements (fallback)
   const calculateSatellitePosition = useCallback((
     anomaly,
     radius,
@@ -518,17 +502,7 @@ export function EarthGlobe3D({
     scene.add(satellite)
     satelliteRef.current = satellite
 
-    // Create satellite label (Phase 3)
-    if (showLabels) {
-      const satLabel = createSatelliteLabel({
-        altitude,
-        velocity: calculateOrbitalVelocity(),
-        lat: 0,
-        lon: 0
-      })
-      satellite.add(satLabel)
-      satLabelRef.current = satLabel
-    }
+    // Satellite label removed - use OrbitalViewPanel instead
 
     // Create orbit path
     if (showOrbit) {
@@ -762,18 +736,31 @@ export function EarthGlobe3D({
 
       // Atmosphere shader uses built-in cameraPosition uniform, no need to update
 
-      // Update satellite position
+      // Update satellite position - use telemetry if available, otherwise calculate
       if (satelliteRef.current) {
-        const pos = calculateSatellitePosition(trueAnomaly, orbitRadius, inclination, raan)
+        let pos
+        // Support both flat structure (lat/lon/alt) and nested structure (orbit.latitude/longitude/altitude_km)
+        const lat = telemetry?.orbit?.latitude ?? telemetry?.lat
+        const lon = telemetry?.orbit?.longitude ?? telemetry?.lon
+        const alt = telemetry?.orbit?.altitude_km ?? telemetry?.alt
+        
+        if (lat != null && lon != null) {
+          // Use real-time telemetry from backend
+          pos = latLonToPosition(
+            lat,
+            lon,
+            alt || altitude
+          )
+        } else {
+          // Fallback to calculated position
+          pos = calculateSatellitePosition(trueAnomaly, orbitRadius, inclination, raan)
+        }
+        
         const satPosVec = new THREE.Vector3(pos.x, pos.y, pos.z)
         satelliteRef.current.position.copy(satPosVec)
         satelliteRef.current.lookAt(0, 0, 0)
 
-        // Update satellite label (Phase 3)
-        if (satLabelRef.current && showLabels) {
-          const newText = `ALT: ${altitude.toFixed(0)}km\nVEL: ${calculateOrbitalVelocity().toFixed(1)}km/s\nLAT: ${pos.lat.toFixed(2)}°\nLON: ${pos.lon.toFixed(2)}°`
-          updateTextLabel(satLabelRef.current, newText)
-        }
+        // Satellite label removed - use OrbitalViewPanel instead
 
         // Update orbit gradient
         if (orbitLineRef.current && orbitLineRef.current.material.uniforms) {
@@ -890,10 +877,12 @@ export function EarthGlobe3D({
     return () => cancelAnimationFrame(animationRef.current)
   }, [
     isLoaded, 
+    telemetry,
     altitude, 
     inclination, 
     raan, 
     orbitRadius, 
+    latLonToPosition,
     calculateSatellitePosition, 
     calculateOrbitalVelocity,
     trueAnomaly, 
@@ -911,17 +900,8 @@ export function EarthGlobe3D({
   const satPos = calculateSatellitePosition(trueAnomaly, orbitRadius, inclination, raan)
 
   return (
-    <div ref={containerRef} className={`relative w-full h-full ${className}`}>
+    <div ref={containerRef} className={`relative w-full h-full ${className}`} style={{ display: 'block' }}>
       {!isLoaded && <LoadingOverlay />}
-      
-      <OrbitalInfoPanel 
-        altitude={altitude}
-        inclination={inclination}
-        lat={satPos.lat}
-        lon={satPos.lon}
-      />
-      
-      <ViewModeBadge />
       
       <FollowToggle 
         active={followSatellite}

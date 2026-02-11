@@ -24,6 +24,7 @@ export function AuthProvider({ children }) {
           // Extract tokens from response structure: { user: {...}, tokens: { accessToken, refreshToken } }
           const accessToken = backendResponse.tokens?.accessToken || backendResponse.accessToken
           const refreshToken = backendResponse.tokens?.refreshToken || backendResponse.refreshToken
+          const userData = backendResponse.user || backendResponse
           
           // Store backend JWT tokens
           if (accessToken && refreshToken) {
@@ -33,31 +34,24 @@ export function AuthProvider({ children }) {
             console.warn('⚠️ Backend login successful but no tokens received:', backendResponse)
           }
           
-          // Now fetch user profile from backend API (using the JWT tokens we just stored)
-          try {
-            const profile = await getCurrentUser()
-            const userData = profile?.data || profile
-            
-            setUser({ 
-              ...firebaseUser, 
-              callSign: userData?.callSign || "",
-              isAdmin: userData?.isAdmin || false
-            })
-            
-            console.log('✅ User profile loaded from backend', { isAdmin: userData?.isAdmin })
-          } catch (profileError) {
-            console.warn('⚠️ Failed to fetch profile from backend, using Firebase data only:', profileError)
-            // Fallback to Firebase user data only
-            setUser({ 
-              ...firebaseUser, 
-              callSign: "", 
-              isAdmin: false 
-            })
-          }
+          // Use user data from token exchange response (already includes role)
+          setUser({ 
+            ...firebaseUser, 
+            callSign: userData?.callSign || "",
+            isAdmin: userData?.isAdmin || false,
+            role: userData?.role || "user"
+          })
+          
+          console.log('✅ User profile loaded from token exchange', { 
+            isAdmin: userData?.isAdmin,
+            role: userData?.role,
+            callSign: userData?.callSign,
+            fullUserData: userData
+          })
         } catch (e) {
           console.error('❌ Failed to authenticate with backend:', e)
           // Still set user with Firebase data so they can at least view public pages
-          setUser({ ...firebaseUser, callSign: "", isAdmin: false })
+          setUser({ ...firebaseUser, callSign: "", isAdmin: false, role: "user" })
         }
       } else {
         setUser(null)
@@ -78,10 +72,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const handleSignUp = async (email, password, displayName, callSign) => {
+  const handleSignUp = async (email, password, displayName, callSign, metadata = {}) => {
     try {
       setError(null)
-      await signUp(email, password, displayName, callSign)
+      await signUp(email, password, displayName, callSign, metadata)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign up")
       throw err

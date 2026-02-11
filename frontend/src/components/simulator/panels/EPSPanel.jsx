@@ -5,10 +5,11 @@
  * Part of the modular mission control console system.
  */
 
-import { SubsystemCard, DataRow, StatusBar, StatusGlyph } from "../SubsystemCard"
+import { StaticPanel } from "../StaticPanel"
+import { DataRow, StatusBar, StatusGlyph } from "../SubsystemCard"
 import { Battery, Sun } from "lucide-react"
 
-export function EPSPanel({ telemetry, status = "nominal", onClose }) {
+export function EPSPanel({ telemetry, status = "nominal" }) {
   // Extract EPS telemetry
   const power = telemetry?.subsystems?.power || {}
   const batterySoc = power.batterySoc || 95
@@ -33,15 +34,10 @@ export function EPSPanel({ telemetry, status = "nominal", onClose }) {
   const batteryStatus = getBatteryStatus(batterySoc)
 
   return (
-    <SubsystemCard
-      subsystem="EPS"
+    <StaticPanel
+      id="eps-panel"
       title="⚡ Electrical Power"
-      icon={Battery}
-      telemetry={telemetry}
-      status={status}
-      alarmCount={0}
-      defaultPosition={{ x: 360, y: 150, width: 300, height: 420 }}
-      onClose={onClose}
+      minHeight={420}
     >
       {/* Battery Status */}
       <div className="space-y-2">
@@ -127,7 +123,7 @@ export function EPSPanel({ telemetry, status = "nominal", onClose }) {
           </div>
         </div>
       </div>
-    </SubsystemCard>
+    </StaticPanel>
   )
 }
 

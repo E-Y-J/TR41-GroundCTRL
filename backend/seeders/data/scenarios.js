@@ -1,6 +1,6 @@
 /**
  * Scenario Seed Data
- * Training scenarios with time control and validation settings
+ * Only includes the HUD Demo scenario for current development
  */
 
 const CREATED_BY_UID = '5usOQ3eOm7OjXmDOFjEmKSQovs42';

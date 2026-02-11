@@ -24,13 +24,14 @@ const googleProvider = new GoogleAuthProvider()
  */
 
 // Sign up with email and password
-export async function signUp(email, password, displayName, callSign) {
+export async function signUp(email, password, displayName, callSign, metadata = {}) {
   // Backend creates Firebase Auth user + Firestore document
   const response = await apiAuthService.registerUser({
     email,
     password,
     displayName: displayName || undefined,
-    callSign: callSign || undefined
+    callSign: callSign || undefined,
+    ...metadata // Spread metadata (role, primaryRole, onboardingComplete, wantsUpdates)
   })
   
   // Sign in with the newly created account
@@ -43,24 +44,6 @@ export async function signUp(email, password, displayName, callSign) {
   }
   
   return response
-  // Let backend handle everything: Firebase Auth user creation + Firestore document
-  // This ensures atomic operation and proper validation
-  try {
-    await apiAuthService.registerUser({
-      email,
-      password,
-      displayName: displayName || "",
-      callSign: callSign || ""
-    })
-    
-    // After backend creates user, sign in to get Firebase Auth session
-    const userCredential = await signInWithEmailAndPassword(auth, email, password)
-    
-    return userCredential.user
-  } catch (error) {
-    console.error('Registration failed:', error)
-    throw new Error(error.message || 'Registration failed')
-  }
 }
 
 // Sign in with email and password

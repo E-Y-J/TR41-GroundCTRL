@@ -58,15 +58,58 @@ export function DockZone({ zoneId, className = '' }) {
     return styles
   }
   
+  // Determine zone color based on zoneId
+  const getZoneColor = () => {
+    switch(zoneId) {
+      case 'left':
+        return {
+          border: 'border-blue-500/50',
+          bg: 'bg-blue-500/10',
+          highlightBorder: 'border-blue-500',
+          highlightBg: 'bg-blue-500/20'
+        }
+      case 'right':
+        return {
+          border: 'border-green-500/50',
+          bg: 'bg-green-500/10',
+          highlightBorder: 'border-green-500',
+          highlightBg: 'bg-green-500/20'
+        }
+      case 'top':
+        return {
+          border: 'border-purple-500/50',
+          bg: 'bg-purple-500/10',
+          highlightBorder: 'border-purple-500',
+          highlightBg: 'bg-purple-500/20'
+        }
+      case 'bottom':
+        return {
+          border: 'border-orange-500/50',
+          bg: 'bg-orange-500/10',
+          highlightBorder: 'border-orange-500',
+          highlightBg: 'bg-orange-500/20'
+        }
+      default:
+        return {
+          border: 'border-gray-500/50',
+          bg: 'bg-gray-500/10',
+          highlightBorder: 'border-gray-500',
+          highlightBg: 'bg-gray-500/20'
+        }
+    }
+  }
+  
+  const colors = getZoneColor()
+  
   return (
     <div
       data-dock-zone={zoneId}
       style={getPositionStyles()}
       className={cn(
-        'rounded-lg border-2 border-dashed transition-all duration-200',
-        isHighlighted && !isFull && 'border-blue-500 bg-blue-500/10 backdrop-blur-sm shadow-lg shadow-blue-500/50',
+        'rounded-lg border-4 transition-all duration-200 backdrop-blur-sm',
+        isHighlighted && !isFull && `${colors.highlightBorder} ${colors.highlightBg} shadow-lg`,
         isHighlighted && isFull && 'border-red-500 bg-red-500/10',
-        !isHighlighted && 'border-transparent',
+        !isHighlighted && `${colors.border} ${colors.bg}`,
         className
       )}
     >

@@ -14,5 +14,5 @@ export { AchievementNotification, AchievementManager } from '../achievement-noti
 // Tools
 export { BurnPlanner } from '../burn-planner';
 
-// Command Console (already exported separately)
-export { CommandConsoleEnhanced } from '../command-console-enhanced';
+// Note: Command Console is available separately as CommandConsoleHUD
+// Old implementations (command-console.jsx, command-console-enhanced.jsx) removed during cleanup

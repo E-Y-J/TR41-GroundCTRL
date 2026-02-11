@@ -127,8 +127,6 @@ def fix_file_indentation(file_path: str, problems: List[Dict]) -> bool:
         # Read file
         with open(file_path, 'r', encoding='utf-8', newline='') as f:
             lines = f.readlines()
-        
-        original_content = ''.join(lines)
         modified = False
         
         # Sort problems by line number (descending) to avoid line number shifts

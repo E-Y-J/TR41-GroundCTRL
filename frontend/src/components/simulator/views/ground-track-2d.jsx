@@ -149,49 +149,12 @@ function EquatorIndicator({ inclination }) {
   )
 }
 
-/** Coordinate display bar */
-function CoordinateDisplay({ 
-  lat, 
-  lon, 
-  altitude 
-}) {
-  const latDir = lat >= 0 ? "N" : "S"
-  const lonDir = lon >= 0 ? "E" : "W"
-  const latDisplay = `${Math.abs(lat).toFixed(1)}°${latDir}`
-  const lonDisplay = `${Math.abs(lon).toFixed(1)}°${lonDir}`
-  
-  return (
-    <g transform="translate(360, 350)">
-      <rect 
-        x="-90" 
-        y="-12" 
-        width="180" 
-        height="20" 
-        rx="4" 
-        fill="#0f172a" 
-        fillOpacity="0.9" 
-        stroke="#334155" 
-        strokeWidth="0.5" 
-      />
-      <text 
-        x="0" 
-        y="2" 
-        fill="#94a3b8" 
-        fontSize="10" 
-        fontFamily="ui-monospace, monospace" 
-        textAnchor="middle"
-      >
-        {latDisplay}  {lonDisplay}  Alt: {altitude.toFixed(0)}km
-      </text>
-    </g>
-  )
-}
-
 // ============================================================================
 // Main Component
 // ============================================================================
 
 export function GroundTrack2D({ 
+  telemetry,
   inclination = 53, 
   altitude = 415,
   showFootprint = true,
@@ -201,7 +164,7 @@ export function GroundTrack2D({
 }) {
   const [orbitProgress, setOrbitProgress] = useState(0)
   
-  // Animate satellite position along the orbit
+  // Animate satellite position along the orbit (fallback if no telemetry)
   useEffect(() => {
     const interval = setInterval(() => {
       setOrbitProgress((prev) => {
@@ -213,8 +176,25 @@ export function GroundTrack2D({
     return () => clearInterval(interval)
   }, [])
   
-  // Calculate current satellite position
-  const satPos = getSatellitePosition(0, inclination, orbitProgress)
+  // Use telemetry if available, otherwise calculate
+  // Support both flat structure (lat/lon) and nested structure (orbit.latitude/longitude)
+  const lat = telemetry?.orbit?.latitude ?? telemetry?.lat
+  const lon = telemetry?.orbit?.longitude ?? telemetry?.lon
+  
+  // DEBUG: Log telemetry to see what we're receiving
+  useEffect(() => {
+    console.log('[GroundTrack2D] Telemetry received:', {
+      hasTelemetry: !!telemetry,
+      hasOrbit: !!telemetry?.orbit,
+      lat,
+      lon,
+      fullTelemetry: telemetry
+    });
+  }, [telemetry, lat, lon]);
+  
+  const satPos = (lat != null && lon != null)
+    ? latLonToSvg(lat, lon)
+    : getSatellitePosition(0, inclination, orbitProgress)
   
   // Generate ground tracks
   const currentOrbit = generateGroundTrack(0, inclination, 200)
@@ -222,12 +202,12 @@ export function GroundTrack2D({
   const nextOrbit = generateGroundTrack(-22.5, inclination, 200)
   
   return (
-    <div className={`relative w-full h-full overflow-hidden ${className}`}>
+    <div className={`relative w-full h-full overflow-hidden flex items-stretch justify-center ${className}`}>
       <svg 
         viewBox="0 0 720 360" 
         className="w-full h-full"
         preserveAspectRatio="xMidYMid meet"
-        style={{ display: 'block', maxHeight: '100%' }}
+        style={{ display: 'block' }}
         role="img"
         aria-label="Satellite ground track visualization"
       >
@@ -265,9 +245,6 @@ export function GroundTrack2D({
       >
         SAT-01
       </text>
-      
-      {/* Coordinate display */}
-      <CoordinateDisplay lat={satPos.lat} lon={satPos.lon} altitude={altitude} />
       </svg>
     </div>
   )

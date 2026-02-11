@@ -5,10 +5,11 @@
  * Part of the modular mission control console system.
  */
 
-import { SubsystemCard, DataRow, StatusGlyph } from "../SubsystemCard"
+import { StaticPanel } from "../StaticPanel"
+import { DataRow, StatusGlyph } from "../SubsystemCard"
 import { Compass } from "lucide-react"
 
-export function ADCSPanel({ telemetry, status = "nominal", onClose }) {
+export function ADCSPanel({ telemetry, status = "nominal" }) {
   // Extract ADCS telemetry (use fallback values if not available)
   const adcs = telemetry?.subsystems?.adcs || {}
   const attitude = adcs.attitude || { roll: 0, pitch: 0, yaw: 0 }
@@ -21,15 +22,10 @@ export function ADCSPanel({ telemetry, status = "nominal", onClose }) {
   ]
 
   return (
-    <SubsystemCard
-      subsystem="ADCS"
+    <StaticPanel
+      id="adcs-panel"
       title="🧭 Attitude Control"
-      icon={Compass}
-      telemetry={telemetry}
-      status={status}
-      alarmCount={0}
-      defaultPosition={{ x: 50, y: 150, width: 300, height: 380 }}
-      onClose={onClose}
+      minHeight={380}
     >
       {/* Attitude Angles */}
       <div className="space-y-2">
@@ -87,7 +83,7 @@ export function ADCSPanel({ telemetry, status = "nominal", onClose }) {
           </span>
         </div>
       </div>
-    </SubsystemCard>
+    </StaticPanel>
   )
 }
 

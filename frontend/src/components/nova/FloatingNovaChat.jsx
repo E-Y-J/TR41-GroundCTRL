@@ -13,6 +13,9 @@ const NOVA_API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}
  * Floating NOVA Chat Component
  * A floating chat button with beaconing animation that expands into a chat panel
  * 
+ * Note: This is the active Nova chat implementation.
+ * Old version (simulator/nova-assistant.jsx) removed 2026-02-08
+ * 
  * Props:
  * - sessionId: string - Current session ID for backend tracking
  * - stepId: string - Current step ID (for simulator context)
@@ -30,6 +33,11 @@ export function FloatingNovaChat({
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
+  
+  // Debug: Track when isOpen changes
+  useEffect(() => {
+    console.log('[NOVA] isOpen changed to:', isOpen, 'Stack:', new Error().stack)
+  }, [isOpen])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [messages, setMessages] = useState([])
@@ -248,46 +256,37 @@ export function FloatingNovaChat({
     ? "left-6 bottom-6" 
     : "right-6 bottom-6"
 
-  // Initial position for draggable panel
+  // Initial position for draggable panel - position it safely on screen
   const initialPanelPosition = position === "left"
-    ? { x: 24, y: window.innerHeight - 696 } // 24px left, 696px = ~600px height + 96px from bottom
-    : { x: window.innerWidth - 408, y: window.innerHeight - 696 } // 408px = 384px width + 24px right
+    ? { x: 100, y: Math.max(100, window.innerHeight - 700) } // Safe position, at least 100px from top
+    : { x: window.innerWidth - 500, y: Math.max(100, window.innerHeight - 700) }
 
   return (
     <>
-      {/* Floating Chat Panel - Draggable but NOT Dockable */}
+      {/* Floating Chat Panel - Draggable with proper configuration */}
       {isOpen && (
         <Draggable
           handle=".drag-handle"
-          defaultPosition={initialPanelPosition}
-          bounds={{
-            left: 0,
-            top: 0,
-            right: window.innerWidth - 384, // 384px = panel width
-            bottom: window.innerHeight - (isMinimized ? 64 : 600) // Adjust for panel height
-          }}
-          cancel="button, input, .messages-area"
+          bounds="parent"
           nodeRef={draggableRef}
         >
           <div 
             ref={draggableRef}
-            className={`fixed z-9999 w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
+            className={`fixed w-96 bg-card border-2 border-primary/50 rounded-lg shadow-2xl transition-all duration-300 flex flex-col ${
               isMinimized ? 'h-16' : 'h-150'
             } ${className}`}
+            style={{ 
+              zIndex: 9999,
+              left: '100px',
+              top: '100px'
+            }}
             onClick={(e) => {
+              console.log('[NOVA] Container clicked', e.target, e.currentTarget)
+              // Only stop propagation, don't prevent default to allow interactive elements to work
               e.stopPropagation()
-              e.preventDefault()
             }}
             onMouseDown={(e) => {
-              e.stopPropagation()
-            }}
-            onMouseUp={(e) => {
-              e.stopPropagation()
-            }}
-            onTouchStart={(e) => {
-              e.stopPropagation()
-            }}
-            onTouchEnd={(e) => {
+              console.log('[NOVA] Container mousedown', e.target)
               e.stopPropagation()
             }}
           >
@@ -312,7 +311,10 @@ export function FloatingNovaChat({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setIsMinimized(!isMinimized)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsMinimized(!isMinimized)
+                }}
               >
                 {isMinimized ? (
                   <Maximize2 className="h-4 w-4" />
@@ -324,7 +326,10 @@ export function FloatingNovaChat({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsOpen(false)
+                }}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -369,7 +374,10 @@ export function FloatingNovaChat({
                                 key={option.id}
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleSend(option.text)}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleSend(option.text)
+                                }}
                                 className="w-full justify-start text-left bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 text-xs"
                               >
                                 {option.text}
@@ -413,7 +421,10 @@ export function FloatingNovaChat({
                       variant="outline" 
                       size="sm" 
                       disabled={isLoading}
-                      onClick={() => handleSend(action.prompt)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleSend(action.prompt)
+                      }}
                       className="flex-1 rounded-md text-[10px] h-7 bg-transparent gap-1 px-2"
                     >
                       <action.icon className="h-2.5 w-2.5" />
@@ -461,7 +472,8 @@ export function FloatingNovaChat({
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className={`fixed ${positionClasses} z-9999 group ${className}`}
+          className={`fixed ${positionClasses} group ${className}`}
+          style={{ zIndex: 9999 }}
           aria-label="Open NOVA Chat"
         >
           {/* Beaconing/Pulsing Rings */}

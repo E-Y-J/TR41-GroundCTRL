@@ -94,24 +94,33 @@ function ViewIcon({ mode }) {
 // ============================================================================
 
 export function VisualizationSwitcher({
+  telemetry,
   altitude = 415,
   inclination = 51.6,
   eccentricity = 0.0001,
   raan = 0,
+  mode = "2d",
+  onModeChange,
   defaultView = "2d",
   showToggle = true,
+  groundStationsData = null, // WebSocket ground stations data
   className = "",
 }) {
-  const [viewMode, setViewMode] = useState(defaultView)
+  // Support both controlled (mode + onModeChange) and uncontrolled (defaultView) usage
+  const [internalMode, setInternalMode] = useState(defaultView)
+  const viewMode = mode || internalMode
+  const handleModeChange = onModeChange || setInternalMode
 
   const toggleView = () => {
-    setViewMode(prev => prev === "2d" ? "3d" : "2d")
+    const newMode = viewMode === "2d" ? "3d" : "2d"
+    handleModeChange(newMode)
   }
 
   return (
     <div className={`relative w-full h-full ${className}`}>
       {viewMode === "2d" ? (
         <GroundTrack2D
+          telemetry={telemetry}
           altitude={altitude}
           inclination={inclination}
           showFootprint={true}
@@ -122,6 +131,7 @@ export function VisualizationSwitcher({
       ) : (
         <Suspense fallback={<ViewLoader />}>
           <EarthGlobe3D
+            telemetry={telemetry}
             altitude={altitude}
             inclination={inclination}
             eccentricity={eccentricity}
@@ -135,6 +145,7 @@ export function VisualizationSwitcher({
             showLabels={true}
             showOrbitalNodes={false}
             animationSpeed={120}
+            groundStationsData={groundStationsData}
             className="w-full h-full"
           />
         </Suspense>

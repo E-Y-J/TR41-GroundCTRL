@@ -41,7 +41,16 @@ export function DraggablePanel({
   const [position, setPosition] = useState(() => {
     try {
       const saved = localStorage.getItem(`panel-position-${id}`)
-      return saved ? JSON.parse(saved) : defaultPosition
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        // Reject invalid positions (0,0 is top-left corner, likely a bug)
+        if (parsed.x === 0 && parsed.y === 0) {
+          console.warn(`[DraggablePanel] Rejecting invalid (0,0) position for ${id}, using default`)
+          return defaultPosition
+        }
+        return parsed
+      }
+      return defaultPosition
     } catch (error) {
       console.warn(`[DraggablePanel] Failed to load position for ${id}:`, error)
       return defaultPosition
@@ -69,9 +78,14 @@ export function DraggablePanel({
     }
   }, [position.width, position.height, defaultPosition.width, defaultPosition.height, isMinimized])
 
-  // Save position to localStorage whenever it changes
+  // Save position to localStorage whenever it changes (but NOT if it's invalid)
   useEffect(() => {
     try {
+      // Don't save invalid (0,0) positions - they cause bugs
+      if (position.x === 0 && position.y === 0) {
+        console.warn(`[DraggablePanel] Refusing to save invalid (0,0) position for ${id}`)
+        return
+      }
       localStorage.setItem(`panel-position-${id}`, JSON.stringify(position))
     } catch (error) {
       console.warn(`[DraggablePanel] Failed to save position for ${id}:`, error)
@@ -97,11 +111,21 @@ export function DraggablePanel({
   }, [onClose])
 
   // Handle drag start
-  const handleDragStart = useCallback(() => {
+  const handleDragStart = useCallback((e, d) => {
     setIsDragging(true)
-    // If panel was docked, undock it
+    console.log('[DraggablePanel] Drag start - visual position:', position, 'drag data:', d)
+    
+    // If panel was docked, undock it and keep it at current position
     if (docking && dockedZone) {
-      docking.undockPanel(id, position)
+      // Use the current position state (where it's actually rendered), NOT d.x/d.y
+      const currentPosition = {
+        x: position.x,
+        y: position.y,
+        width: position.width,
+        height: position.height
+      }
+      console.log('[DraggablePanel] Undocking from drag start, keeping at:', currentPosition)
+      docking.undockPanel(id, currentPosition)
     }
   }, [docking, dockedZone, id, position])
 
@@ -142,9 +166,17 @@ export function DraggablePanel({
       }
     }
     
-    // Normal position update (not docking)
-    setPosition(prev => ({ ...prev, x: d.x, y: d.y }))
-  }, [docking, id, dockType])
+    // For uncontrolled mode: DON'T call setPosition - let react-rnd manage it
+    // Just save to localStorage directly
+    const newPos = { ...position, x: d.x, y: d.y }
+    if (newPos.x !== 0 || newPos.y !== 0) {
+      try {
+        localStorage.setItem(`panel-position-${id}`, JSON.stringify(newPos))
+      } catch (error) {
+        console.warn(`[DraggablePanel] Failed to save position:`, error)
+      }
+    }
+  }, [docking, id, dockType, position])
 
   // Handle manual dock toggle
   const handleDockToggle = useCallback(() => {
@@ -181,6 +213,8 @@ export function DraggablePanel({
         {/* Header with drag handle */}
         <div
           className={`p-2 border-b border-border bg-muted/30 flex items-center justify-between rounded-t-lg ${headerClassName}`}
+          onDoubleClick={handleDockToggle}
+          title="Double-click to undock"
         >
           <div className="flex items-center gap-2">
             <GripVertical className="w-4 h-4 text-muted-foreground" />
@@ -239,10 +273,15 @@ export function DraggablePanel({
   }
   
   // Render with react-rnd when floating
+  // Use default prop instead of position for initial render to avoid (0,0) issues
   return (
     <Rnd
-      position={{ x: position.x, y: position.y }}
-      size={{ width: position.width, height: position.height }}
+      default={{
+        x: position.x,
+        y: position.y,
+        width: position.width,
+        height: position.height
+      }}
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragStop={handleDragStop}

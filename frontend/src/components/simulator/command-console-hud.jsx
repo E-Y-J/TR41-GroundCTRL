@@ -2,6 +2,9 @@
  * Command Console HUD - Compact Mission Control Style
  * Dense, no-scroll layout with all commands always visible
  * Inspired by ISS, Orion, Dragon control panels
+ * 
+ * Note: This is the active command console implementation.
+ * Old versions (command-console.jsx, command-console-enhanced.jsx) removed 2026-02-08
  */
 
 import React from 'react';

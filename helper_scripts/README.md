@@ -90,9 +90,75 @@ python helper_scripts/use_new_syntax.py
 
 ---
 
-### 5. `FB_cleanup.js`
-- Must type "DELETE ALL DATA" to proceed
-- Displays detailed summary of deletions
+### 5. `firebase-cleanup.js` ⭐ (Unified Cleanup Tool)
+**Purpose:** Interactive Firebase cleanup with multiple modes - safely clean test data or perform complete wipes.
+
+**Usage:**
+```bash
+# From project root
+node helper_scripts/firebase-cleanup.js
+```
+
+**Interactive Menu:**
+```
+╔════════════════════════════════════════════════════════════╗
+║        Firebase Cleanup Tool - GroundCTRL                 ║
+╚════════════════════════════════════════════════════════════╝
+
+Select cleanup mode:
+
+  1️⃣  NUCLEAR OPTION - Delete EVERYTHING
+     • Deletes ALL Firebase Auth users
+     • Deletes ALL Firestore collections
+     • Complete database wipe
+
+  2️⃣  KEEP USERS - Preserve user accounts
+     • Preserves Firebase Auth users
+     • Preserves "users" collection
+     • Deletes all other Firestore data
+
+  3️⃣  Cancel - Exit without changes
+
+Enter your choice (1, 2, or 3):
+```
+
+**Features:**
+- 🎯 **Dynamic Discovery:** Automatically finds all collections (no hardcoded lists)
+- 🔄 **Recursive Deletion:** Removes subcollections at any depth
+- 🛡️ **Safe Mode (Option 2):** Perfect for resetting test data while keeping user accounts
+- ⚠️ **Double Confirmation:** Requires explicit typed confirmation phrases
+- 📊 **Detailed Reporting:** Shows collections/documents/subcollections deleted
+- ⏱️ **Performance Tracking:** Reports elapsed time
+
+**Mode 1: Nuclear Option**
+- Confirmation: Type `DELETE ALL DATA`
+- Use Case: Complete environment reset, starting fresh
+- Deletes: Auth users + ALL Firestore data
+
+**Mode 2: Keep Users (Recommended for Testing)**
+- Confirmation: Type `DELETE EXCEPT USERS`
+- Use Case: Reset test scenarios without losing user accounts
+- Preserves: Auth users + users collection
+- Deletes: scenarios, satellites, commands, sessions, etc.
+
+**After Cleanup:**
+```bash
+# Repopulate with fresh seed data
+cd backend && npm run seed
+```
+
+**Output Example:**
+```
+✅ Total collections deleted: 8
+✅ Total documents deleted: 247
+✅ Users collection: PRESERVED ✓
+✅ Auth users: PRESERVED ✓
+⏱️ Time elapsed: 5.42s
+```
+
+**Legacy Scripts (Deprecated):**
+- ~~`FB_cleanup.js`~~ - Use `firebase-cleanup.js` Option 1 instead
+- ~~`FB_cleanup_keep_users.js`~~ - Use `firebase-cleanup.js` Option 2 instead
 
 ---
 

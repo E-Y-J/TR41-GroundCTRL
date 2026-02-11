@@ -8,27 +8,30 @@ import { SimulatorFooter } from "@/components/simulator/simulator-footer"
 import { MissionStartModal } from "@/components/simulator/mission-start-modal"
 import { AlertPanel } from "@/components/simulator/alert-panel"
 import { CommandQueueStatus } from "@/components/simulator/command-queue-status"
+import AlarmPanel from "@/components/simulator/AlarmPanel"
+import FlightDirectorStrip from "@/components/simulator/FlightDirectorStrip"
+import TmTcLog from "@/components/simulator/TmTcLog"
 import { GroundStationIndicator } from "@/components/simulator/ground-station-indicator"
 import { TimeControlDisplay } from "@/components/simulator/time-control-display"
 import { OperatorPrompt } from "@/components/simulator/operator-prompt"
 import { PerformanceMetrics } from "@/components/simulator/performance-metrics"
 import { VisualizationSwitcher } from "@/components/simulator/views"
 import { FloatingTMTCConsole } from "@/components/simulator/FloatingTMTCConsole"
-import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel, TimeControlPanel } from "@/components/simulator/panels"
+import { ADCSPanel, EPSPanel, CommsPanel, PropulsionPanel, TimeControlPanel, OrbitalViewPanel } from "@/components/simulator/panels"
 import { DockingProvider, useDocking } from "@/contexts/DockingContext"
 import { DockContainerLayout } from "@/components/simulator/DockContainer"
 import { useAuth } from "@/hooks/use-auth"
 import { useSimulatorState } from "@/contexts/SimulatorStateContext"
 import { useWebSocket } from "@/contexts/WebSocketContext"
 import { fetchSessionById, markSessionInProgress } from "@/lib/firebase/sessionService"
-import { Loader2, AlertCircle, Satellite, Radio, Clock, Battery, Antenna, Zap } from "lucide-react"
+import { Loader2, AlertCircle, Satellite, Radio, Clock, Battery, Antenna, Zap, Globe } from "lucide-react"
 
 // Lazy load heavy components
 const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat").then(module => ({ default: module.FloatingNovaChat })))
 
 // SimulatorContent - Renders all panels (they decide where to render based on docked state)
 function SimulatorContent({ 
-  sessionData,
+  telemetry,
   contextSessionId, 
   sessionIdParam, 
   missionStarted,
@@ -38,12 +41,14 @@ function SimulatorContent({
   showCommsPanel, 
   showPropulsionPanel, 
   showTimeControlPanel,
+  showOrbitalViewPanel,
   setShowTMTCConsole,
   setShowADCSPanel,
   setShowEPSPanel,
   setShowCommsPanel,
   setShowPropulsionPanel,
-  setShowTimeControlPanel
+  setShowTimeControlPanel,
+  setShowOrbitalViewPanel
 }) {
   return (
     <>
@@ -57,7 +62,7 @@ function SimulatorContent({
       
       {missionStarted && showADCSPanel && (
         <ADCSPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           status="nominal"
           onClose={() => setShowADCSPanel(false)}
         />
@@ -65,7 +70,7 @@ function SimulatorContent({
       
       {missionStarted && showEPSPanel && (
         <EPSPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           status="nominal"
           onClose={() => setShowEPSPanel(false)}
         />
@@ -73,7 +78,7 @@ function SimulatorContent({
       
       {missionStarted && showCommsPanel && (
         <CommsPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           status="nominal"
           onClose={() => setShowCommsPanel(false)}
         />
@@ -81,7 +86,7 @@ function SimulatorContent({
       
       {missionStarted && showPropulsionPanel && (
         <PropulsionPanel
-          telemetry={sessionData?.telemetry}
+          telemetry={telemetry}
           status="nominal"
           onClose={() => setShowPropulsionPanel(false)}
         />
@@ -91,6 +96,13 @@ function SimulatorContent({
         <TimeControlPanel
           sessionId={contextSessionId || sessionIdParam}
           onClose={() => setShowTimeControlPanel(false)}
+        />
+      )}
+      
+      {missionStarted && showOrbitalViewPanel && (
+        <OrbitalViewPanel
+          telemetry={telemetry}
+          onClose={() => setShowOrbitalViewPanel(false)}
         />
       )}
     </>
@@ -115,6 +127,8 @@ export default function Simulator() {
   const [showCommsPanel, setShowCommsPanel] = useState(false)
   const [showPropulsionPanel, setShowPropulsionPanel] = useState(false)
   const [showTimeControlPanel, setShowTimeControlPanel] = useState(false)
+  const [showOrbitalViewPanel, setShowOrbitalViewPanel] = useState(false)
+  const [viewMode, setViewMode] = useState("2d")
   
   // Use simulator state context
   const { 
@@ -122,11 +136,15 @@ export default function Simulator() {
     initializeSession, 
     startMission,
     sessionId: contextSessionId,
-    connected 
+    telemetry
   } = useSimulatorState()
   
   // Import WebSocket context to manually connect
-  const { connect: connectWebSocket, disconnect: disconnectWebSocket } = useWebSocket()
+  const { 
+    connect: connectWebSocket, 
+    disconnect: disconnectWebSocket,
+    groundStations // Ground station data from WebSocket
+  } = useWebSocket()
 
   const handleStartMission = async () => {
     try {
@@ -214,32 +232,49 @@ export default function Simulator() {
         }
       }) || []
       
-      // Create initial telemetry from session satellite data
-      // Always provide default telemetry even if satellite data is missing
+      // Restore saved telemetry if resuming a session
       const satelliteData = sessionData.satellite || {}
+      const savedTelemetry = sessionData.state?.telemetry
+      const savedElapsedTime = sessionData.state?.elapsedTime || 0
+      
+      console.log('[Simulator] Session data loaded', {
+        hasSavedTelemetry: !!savedTelemetry,
+        savedElapsedTime,
+        savedLat: savedTelemetry?.orbit?.latitude,
+        savedLon: savedTelemetry?.orbit?.longitude
+      })
+      
+      // Create initial telemetry - restore from saved state if available
       const initialTelemetry = {
         timestamp: Date.now(),
         orbit: {
-          altitude_km: satelliteData.orbit?.altitude_km || 415,
-          perigee_km: satelliteData.orbit?.altitude_km || 415,
-          apogee_km: satelliteData.orbit?.altitude_km || 415,
-          inclination_degrees: satelliteData.orbit?.inclination_degrees || 51.6,
+          altitude_km: savedTelemetry?.orbit?.altitude_km || satelliteData.orbit?.altitude_km || 415,
+          perigee_km: savedTelemetry?.orbit?.altitude_km || satelliteData.orbit?.altitude_km || 415,
+          apogee_km: savedTelemetry?.orbit?.altitude_km || satelliteData.orbit?.altitude_km || 415,
+          inclination_degrees: savedTelemetry?.orbit?.inclination_degrees || satelliteData.orbit?.inclination_degrees || 51.6,
           period_minutes: 92.7,
-          eccentricity: satelliteData.orbit?.eccentricity || 0.0
+          eccentricity: savedTelemetry?.orbit?.eccentricity || satelliteData.orbit?.eccentricity || 0.0,
+          velocity_km_s: savedTelemetry?.orbit?.velocity_km_s || 7.7,
+          latitude: savedTelemetry?.orbit?.latitude || 0,  // ✅ Restore saved position
+          longitude: savedTelemetry?.orbit?.longitude || 0  // ✅ Restore saved position
+        },
+        position: {
+          latitude: savedTelemetry?.orbit?.latitude || 0,
+          longitude: savedTelemetry?.orbit?.longitude || 0
         },
         subsystems: {
           power: {
-            batterySoc: satelliteData.power?.currentCharge_percent || 95,
-            solarArrayOutput: satelliteData.power?.solarPower_watts || 1800,
-            status: 'nominal'
+            batterySoc: savedTelemetry?.power?.currentCharge_percent || satelliteData.power?.currentCharge_percent || 95,
+            solarArrayOutput: savedTelemetry?.power?.solarPower_watts || satelliteData.power?.solarPower_watts || 1800,
+            status: savedTelemetry?.power?.status || 'nominal'
           },
           thermal: {
-            temperature_celsius: satelliteData.thermal?.temperature_celsius || 20,
-            status: 'nominal'
+            temperature_celsius: savedTelemetry?.thermal?.temperature_celsius || satelliteData.thermal?.temperature_celsius || 20,
+            status: savedTelemetry?.thermal?.status || 'nominal'
           },
           propulsion: {
-            fuelRemaining: satelliteData.propulsion?.fuel_percent || 100,
-            status: 'nominal'
+            fuelRemaining: savedTelemetry?.propulsion?.fuel_percent || satelliteData.propulsion?.fuel_percent || 100,
+            status: savedTelemetry?.propulsion?.status || 'nominal'
           }
         },
         communications: {
@@ -256,17 +291,23 @@ export default function Simulator() {
           name: sessionData.scenario?.title || 'Mission',
           steps: steps,
           satellite: sessionData.satellite, // Include satellite snapshot
-          savedProgress: savedProgress // Pass saved progress
+          savedProgress: {
+            ...savedProgress,
+            elapsedTime: savedElapsedTime  // ✅ Pass saved elapsed time
+          }
         },
-        initialTelemetry // Provide initial telemetry so UI isn't stuck loading
+        initialTelemetry // Provide initial telemetry (restored from saved state if available)
       )
     }
   }, [user, sessionData, contextSessionId, initializeSession])
 
-  // Redirect to landing page with error if not authenticated
+  // Redirect to landing page with error if not authenticated or beta user
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/?error=auth_required")
+    } else if (user && user.role === "beta") {
+      // Redirect beta users to their welcome page
+      navigate("/beta-welcome")
     }
   }, [user, authLoading, navigate])
 
@@ -469,6 +510,28 @@ export default function Simulator() {
                       <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">PROP</span>
                     </button>
                   )}
+                  {!showOrbitalViewPanel && (
+                    <button
+                      onClick={() => setShowOrbitalViewPanel(true)}
+                      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                      title="Show Orbital View"
+                      aria-label="Show Orbital View"
+                    >
+                      <Satellite className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">ORBIT</span>
+                    </button>
+                  )}
+                  
+                  {/* 2D/3D View Toggle */}
+                  <button
+                    onClick={() => setViewMode(prev => prev === "2d" ? "3d" : "2d")}
+                    className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
+                    title={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
+                    aria-label={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
+                  >
+                    <Globe className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">{viewMode === "2d" ? "3D" : "2D"}</span>
+                  </button>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -499,12 +562,15 @@ export default function Simulator() {
               >
                 {/* Center: 3D/2D Visualization - Always visible in grid */}
                 <VisualizationSwitcher
+                  telemetry={telemetry}
                   altitude={sessionData?.satellite?.orbit?.altitude_km || 415}
                   inclination={sessionData?.satellite?.orbit?.inclination_degrees || 51.6}
                   eccentricity={sessionData?.satellite?.orbit?.eccentricity || 0.0001}
                   raan={sessionData?.satellite?.orbit?.raan_degrees || 0}
-                  defaultView="2d"
-                  showToggle={true}
+                  mode={viewMode}
+                  onModeChange={setViewMode}
+                  showToggle={false}
+                  groundStationsData={groundStations}
                   className="h-full w-full"
                 />
               </DockContainerLayout>
@@ -553,7 +619,7 @@ export default function Simulator() {
         
         {/* HUD Enhancement - All Panels (only renders floating ones, docked are in containers) */}
         <SimulatorContent
-          sessionData={sessionData}
+          telemetry={telemetry}
           contextSessionId={contextSessionId}
           sessionIdParam={sessionIdParam}
           missionStarted={missionStarted}
@@ -563,12 +629,14 @@ export default function Simulator() {
           showCommsPanel={showCommsPanel}
           showPropulsionPanel={showPropulsionPanel}
           showTimeControlPanel={showTimeControlPanel}
+          showOrbitalViewPanel={showOrbitalViewPanel}
           setShowTMTCConsole={setShowTMTCConsole}
           setShowADCSPanel={setShowADCSPanel}
           setShowEPSPanel={setShowEPSPanel}
           setShowCommsPanel={setShowCommsPanel}
           setShowPropulsionPanel={setShowPropulsionPanel}
           setShowTimeControlPanel={setShowTimeControlPanel}
+          setShowOrbitalViewPanel={setShowOrbitalViewPanel}
         />
       </DockingProvider>
     </>

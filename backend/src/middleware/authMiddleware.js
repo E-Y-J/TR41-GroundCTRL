@@ -52,11 +52,18 @@ async function authMiddleware(req, res, next) {
 			throw new AuthError("Invalid token payload", 401);
 		}
 
+		// Fetch user role from database
+		const { getFirestore } = require("../config/firebase");
+		const db = getFirestore();
+		const userDoc = await db.collection("users").doc(decoded.uid).get();
+		const userData = userDoc.exists ? userDoc.data() : {};
+
 		// Attach user info to request
 		req.user = {
 			uid: decoded.uid,
 			callSign: decoded.callSign,
 			isAdmin: decoded.isAdmin || false,
+			role: userData.role || "user", // Add role to request
 		};
 
 		req.callSign = decoded.callSign;
@@ -66,6 +73,7 @@ async function authMiddleware(req, res, next) {
 			uid: decoded.uid,
 			callSign: decoded.callSign,
 			isAdmin: decoded.isAdmin,
+			role: userData.role || "user",
 		});
 
 		next();

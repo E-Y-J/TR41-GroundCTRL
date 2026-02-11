@@ -36,6 +36,7 @@ export function WebSocketProvider({ children }) {
   const commandSocketRef = useRef(null);
   const isInitializingRef = useRef(false);
   const hasConnectedRef = useRef(false); // Track if we've ever connected successfully
+  const currentSessionIdRef = useRef(null); // Track current session for reconnection
   
   // Keep refs in sync with state
   useEffect(() => {
@@ -49,6 +50,10 @@ export function WebSocketProvider({ children }) {
   useEffect(() => {
     isInitializingRef.current = isInitializing;
   }, [isInitializing]);
+  
+  useEffect(() => {
+    currentSessionIdRef.current = currentSessionId;
+  }, [currentSessionId]);
 
   /**
    * Initialize WebSocket connections on-demand
@@ -123,6 +128,12 @@ export function WebSocketProvider({ children }) {
         telemetrySock.on('connect', () => {
       console.log('✅ Telemetry socket connected:', telemetrySock.id);
       setConnected(true);
+      
+      // Re-join session if we were in one (handles reconnection)
+      if (currentSessionIdRef.current) {
+        console.log('[WebSocket] Reconnected - rejoining session:', currentSessionIdRef.current);
+        telemetrySock.emit('session:join', { sessionId: currentSessionIdRef.current });
+      }
     });
 
         telemetrySock.on('disconnect', (reason) => {
@@ -140,8 +151,24 @@ export function WebSocketProvider({ children }) {
         });
 
         telemetrySock.on('state:update', (newState) => {
-          console.log('Session state updated:', newState);
+          console.log('[WebSocket] state:update received:', {
+            timestamp: Date.now(),
+            hasTelemetry: !!newState.telemetry,
+            lat: newState.telemetry?.orbit?.latitude,
+            lon: newState.telemetry?.orbit?.longitude,
+            elapsedTime: newState.elapsedTime
+          });
           setSessionState(newState);
+        });
+
+        // Listen for real-time telemetry updates (broadcasted every 2 seconds)
+        telemetrySock.on('telemetry:update', (telemetryData) => {
+          console.log('[WebSocket] telemetry:update received:', telemetryData);
+          // Update session state with new telemetry
+          setSessionState(prev => ({
+            ...prev,
+            telemetry: telemetryData
+          }));
         });
 
         telemetrySock.on('session:error', ({ message, code }) => {
