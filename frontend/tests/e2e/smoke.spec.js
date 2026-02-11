@@ -192,12 +192,12 @@ test.describe('Smoke Test', () => {
     await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
     console.log('Phase 3: Header visible at', Date.now() - startTime, 'ms');
     
-    // Phase 4: Wait for navigation links
-    const navLinks = page.locator('header nav a');
+    // Phase 4: Wait for navigation links (logo link always present, nav links for authenticated users)
+    const navLinks = page.locator('header a');
     await expect(navLinks.first()).toBeVisible({ timeout: 20000 });
     const navCount = await navLinks.count();
-    console.log('Phase 4: Navigation links visible at', Date.now() - startTime, 'ms');
-    console.log('Navigation link count:', navCount);
+    console.log('Phase 4: Navigation elements visible at', Date.now() - startTime, 'ms');
+    console.log('Navigation element count:', navCount);
     
     // Take screenshots at each phase
     await page.screenshot({ path: 'test-results/hydration-complete.png', fullPage: true });
