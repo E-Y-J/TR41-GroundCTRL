@@ -34,6 +34,17 @@ const leaderboardRoutes = require("./leaderboard");
 router.use("/health", healthRoutes);
 router.use("/auth", authRoutes);
 
+// CSP violation reports (public endpoint)
+router.post("/csp-report", express.json(), (req, res) => {
+	const logger = require("../utils/logger");
+	logger.warn("CSP Violation Report", {
+		report: req.body,
+		userAgent: req.get("User-Agent"),
+		ip: req.ip,
+	});
+	res.status(204).end(); // No content response
+});
+
 // Protected routes (auth required + beta restriction)
 router.use("/users", authMiddleware, restrictBetaUsers, userRoutes);
 router.use("/satellites", authMiddleware, restrictBetaUsers, satelliteRoutes);

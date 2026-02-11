@@ -83,6 +83,13 @@ app.use(
 			includeSubDomains: true,
 			preload: true,
 		},
+		frameOptions: {
+			action: "deny",
+		},
+		noSniff: true,
+		referrerPolicy: {
+			policy: "strict-origin-when-cross-origin",
+		},
 		permissionsPolicy: {
 			features: {
 				geolocation: ["'none'"],

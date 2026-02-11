@@ -58,7 +58,6 @@ npx playwright test --project=webkit
 - `ui-004-duplicate-callsign.spec.js` - Duplicate callSign registration
 - `ui-005-code-splitting.spec.js` - Code splitting and lazy loading
 - `ui-006-tailwind-styling.spec.js` - Tailwind CSS styling
-- `ui-007-mobile-responsive.spec.js` - Mobile responsiveness
 - `ui-008-es-module-imports.spec.js` - ES module verification
 
 ## ⚙️ Prerequisites
