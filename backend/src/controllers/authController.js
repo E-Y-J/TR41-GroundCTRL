@@ -73,13 +73,23 @@ async function register(req, res, next) {
 			throw new ValidationError("Validation failed", validation.error.errors);
 		}
 
-		const { email, password, callSign, displayName, role, primaryRole, onboardingComplete, wantsUpdates } = validation.data;
+		const {
+			email,
+			password,
+			callSign,
+			displayName,
+			role,
+			primaryRole,
+			onboardingComplete,
+			wantsUpdates,
+		} = validation.data;
 
 		// Build metadata object from optional fields
 		const metadata = {};
 		if (role) metadata.role = role;
 		if (primaryRole) metadata.primaryRole = primaryRole;
-		if (onboardingComplete !== undefined) metadata.onboardingComplete = onboardingComplete;
+		if (onboardingComplete !== undefined)
+			metadata.onboardingComplete = onboardingComplete;
 		if (wantsUpdates !== undefined) metadata.wantsUpdates = wantsUpdates;
 
 		const result = await authService.register(
@@ -144,10 +154,7 @@ async function register(req, res, next) {
 			return res.status(400).json({
 				payload: { error: { message: "Invalid email or weak password" } },
 			});
-		} else if (
-			error.message &&
-			error.message.includes("Firebase not initialized")
-		) {
+		} else if (error.message?.includes("Firebase not initialized")) {
 			logger.error("Firebase unavailable during registration", {
 				error: error.message,
 			});
@@ -327,14 +334,11 @@ async function login(req, res, next) {
 		}
 	} catch (error) {
 		// Handle Firebase auth errors specifically
-		if (error.code && error.code.startsWith("auth/")) {
+		if (error.code?.startsWith("auth/")) {
 			return res
 				.status(401)
 				.json({ payload: { error: { message: "Invalid email or password" } } });
-		} else if (
-			error.message &&
-			error.message.includes("Firebase not initialized")
-		) {
+		} else if (error.message?.includes("Firebase not initialized")) {
 			logger.error("Firebase unavailable during login", {
 				error: error.message,
 			});

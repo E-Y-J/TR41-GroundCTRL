@@ -4,242 +4,242 @@
  * Migrated from: sprint1/authenticationFlow.test.js
  */
 
-const admin = require('firebase-admin');
-const request = require('supertest');
-const jwt = require('jsonwebtoken');
+const admin = require("firebase-admin");
+const request = require("supertest");
+const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+const JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 
-describe('Authentication Flow - Integration Tests', () => {
-  let app;
-  let testUsers = [];
+describe("Authentication Flow - Integration Tests", () => {
+	let app;
+	let testUsers = [];
 
-  beforeAll(() => {
-    if (!admin.apps.length) return;
-    app = require('../../../src/app');
-  });
+	beforeAll(() => {
+		if (!admin.apps.length) return;
+		app = require("../../../src/app");
+	});
 
-  afterEach(async () => {
-    if (!admin.apps.length) return;
-    
-    const db = admin.firestore();
-    for (const user of testUsers) {
-      try {
-        if (user.uid) {
-          await db.collection('users').doc(user.uid).delete();
-          await admin.auth().deleteUser(user.uid);
-        }
-      } catch {}
-    }
-    testUsers = [];
-  });
+	afterEach(async () => {
+		if (!admin.apps.length) return;
 
-  describe('User Registration', () => {
-    it('registers user and persists Firestore doc with auto-generated callSign', async () => {
-      if (!admin.apps.length) return;
+		const db = admin.firestore();
+		for (const user of testUsers) {
+			try {
+				if (user.uid) {
+					await db.collection("users").doc(user.uid).delete();
+					await admin.auth().deleteUser(user.uid);
+				}
+			} catch {}
+		}
+		testUsers = [];
+	});
 
-      const email = `alice-${Date.now()}@example.com`;
-      const password = 'StrongPass123!';
+	describe("User Registration", () => {
+		it("registers user and persists Firestore doc with auto-generated callSign", async () => {
+			if (!admin.apps.length) return;
 
-      const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email, password })
-        .expect(201);
+			const email = `alice-${Date.now()}@example.com`;
+			const password = "StrongPass123!";
 
-      expect(response.body.status).toBe('GO');
-      expect(response.body.payload.user).toBeDefined();
-      expect(response.body.payload.tokens.accessToken).toBeDefined();
+			const response = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email, password })
+				.expect(201);
 
-      const user = response.body.payload.user;
-      testUsers.push({ uid: user.uid, email });
+			expect(response.body.status).toBe("GO");
+			expect(response.body.payload.user).toBeDefined();
+			expect(response.body.payload.tokens.accessToken).toBeDefined();
 
-      const db = admin.firestore();
-      const userDoc = await db.collection('users').doc(user.uid).get();
+			const user = response.body.payload.user;
+			testUsers.push({ uid: user.uid, email });
 
-      expect(userDoc.exists).toBe(true);
-      const userData = userDoc.data();
-      expect(userData.email).toBe(email);
-      expect(userData.callSign).toBeDefined();
-      expect(userData.callSign).toMatch(/^Pilot-/);
-    });
+			const db = admin.firestore();
+			const userDoc = await db.collection("users").doc(user.uid).get();
 
-    it('rejects registration with invalid email format', async () => {
-      if (!admin.apps.length) return;
+			expect(userDoc.exists).toBe(true);
+			const userData = userDoc.data();
+			expect(userData.email).toBe(email);
+			expect(userData.callSign).toBeDefined();
+			expect(userData.callSign).toMatch(/^Pilot-/);
+		});
 
-      const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email: 'invalid-email', password: 'StrongPass123!' })
-        .expect(400); // Validation errors return 400 Bad Request
+		it("rejects registration with invalid email format", async () => {
+			if (!admin.apps.length) return;
 
-      expect(response.body.status).toBe('NO-GO');
-      expect(response.body.payload.error.details).toBeDefined();
-    });
+			const response = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email: "invalid-email", password: "StrongPass123!" })
+				.expect(400); // Validation errors return 400 Bad Request
 
-    it('rejects password under 12 characters', async () => {
-      if (!admin.apps.length) return;
+			expect(response.body.status).toBe("NO-GO");
+			expect(response.body.payload.error.details).toBeDefined();
+		});
 
-      const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email: `test-${Date.now()}@example.com`, password: 'Short1!' })
-        .expect(400); // Validation errors return 400 Bad Request
+		it("rejects password under 12 characters", async () => {
+			if (!admin.apps.length) return;
 
-      expect(response.body.status).toBe('NO-GO');
-    });
-  });
+			const response = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email: `test-${Date.now()}@example.com`, password: "Short1!" })
+				.expect(400); // Validation errors return 400 Bad Request
 
-  describe('Login Success & JWT Issuance', () => {
-    it('logs in user with valid credentials and returns JWT', async () => {
-      if (!admin.apps.length) return;
+			expect(response.body.status).toBe("NO-GO");
+		});
+	});
 
-      const email = `logintest-${Date.now()}@example.com`;
-      const password = 'StrongPass123!';
+	describe("Login Success & JWT Issuance", () => {
+		it("logs in user with valid credentials and returns JWT", async () => {
+			if (!admin.apps.length) return;
 
-      const registerResponse = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email, password });
+			const email = `logintest-${Date.now()}@example.com`;
+			const password = "StrongPass123!";
 
-      const user = registerResponse.body.payload.user;
-      testUsers.push({ uid: user.uid, email });
+			const registerResponse = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email, password });
 
-      const loginResponse = await request(app)
-        .post('/api/v1/auth/login')
-        .send({ email, password })
-        .expect(200);
+			const user = registerResponse.body.payload.user;
+			testUsers.push({ uid: user.uid, email });
 
-      expect(loginResponse.body.payload.tokens.accessToken).toBeDefined();
-      
-      const accessToken = loginResponse.body.payload.tokens.accessToken;
-      expect(accessToken.split('.').length).toBe(3);
-    });
-  });
+			const loginResponse = await request(app)
+				.post("/api/v1/auth/login")
+				.send({ email, password })
+				.expect(200);
 
-  describe('Login Failure & Lockout', () => {
-    it('rejects login with invalid credentials', async () => {
-      if (!admin.apps.length) return;
+			expect(loginResponse.body.payload.tokens.accessToken).toBeDefined();
 
-      const email = `faillogin-${Date.now()}@example.com`;
-      const password = 'StrongPass123!';
+			const accessToken = loginResponse.body.payload.tokens.accessToken;
+			expect(accessToken.split(".").length).toBe(3);
+		});
+	});
 
-      const registerResponse = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email, password });
+	describe("Login Failure & Lockout", () => {
+		it("rejects login with invalid credentials", async () => {
+			if (!admin.apps.length) return;
 
-      testUsers.push({ uid: registerResponse.body.payload.user.uid, email });
+			const email = `faillogin-${Date.now()}@example.com`;
+			const password = "StrongPass123!";
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({ email, password: 'WrongPassword123!' })
-        .expect(401);
+			const registerResponse = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email, password });
 
-      expect(response.body.status).toBe('NO-GO');
-    });
+			testUsers.push({ uid: registerResponse.body.payload.user.uid, email });
 
-    it('locks account after 5 failed login attempts', async () => {
-      if (!admin.apps.length) return;
+			const response = await request(app)
+				.post("/api/v1/auth/login")
+				.send({ email, password: "WrongPassword123!" })
+				.expect(401);
 
-      const email = `lockout-${Date.now()}@example.com`;
-      const password = 'StrongPass123!';
+			expect(response.body.status).toBe("NO-GO");
+		});
 
-      const registerResponse = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email, password });
+		it("locks account after 5 failed login attempts", async () => {
+			if (!admin.apps.length) return;
 
-      testUsers.push({ uid: registerResponse.body.payload.user.uid, email });
+			const email = `lockout-${Date.now()}@example.com`;
+			const password = "StrongPass123!";
 
-      for (let i = 0; i < 5; i++) {
-        await request(app)
-          .post('/api/v1/auth/login')
-          .send({ email, password: 'WrongPassword!' });
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+			const registerResponse = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email, password });
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({ email, password });
+			testUsers.push({ uid: registerResponse.body.payload.user.uid, email });
 
-      expect([401, 423, 429]).toContain(response.status);
-      expect(response.body.payload.error.message).toMatch(/locked|lockout/i);
-    });
-  });
+			for (let i = 0; i < 5; i++) {
+				await request(app)
+					.post("/api/v1/auth/login")
+					.send({ email, password: "WrongPassword!" });
 
-  describe('Token Expiration & Validation', () => {
-    it('access token contains exp claim within 15-30 minutes', async () => {
-      if (!admin.apps.length) return;
+				await new Promise((resolve) => setTimeout(resolve, 100));
+			}
 
-      const email = `token-test-${Date.now()}@example.com`;
-      const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email, password: 'TokenTest123!' });
+			const response = await request(app)
+				.post("/api/v1/auth/login")
+				.send({ email, password });
 
-      testUsers.push({ uid: response.body.payload.user.uid, email });
+			expect([401, 423, 429]).toContain(response.status);
+			expect(response.body.payload.error.message).toMatch(/locked|lockout/i);
+		});
+	});
 
-      const token = response.body.payload.tokens.accessToken;
-      const parts = token.split('.');
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+	describe("Token Expiration & Validation", () => {
+		it("access token contains exp claim within 15-30 minutes", async () => {
+			if (!admin.apps.length) return;
 
-      expect(payload.exp).toBeDefined();
+			const email = `token-test-${Date.now()}@example.com`;
+			const response = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email, password: "TokenTest123!" });
 
-      const nowSecs = Math.floor(Date.now() / 1000);
-      const ttlSeconds = payload.exp - nowSecs;
+			testUsers.push({ uid: response.body.payload.user.uid, email });
 
-      expect(ttlSeconds).toBeGreaterThan(15 * 60);
-      expect(ttlSeconds).toBeLessThan(30 * 60 + 30);
-    });
+			const token = response.body.payload.tokens.accessToken;
+			const parts = token.split(".");
+			const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
 
-    it('rejects expired access token', async () => {
-      if (!admin.apps.length) return;
+			expect(payload.exp).toBeDefined();
 
-      const email = `expired-${Date.now()}@example.com`;
-      const registerResponse = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email, password: 'ExpiredTest123!' });
+			const nowSecs = Math.floor(Date.now() / 1000);
+			const ttlSeconds = payload.exp - nowSecs;
 
-      const user = registerResponse.body.payload.user;
-      testUsers.push({ uid: user.uid, email });
+			expect(ttlSeconds).toBeGreaterThan(15 * 60);
+			expect(ttlSeconds).toBeLessThan(30 * 60 + 30);
+		});
 
-      const expiredToken = jwt.sign(
-        { uid: user.uid, email: user.email },
-        JWT_SECRET,
-        { expiresIn: '-1h' }
-      );
+		it("rejects expired access token", async () => {
+			if (!admin.apps.length) return;
 
-      const response = await request(app)
-        .get(`/api/v1/users/${user.uid}`)
-        .set('Authorization', `Bearer ${expiredToken}`);
+			const email = `expired-${Date.now()}@example.com`;
+			const registerResponse = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email, password: "ExpiredTest123!" });
 
-      expect([401, 403]).toContain(response.status);
-    });
-  });
+			const user = registerResponse.body.payload.user;
+			testUsers.push({ uid: user.uid, email });
 
-  describe('Logout & Session Termination', () => {
-    it('invalidates access token after logout', async () => {
-      if (!admin.apps.length) return;
+			const expiredToken = jwt.sign(
+				{ uid: user.uid, email: user.email },
+				JWT_SECRET,
+				{ expiresIn: "-1h" },
+			);
 
-      const email = `logout-${Date.now()}@example.com`;
-      const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email, password: 'LogoutTest123!' });
+			const response = await request(app)
+				.get(`/api/v1/users/${user.uid}`)
+				.set("Authorization", `Bearer ${expiredToken}`);
 
-      const user = response.body.payload.user;
-      const token = response.body.payload.tokens.accessToken;
-      testUsers.push({ uid: user.uid, email });
+			expect([401, 403]).toContain(response.status);
+		});
+	});
 
-      await request(app)
-        .get(`/api/v1/users/${user.uid}`)
-        .set('Authorization', `Bearer ${token}`)
-        .expect(200);
+	describe("Logout & Session Termination", () => {
+		it("invalidates access token after logout", async () => {
+			if (!admin.apps.length) return;
 
-      await request(app)
-        .post('/api/v1/auth/logout')
-        .set('Authorization', `Bearer ${token}`)
-        .expect(200);
+			const email = `logout-${Date.now()}@example.com`;
+			const response = await request(app)
+				.post("/api/v1/auth/register")
+				.send({ email, password: "LogoutTest123!" });
 
-      const postLogout = await request(app)
-        .get(`/api/v1/users/${user.uid}`)
-        .set('Authorization', `Bearer ${token}`);
+			const user = response.body.payload.user;
+			const token = response.body.payload.tokens.accessToken;
+			testUsers.push({ uid: user.uid, email });
 
-      expect([401, 403]).toContain(postLogout.status);
-    });
-  });
+			await request(app)
+				.get(`/api/v1/users/${user.uid}`)
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+
+			await request(app)
+				.post("/api/v1/auth/logout")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+
+			const postLogout = await request(app)
+				.get(`/api/v1/users/${user.uid}`)
+				.set("Authorization", `Bearer ${token}`);
+
+			expect([401, 403]).toContain(postLogout.status);
+		});
+	});
 });

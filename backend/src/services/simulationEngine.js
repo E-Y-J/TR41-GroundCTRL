@@ -45,13 +45,13 @@ class SimulationEngine {
 
 		// Restore start time from saved elapsed time if resuming a session
 		const savedElapsedTime = initialState.elapsedTime || 0;
-		const startTime = Date.now() - (savedElapsedTime * 1000);
-		
+		const startTime = Date.now() - savedElapsedTime * 1000;
+
 		logger.info("Starting simulation", {
 			sessionId,
 			resuming: savedElapsedTime > 0,
 			savedElapsedTime,
-			hasSavedTelemetry: !!initialState.telemetry
+			hasSavedTelemetry: !!initialState.telemetry,
 		});
 
 		const simState = {
@@ -104,7 +104,7 @@ class SimulationEngine {
 		const tle = this.orbitalMechanics.generateTLEFromParams({
 			altitude_km: satellite.orbit?.altitude_km || 415,
 			inclination_degrees: satellite.orbit?.inclination_degrees || 51.6,
-			eccentricity: satellite.orbit?.eccentricity || 0.0001
+			eccentricity: satellite.orbit?.eccentricity || 0.0001,
 		});
 
 		this.activeSimulations.set(sessionId, {
@@ -115,7 +115,7 @@ class SimulationEngine {
 			commandQueue,
 			beaconInterval: null,
 			deploymentTimeout: null,
-			tle: tle // Store TLE for orbital calculations
+			tle: tle, // Store TLE for orbital calculations
 		});
 
 		// Start beacon transmitter (first beacon after 45 minutes, then every 2 minutes)
@@ -281,7 +281,10 @@ class SimulationEngine {
 		// Initialize state if empty - pass saved telemetry if it exists
 		if (!currentState.orbit) {
 			// currentState might have telemetry at top level from session state
-			currentState = this.initializeState(satellite, currentState.telemetry || currentState);
+			currentState = this.initializeState(
+				satellite,
+				currentState.telemetry || currentState,
+			);
 		}
 
 		// Get TLE for accurate orbital propagation
@@ -359,22 +362,40 @@ class SimulationEngine {
 			logger.info("Restoring simulation state from saved telemetry", {
 				savedLat: savedTelemetry.orbit.latitude,
 				savedLon: savedTelemetry.orbit.longitude,
-				savedAlt: savedTelemetry.orbit.altitude_km
+				savedAlt: savedTelemetry.orbit.altitude_km,
 			});
-			
+
 			return {
 				orbit: {
-					altitude_km: savedTelemetry.orbit.altitude_km || satellite.orbit?.altitude_km || 415,
-					inclination_degrees: savedTelemetry.orbit.inclination_degrees || satellite.orbit?.inclination_degrees || 53,
-					eccentricity: savedTelemetry.orbit.eccentricity || satellite.orbit?.eccentricity || 0.0,
+					altitude_km:
+						savedTelemetry.orbit.altitude_km ||
+						satellite.orbit?.altitude_km ||
+						415,
+					inclination_degrees:
+						savedTelemetry.orbit.inclination_degrees ||
+						satellite.orbit?.inclination_degrees ||
+						53,
+					eccentricity:
+						savedTelemetry.orbit.eccentricity ||
+						satellite.orbit?.eccentricity ||
+						0.0,
 					latitude: savedTelemetry.orbit.latitude || 0,
 					longitude: savedTelemetry.orbit.longitude || 0,
 					velocity_km_s: savedTelemetry.orbit.velocity_km_s || 7.66,
 				},
 				power: {
-					currentCharge_percent: savedTelemetry.power?.currentCharge_percent || satellite.power?.currentCharge_percent || 95,
-					solarPower_watts: savedTelemetry.power?.solarPower_watts || satellite.power?.solarPower_watts || 100,
-					consumption_watts: savedTelemetry.power?.consumption_watts || satellite.power?.consumption_watts || 45,
+					currentCharge_percent:
+						savedTelemetry.power?.currentCharge_percent ||
+						satellite.power?.currentCharge_percent ||
+						95,
+					solarPower_watts:
+						savedTelemetry.power?.solarPower_watts ||
+						satellite.power?.solarPower_watts ||
+						100,
+					consumption_watts:
+						savedTelemetry.power?.consumption_watts ||
+						satellite.power?.consumption_watts ||
+						45,
 					status: savedTelemetry.power?.status || "nominal",
 				},
 				attitude: {
@@ -385,23 +406,34 @@ class SimulationEngine {
 					status: savedTelemetry.attitude?.status || "nominal",
 				},
 				thermal: {
-					temperature_celsius: savedTelemetry.thermal?.temperature_celsius || satellite.thermal?.temperature_celsius || 20,
+					temperature_celsius:
+						savedTelemetry.thermal?.temperature_celsius ||
+						satellite.thermal?.temperature_celsius ||
+						20,
 					status: savedTelemetry.thermal?.status || "nominal",
 				},
 				propulsion: {
-					fuel_percent: savedTelemetry.propulsion?.fuel_percent || satellite.propulsion?.fuel_percent || 100,
+					fuel_percent:
+						savedTelemetry.propulsion?.fuel_percent ||
+						satellite.propulsion?.fuel_percent ||
+						100,
 					status: savedTelemetry.propulsion?.status || "nominal",
 				},
 				payload: {
-					status: savedTelemetry.payload?.status || satellite.payload?.status || "nominal",
+					status:
+						savedTelemetry.payload?.status ||
+						satellite.payload?.status ||
+						"nominal",
 					dataCollected_mb: savedTelemetry.payload?.dataCollected_mb || 0,
 				},
 			};
 		}
-		
+
 		// Otherwise, initialize fresh state from satellite defaults
-		logger.info("Initializing fresh simulation state from satellite configuration");
-		
+		logger.info(
+			"Initializing fresh simulation state from satellite configuration",
+		);
+
 		return {
 			orbit: {
 				altitude_km: satellite.orbit?.altitude_km || 415,
@@ -447,15 +479,15 @@ class SimulationEngine {
 	 * @param {object} tle - Two-Line Element set for SGP4
 	 * @returns {object} Updated orbital state
 	 */
-	simulateOrbit(satellite, currentOrbit, elapsedSeconds, maneuverEffect, tle) {
+	simulateOrbit(_satellite, currentOrbit, elapsedSeconds, maneuverEffect, tle) {
 		// Use SGP4 if TLE is available
-		if (tle && tle.line1 && tle.line2) {
+		if (tle?.line1 && tle.line2) {
 			try {
 				const currentTime = Date.now();
 				const position = this.orbitalMechanics.getSatellitePosition(
 					tle.line1,
 					tle.line2,
-					currentTime
+					currentTime,
 				);
 
 				if (position) {
@@ -464,7 +496,8 @@ class SimulationEngine {
 					if (maneuverEffect) {
 						const elapsed = Date.now() - maneuverEffect.startTime;
 						if (elapsed < maneuverEffect.duration) {
-							const targetDelta = maneuverEffect.targetAltitude - position.altitude;
+							const targetDelta =
+								maneuverEffect.targetAltitude - position.altitude;
 							altitudeAdjustment = targetDelta * 0.05; // Gradual altitude change
 						}
 					}
@@ -492,7 +525,7 @@ class SimulationEngine {
 				}
 			} catch (error) {
 				logger.error("SGP4 calculation failed, using fallback", {
-					error: error.message
+					error: error.message,
 				});
 			}
 		} else {
@@ -531,13 +564,13 @@ class SimulationEngine {
 	 * Simulate power subsystem
 	 */
 	simulatePower(
-		satellite,
+		_satellite,
 		currentPower,
 		_elapsedSeconds,
 		powerMode,
 		attitudeEffect,
 	) {
-		let solarPower = currentPower.solarPower_watts;
+		const solarPower = currentPower.solarPower_watts;
 		let consumption = currentPower.consumption_watts;
 
 		// Apply power mode effects
@@ -578,7 +611,7 @@ class SimulationEngine {
 	 * Simulate attitude control subsystem
 	 */
 	simulateAttitude(
-		satellite,
+		_satellite,
 		currentAttitude,
 		_elapsedSeconds,
 		attitudeEffect,
@@ -614,7 +647,7 @@ class SimulationEngine {
 	/**
 	 * Simulate thermal subsystem
 	 */
-	simulateThermal(satellite, currentThermal, _elapsedSeconds) {
+	simulateThermal(_satellite, currentThermal, _elapsedSeconds) {
 		// Temperature varies slightly
 		const temp = currentThermal.temperature_celsius + (Math.random() - 0.5) * 2;
 
@@ -628,7 +661,7 @@ class SimulationEngine {
 	 * Simulate propulsion subsystem
 	 */
 	simulatePropulsion(
-		satellite,
+		_satellite,
 		currentPropulsion,
 		_elapsedSeconds,
 		maneuverEffect,
@@ -658,7 +691,7 @@ class SimulationEngine {
 	/**
 	 * Simulate payload subsystem
 	 */
-	simulatePayload(satellite, currentPayload, _elapsedSeconds) {
+	simulatePayload(_satellite, currentPayload, _elapsedSeconds) {
 		// Data collection over time
 		return {
 			status: currentPayload.status || "nominal",
@@ -709,7 +742,7 @@ class SimulationEngine {
 	 */
 	stopAll() {
 		const sessions = Array.from(this.activeSimulations.keys());
-		sessions.forEach((sessionId) => this.stopSimulation(sessionId));
+		sessions.forEach((sessionId) => void this.stopSimulation(sessionId));
 		logger.info("All simulations stopped", { count: sessions.length });
 	}
 

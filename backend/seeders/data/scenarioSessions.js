@@ -177,7 +177,6 @@ scenarioSessions.push(
   createCompletedSession(OPERATORS[12], 'DEMO_COMPLETE_HUD', { overallScore: 58, durationMinutes: 65 }, 41),
   createCompletedSession(OPERATORS[14], 'DEMO_COMPLETE_HUD', { overallScore: 52, durationMinutes: 70 }, 50),
 // Generate leaderboard data for HUD_INTRODUCTION only
-const scenarioSessions = [];
 
 // HUD_INTRODUCTION - Beginner scenario (15 operators with varying scores)
 scenarioSessions.push(

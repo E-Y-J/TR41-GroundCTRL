@@ -157,7 +157,7 @@ class ScoringEngine {
 		logger.debug("Efficiency calculated", {
 			used: used.toFixed(1),
 			budget: budget.toFixed(1),
-			utilization: ((used / budget) * 100).toFixed(1) + "%",
+			utilization: `${((used / budget) * 100).toFixed(1)}%`,
 			score: efficiencyScore.toFixed(1),
 		});
 

@@ -318,7 +318,7 @@ class TimeManager {
 		const MU = 398600.4418; // Earth's gravitational parameter (km³/s²)
 
 		// Calculate orbital period
-		const period = 2 * Math.PI * Math.sqrt(Math.pow(a, 3) / MU);
+		const period = 2 * Math.PI * Math.sqrt(a ** 3 / MU);
 
 		// Calculate time to next apoapsis (true anomaly = 180°)
 		let angleToApoapsis = (180 - trueAnomaly + 360) % 360;

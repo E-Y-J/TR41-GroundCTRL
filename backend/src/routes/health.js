@@ -557,7 +557,7 @@ router.get("/ready", async (req, res) => {
  *               status: GO
  *               timestamp: "2026-01-10T20:00:00.000Z"
  */
-router.get("/live", (req, res) => {
+router.get("/live", (_req, res) => {
 	res.status(200).json({
 		status: "GO",
 		timestamp: new Date().toISOString(),

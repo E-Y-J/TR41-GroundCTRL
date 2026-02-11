@@ -11,12 +11,12 @@ const logger = require("../utils/logger");
  * Beta users can only access:
  * - Auth endpoints (login, logout, token exchange)
  * - Public endpoints
- * 
+ *
  * @param {object} req - Express request object
  * @param {object} res - Express response object
  * @param {function} next - Express next middleware function
  */
-function restrictBetaUsers(req, res, next) {
+function restrictBetaUsers(req, _res, next) {
 	try {
 		// Check if user is authenticated and has beta role
 		if (req.user && req.user.role === "beta") {
@@ -29,7 +29,7 @@ function restrictBetaUsers(req, res, next) {
 
 			throw new AuthError(
 				"Beta access is pending approval. You cannot access this feature yet. Please contact info@missionctrl.org for more information.",
-				403
+				403,
 			);
 		}
 

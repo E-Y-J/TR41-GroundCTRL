@@ -12,7 +12,7 @@ const logger = require("../utils/logger");
  * Authentication middleware
  * Validates JWT token and attaches user info to request
  */
-async function authMiddleware(req, res, next) {
+async function authMiddleware(req, _res, next) {
 	try {
 		// Skip authentication for CORS preflight requests
 		if (req.method === "OPTIONS") {
@@ -86,7 +86,7 @@ async function authMiddleware(req, res, next) {
  * Require admin middleware
  * Ensures the authenticated user has admin privileges
  */
-function requireAdmin(req, res, next) {
+function requireAdmin(req, _res, next) {
 	try {
 		if (!req.user) {
 			throw new AuthError("Authentication required", 401);
@@ -111,7 +111,7 @@ function requireAdmin(req, res, next) {
  * Optional auth middleware
  * Attaches user info if token is present, but doesn't require it
  */
-async function optionalAuth(req, res, next) {
+async function optionalAuth(req, _res, next) {
 	try {
 		// Skip authentication for CORS preflight requests
 		if (req.method === "OPTIONS") {

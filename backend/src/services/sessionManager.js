@@ -40,7 +40,7 @@ class SessionManager {
 					sessionId,
 					hasEngine: !!this.simulationEngine,
 					hasSatellite: !!session.satellite,
-					satelliteName: session.satellite?.name
+					satelliteName: session.satellite?.name,
 				});
 
 				this.activeSessions.set(sessionId, {
@@ -54,14 +54,14 @@ class SessionManager {
 					logger.info("Starting simulation for session", {
 						sessionId,
 						satellite: session.satellite?.name || "Unknown",
-						difficulty: session.scenario?.difficulty || "BEGINNER"
+						difficulty: session.scenario?.difficulty || "BEGINNER",
 					});
 
 					this.simulationEngine.startSimulation(
 						sessionId,
 						session.satellite,
 						session.state || {},
-						session.scenario?.difficulty || "BEGINNER"
+						session.scenario?.difficulty || "BEGINNER",
 					);
 				} else {
 					logger.warn(
@@ -126,7 +126,7 @@ class SessionManager {
 					lon: stateUpdate.telemetry?.orbit?.longitude,
 					alt: stateUpdate.telemetry?.orbit?.altitude_km,
 					activeUsers: sessionInfo.users.size,
-					roomName: `session:${sessionId}`
+					roomName: `session:${sessionId}`,
 				});
 			} else {
 				logger.debug("Session state updated", {
@@ -178,29 +178,29 @@ class SessionManager {
 				if (sessionInfo.users.size === 0) {
 					// Explicitly save final state before cleanup
 					const finalState = sessionInfo.state;
-					
+
 					if (finalState) {
 						try {
 							await scenarioSessionRepository.patch(sessionId, {
 								state: finalState,
-								last_activity_at: new Date()
+								last_activity_at: new Date(),
 							});
-							
-							logger.info('Final session state saved to Firestore', {
+
+							logger.info("Final session state saved to Firestore", {
 								sessionId,
 								hasTelemetry: !!finalState.telemetry,
 								elapsedTime: finalState.elapsedTime,
 								lat: finalState.telemetry?.orbit?.latitude,
-								lon: finalState.telemetry?.orbit?.longitude
+								lon: finalState.telemetry?.orbit?.longitude,
 							});
 						} catch (saveError) {
-							logger.error('Failed to save final session state', {
+							logger.error("Failed to save final session state", {
 								sessionId,
-								error: saveError.message
+								error: saveError.message,
 							});
 						}
 					}
-					
+
 					// Now safe to delete from memory and stop simulation
 					this.activeSessions.delete(sessionId);
 

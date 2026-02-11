@@ -4,305 +4,332 @@
  * Migrated from: sprint0/backendPhase3ValidationLayer.test.js
  */
 
-const { z } = require('zod');
-const { validate } = require('../../../src/middleware/validate');
-const { ValidationError } = require('../../../src/utils/errors');
+const { z } = require("zod");
+const { validate } = require("../../../src/middleware/validate");
+const { ValidationError } = require("../../../src/utils/errors");
 
-describe('Schema Validation Tests', () => {
-  describe('VAL-002: Strict Mode - Unknown Fields', () => {
-    it('rejects unknown fields via Zod .strict() for bodies/params/query', () => {
-      const authSchemas = require('../../../src/schemas/authSchemas');
-      
-      expect(authSchemas.registerSchema).toBeDefined();
-      expect(authSchemas.loginSchema).toBeDefined();
-      
-      const testData = {
-        email: 'test@example.com',
-        password: 'ValidPass123!',
-        unknownField: 'should be rejected'
-      };
-      
-      const result = authSchemas.loginSchema.safeParse(testData);
-      expect(result.success).toBe(false);
-      
-      if (!result.success) {
-        const errorMessages = result.error.issues.map(i => i.message);
-        expect(errorMessages.some(msg => 
-          msg.toLowerCase().includes('unrecognized') || 
-          msg.toLowerCase().includes('unknown')
-        )).toBe(true);
-      }
-    });
+describe("Schema Validation Tests", () => {
+	describe("VAL-002: Strict Mode - Unknown Fields", () => {
+		it("rejects unknown fields via Zod .strict() for bodies/params/query", () => {
+			const authSchemas = require("../../../src/schemas/authSchemas");
 
-    it('enforces strict mode on all schemas', () => {
-      const authSchemas = require('../../../src/schemas/authSchemas');
-      const userSchemas = require('../../../src/schemas/userSchemas');
-      const satelliteSchemas = require('../../../src/schemas/satelliteSchemas');
-      
-      const testCases = [
-        { schema: authSchemas.loginSchema, data: { email: 'test@test.com', password: 'Pass123!', extra: 'fail' } },
-        { schema: userSchemas.updateUserSchema, data: { displayName: 'Test', extra: 'fail' } },
-        { schema: satelliteSchemas.createSatelliteSchema, data: { name: 'Test', type: 'CUBESAT', extra: 'fail' } }
-      ];
-      
-      testCases.forEach(({ schema, data }) => {
-        const result = schema.safeParse(data);
-        expect(result.success).toBe(false);
-      });
-    });
-  });
+			expect(authSchemas.registerSchema).toBeDefined();
+			expect(authSchemas.loginSchema).toBeDefined();
 
-  describe('VAL-003, VAL-004: Pagination and Query Limits', () => {
-    it('caps pagination limit to 100 and normalizes page/limit', () => {
-      const { MAX_PAGE_LIMIT } = require('../../../src/factories/crudFactory');
-      expect(MAX_PAGE_LIMIT).toBe(100);
-      
-      const scenarioSchemas = require('../../../src/schemas/scenarioSchemas');
-      
-      const validQuery = { query: { page: '1', limit: '50' } };
-      const validResult = scenarioSchemas.listScenariosSchema.safeParse(validQuery);
-      expect(validResult.success).toBe(true);
-      if (validResult.success) {
-        expect(validResult.data.query.limit).toBe(50);
-      }
-      
-      const excessiveQuery = { query: { page: '1', limit: '150' } };
-      const excessiveResult = scenarioSchemas.listScenariosSchema.safeParse(excessiveQuery);
-      expect(excessiveResult.success).toBe(false);
-      
-      const stringQuery = { query: { page: '2', limit: '20' } };
-      const stringResult = scenarioSchemas.listScenariosSchema.safeParse(stringQuery);
-      expect(stringResult.success).toBe(true);
-      if (stringResult.success) {
-        expect(typeof stringResult.data.query.page).toBe('number');
-        expect(typeof stringResult.data.query.limit).toBe('number');
-        expect(stringResult.data.query.page).toBe(2);
-        expect(stringResult.data.query.limit).toBe(20);
-      }
-    });
+			const testData = {
+				email: "test@example.com",
+				password: "ValidPass123!",
+				unknownField: "should be rejected",
+			};
 
-    it('whitelists sortBy/query fields and rejects others', () => {
-      const scenarioSchemas = require('../../../src/schemas/scenarioSchemas');
-      expect(scenarioSchemas.listScenariosSchema).toBeDefined();
-      
-      const validQuery = {
-        query: { sortBy: 'createdAt', sortOrder: 'desc', page: '1', limit: '20' }
-      };
-      
-      const validResult = scenarioSchemas.listScenariosSchema.safeParse(validQuery);
-      expect(validResult.success).toBe(true);
-      
-      const invalidQuery = {
-        query: { sortBy: 'maliciousField', sortOrder: 'desc' }
-      };
-      
-      const invalidResult = scenarioSchemas.listScenariosSchema.safeParse(invalidQuery);
-      expect(invalidResult.success).toBe(false);
-      
-      if (!invalidResult.success) {
-        const errorMessages = invalidResult.error.issues.map(i => i.message);
-        expect(errorMessages.some(msg => 
-          msg.toLowerCase().includes('invalid')
-        )).toBe(true);
-      }
-    });
+			const result = authSchemas.loginSchema.safeParse(testData);
+			expect(result.success).toBe(false);
 
-    it('validates query parameters with proper types and constraints', () => {
-      const scenarioSchemas = require('../../../src/schemas/scenarioSchemas');
-      
-      const queryData = { query: { page: '2', limit: '50' } };
-      const result = scenarioSchemas.listScenariosSchema.safeParse(queryData);
-      
-      if (result.success) {
-        expect(typeof result.data.query.page).toBe('number');
-        expect(typeof result.data.query.limit).toBe('number');
-        expect(result.data.query.page).toBe(2);
-        expect(result.data.query.limit).toBe(50);
-      }
-      
-      const excessiveLimit = { query: { page: '1', limit: '150' } };
-      const excessiveResult = scenarioSchemas.listScenariosSchema.safeParse(excessiveLimit);
-      expect(excessiveResult.success).toBe(false);
-    });
-  });
+			if (!result.success) {
+				const errorMessages = result.error.issues.map((i) => i.message);
+				expect(
+					errorMessages.some(
+						(msg) =>
+							msg.toLowerCase().includes("unrecognized") ||
+							msg.toLowerCase().includes("unknown"),
+					),
+				).toBe(true);
+			}
+		});
 
-  describe('VAL-006: Validation Error Structure', () => {
-    it('returns consistent validation error payload shape', () => {
-      const mockReq = {
-        body: { email: 'invalid-email', password: '123' },
-        query: {},
-        params: {}
-      };
-      
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn()
-      };
-      
-      const mockNext = jest.fn();
-      
-      const testSchema = z.object({
-        body: z.object({
-          email: z.string().email(),
-          password: z.string().min(8)
-        }).strict(),
-        query: z.object({}).strict(),
-        params: z.object({}).strict()
-      });
-      
-      const validationMiddleware = validate(testSchema);
-      validationMiddleware(mockReq, mockRes, mockNext);
-      
-      expect(mockNext).toHaveBeenCalled();
-      const passedError = mockNext.mock.calls[0][0];
-      expect(passedError).toBeInstanceOf(ValidationError);
-      expect(passedError.message).toBe('Validation failed');
-      expect(Array.isArray(passedError.details)).toBe(true);
-      
-    });
-  });
+		it("enforces strict mode on all schemas", () => {
+			const authSchemas = require("../../../src/schemas/authSchemas");
+			const userSchemas = require("../../../src/schemas/userSchemas");
+			const satelliteSchemas = require("../../../src/schemas/satelliteSchemas");
 
-  describe('VAL-009: Command Schemas - Expanded Validation', () => {
-    const commandSchemas = require('../../../src/schemas/commandSchemas');
+			const testCases = [
+				{
+					schema: authSchemas.loginSchema,
+					data: { email: "test@test.com", password: "Pass123!", extra: "fail" },
+				},
+				{
+					schema: userSchemas.updateUserSchema,
+					data: { displayName: "Test", extra: "fail" },
+				},
+				{
+					schema: satelliteSchemas.createSatelliteSchema,
+					data: { name: "Test", type: "CUBESAT", extra: "fail" },
+				},
+			];
 
-    it('validates createCommandSchema with commissioning commands', () => {
-      const validCommand = {
-        body: {
-          session_id: 'session-123',
-          scenario_step_id: 'step-456',
-          issuedAt: new Date().toISOString(),
-          commandName: 'PING',
-          commandPayload: { target: 'satellite-1' },
-          resultStatus: 'OK',
-          resultMessage: 'Command executed successfully',
-          isValid: true
-        }
-      };
+			testCases.forEach(({ schema, data }) => {
+				const result = schema.safeParse(data);
+				expect(result.success).toBe(false);
+			});
+		});
+	});
 
-      const result = commandSchemas.createCommandSchema.safeParse(validCommand);
-      expect(result.success).toBe(true);
-    });
+	describe("VAL-003, VAL-004: Pagination and Query Limits", () => {
+		it("caps pagination limit to 100 and normalizes page/limit", () => {
+			const { MAX_PAGE_LIMIT } = require("../../../src/factories/crudFactory");
+			expect(MAX_PAGE_LIMIT).toBe(100);
 
-    it('validates createCommandSchema with data management commands', () => {
-      const validCommand = {
-        body: {
-          session_id: 'session-123',
-          issuedAt: new Date().toISOString(),
-          commandName: 'REQUEST_TELEMETRY',
-          commandPayload: { dataType: 'temperature', interval: 60 },
-          resultStatus: 'OK',
-          isValid: true
-        }
-      };
+			const scenarioSchemas = require("../../../src/schemas/scenarioSchemas");
 
-      const result = commandSchemas.createCommandSchema.safeParse(validCommand);
-      expect(result.success).toBe(true);
-    });
+			const validQuery = { query: { page: "1", limit: "50" } };
+			const validResult =
+				scenarioSchemas.listScenariosSchema.safeParse(validQuery);
+			expect(validResult.success).toBe(true);
+			if (validResult.success) {
+				expect(validResult.data.query.limit).toBe(50);
+			}
 
-    it('validates createCommandSchema with anomaly resolution commands', () => {
-      const validCommand = {
-        body: {
-          issuedAt: new Date().toISOString(),
-          commandName: 'RESET_SOLAR',
-          commandPayload: { reason: 'anomaly_detected' },
-          resultStatus: 'OK',
-          isValid: true
-        }
-      };
+			const excessiveQuery = { query: { page: "1", limit: "150" } };
+			const excessiveResult =
+				scenarioSchemas.listScenariosSchema.safeParse(excessiveQuery);
+			expect(excessiveResult.success).toBe(false);
 
-      const result = commandSchemas.createCommandSchema.safeParse(validCommand);
-      expect(result.success).toBe(true);
-    });
+			const stringQuery = { query: { page: "2", limit: "20" } };
+			const stringResult =
+				scenarioSchemas.listScenariosSchema.safeParse(stringQuery);
+			expect(stringResult.success).toBe(true);
+			if (stringResult.success) {
+				expect(typeof stringResult.data.query.page).toBe("number");
+				expect(typeof stringResult.data.query.limit).toBe("number");
+				expect(stringResult.data.query.page).toBe(2);
+				expect(stringResult.data.query.limit).toBe(20);
+			}
+		});
 
-    it('rejects invalid commandName', () => {
-      const invalidCommand = {
-        body: {
-          issuedAt: new Date().toISOString(),
-          commandName: 'INVALID_COMMAND',
-          isValid: true
-        }
-      };
+		it("whitelists sortBy/query fields and rejects others", () => {
+			const scenarioSchemas = require("../../../src/schemas/scenarioSchemas");
+			expect(scenarioSchemas.listScenariosSchema).toBeDefined();
 
-      const result = commandSchemas.createCommandSchema.safeParse(invalidCommand);
-      expect(result.success).toBe(false);
-      expect(result.error.issues[0].message).toContain('Invalid option');
-    });
+			const validQuery = {
+				query: {
+					sortBy: "createdAt",
+					sortOrder: "desc",
+					page: "1",
+					limit: "20",
+				},
+			};
 
-    it('validates executeCommandSchema', () => {
-      const executeCommand = {
-        body: {
-          session_id: 'session-123',
-          scenario_step_id: 'step-456',
-          command_name: 'DEPLOY_ANTENNA',
-          command_payload: { antenna_id: 1 }
-        },
-        query: {},
-        params: {}
-      };
+			const validResult =
+				scenarioSchemas.listScenariosSchema.safeParse(validQuery);
+			expect(validResult.success).toBe(true);
 
-      const result = commandSchemas.executeCommandSchema.safeParse(executeCommand);
-      expect(result.success).toBe(true);
-    });
+			const invalidQuery = {
+				query: { sortBy: "maliciousField", sortOrder: "desc" },
+			};
 
-    it('validates listCommandsSchema with filters', () => {
-      const listQuery = {
-        query: {
-          page: '1',
-          limit: '10',
-          sortBy: 'issuedAt',
-          sortOrder: 'desc',
-          commandName: 'PING',
-          resultStatus: 'OK',
-          isValid: 'true'
-        }
-      };
+			const invalidResult =
+				scenarioSchemas.listScenariosSchema.safeParse(invalidQuery);
+			expect(invalidResult.success).toBe(false);
 
-      const result = commandSchemas.listCommandsSchema.safeParse(listQuery);
-      expect(result.success).toBe(true);
-    });
+			if (!invalidResult.success) {
+				const errorMessages = invalidResult.error.issues.map((i) => i.message);
+				expect(
+					errorMessages.some((msg) => msg.toLowerCase().includes("invalid")),
+				).toBe(true);
+			}
+		});
 
-    it('validates sessionCommandsSchema', () => {
-      const sessionQuery = {
-        params: {
-          sessionId: 'session-123'
-        },
-        query: {
-          limit: '25',
-          cursor: 'cursor-abc'
-        }
-      };
+		it("validates query parameters with proper types and constraints", () => {
+			const scenarioSchemas = require("../../../src/schemas/scenarioSchemas");
 
-      const result = commandSchemas.sessionCommandsSchema.safeParse(sessionQuery);
-      expect(result.success).toBe(true);
-    });
+			const queryData = { query: { page: "2", limit: "50" } };
+			const result = scenarioSchemas.listScenariosSchema.safeParse(queryData);
 
-    it('enforces strict mode on command schemas', () => {
-      const testCases = [
-        {
-          schema: commandSchemas.createCommandSchema,
-          data: {
-            body: {
-              issuedAt: new Date().toISOString(),
-              commandName: 'PING',
-              extraField: 'should fail'
-            }
-          }
-        },
-        {
-          schema: commandSchemas.executeCommandSchema,
-          data: {
-            body: {
-              command_name: 'PING',
-              unknown_field: 'fail'
-            }
-          }
-        }
-      ];
+			if (result.success) {
+				expect(typeof result.data.query.page).toBe("number");
+				expect(typeof result.data.query.limit).toBe("number");
+				expect(result.data.query.page).toBe(2);
+				expect(result.data.query.limit).toBe(50);
+			}
 
-      testCases.forEach(({ schema, data }) => {
-        const result = schema.safeParse(data);
-        expect(result.success).toBe(false);
-      });
-    });
-  });
+			const excessiveLimit = { query: { page: "1", limit: "150" } };
+			const excessiveResult =
+				scenarioSchemas.listScenariosSchema.safeParse(excessiveLimit);
+			expect(excessiveResult.success).toBe(false);
+		});
+	});
+
+	describe("VAL-006: Validation Error Structure", () => {
+		it("returns consistent validation error payload shape", () => {
+			const mockReq = {
+				body: { email: "invalid-email", password: "123" },
+				query: {},
+				params: {},
+			};
+
+			const mockRes = {
+				status: jest.fn().mockReturnThis(),
+				json: jest.fn(),
+			};
+
+			const mockNext = jest.fn();
+
+			const testSchema = z.object({
+				body: z
+					.object({
+						email: z.string().email(),
+						password: z.string().min(8),
+					})
+					.strict(),
+				query: z.object({}).strict(),
+				params: z.object({}).strict(),
+			});
+
+			const validationMiddleware = validate(testSchema);
+			validationMiddleware(mockReq, mockRes, mockNext);
+
+			expect(mockNext).toHaveBeenCalled();
+			const passedError = mockNext.mock.calls[0][0];
+			expect(passedError).toBeInstanceOf(ValidationError);
+			expect(passedError.message).toBe("Validation failed");
+			expect(Array.isArray(passedError.details)).toBe(true);
+		});
+	});
+
+	describe("VAL-009: Command Schemas - Expanded Validation", () => {
+		const commandSchemas = require("../../../src/schemas/commandSchemas");
+
+		it("validates createCommandSchema with commissioning commands", () => {
+			const validCommand = {
+				body: {
+					session_id: "session-123",
+					scenario_step_id: "step-456",
+					issuedAt: new Date().toISOString(),
+					commandName: "PING",
+					commandPayload: { target: "satellite-1" },
+					resultStatus: "OK",
+					resultMessage: "Command executed successfully",
+					isValid: true,
+				},
+			};
+
+			const result = commandSchemas.createCommandSchema.safeParse(validCommand);
+			expect(result.success).toBe(true);
+		});
+
+		it("validates createCommandSchema with data management commands", () => {
+			const validCommand = {
+				body: {
+					session_id: "session-123",
+					issuedAt: new Date().toISOString(),
+					commandName: "REQUEST_TELEMETRY",
+					commandPayload: { dataType: "temperature", interval: 60 },
+					resultStatus: "OK",
+					isValid: true,
+				},
+			};
+
+			const result = commandSchemas.createCommandSchema.safeParse(validCommand);
+			expect(result.success).toBe(true);
+		});
+
+		it("validates createCommandSchema with anomaly resolution commands", () => {
+			const validCommand = {
+				body: {
+					issuedAt: new Date().toISOString(),
+					commandName: "RESET_SOLAR",
+					commandPayload: { reason: "anomaly_detected" },
+					resultStatus: "OK",
+					isValid: true,
+				},
+			};
+
+			const result = commandSchemas.createCommandSchema.safeParse(validCommand);
+			expect(result.success).toBe(true);
+		});
+
+		it("rejects invalid commandName", () => {
+			const invalidCommand = {
+				body: {
+					issuedAt: new Date().toISOString(),
+					commandName: "INVALID_COMMAND",
+					isValid: true,
+				},
+			};
+
+			const result =
+				commandSchemas.createCommandSchema.safeParse(invalidCommand);
+			expect(result.success).toBe(false);
+			expect(result.error.issues[0].message).toContain("Invalid option");
+		});
+
+		it("validates executeCommandSchema", () => {
+			const executeCommand = {
+				body: {
+					session_id: "session-123",
+					scenario_step_id: "step-456",
+					command_name: "DEPLOY_ANTENNA",
+					command_payload: { antenna_id: 1 },
+				},
+				query: {},
+				params: {},
+			};
+
+			const result =
+				commandSchemas.executeCommandSchema.safeParse(executeCommand);
+			expect(result.success).toBe(true);
+		});
+
+		it("validates listCommandsSchema with filters", () => {
+			const listQuery = {
+				query: {
+					page: "1",
+					limit: "10",
+					sortBy: "issuedAt",
+					sortOrder: "desc",
+					commandName: "PING",
+					resultStatus: "OK",
+					isValid: "true",
+				},
+			};
+
+			const result = commandSchemas.listCommandsSchema.safeParse(listQuery);
+			expect(result.success).toBe(true);
+		});
+
+		it("validates sessionCommandsSchema", () => {
+			const sessionQuery = {
+				params: {
+					sessionId: "session-123",
+				},
+				query: {
+					limit: "25",
+					cursor: "cursor-abc",
+				},
+			};
+
+			const result =
+				commandSchemas.sessionCommandsSchema.safeParse(sessionQuery);
+			expect(result.success).toBe(true);
+		});
+
+		it("enforces strict mode on command schemas", () => {
+			const testCases = [
+				{
+					schema: commandSchemas.createCommandSchema,
+					data: {
+						body: {
+							issuedAt: new Date().toISOString(),
+							commandName: "PING",
+							extraField: "should fail",
+						},
+					},
+				},
+				{
+					schema: commandSchemas.executeCommandSchema,
+					data: {
+						body: {
+							command_name: "PING",
+							unknown_field: "fail",
+						},
+					},
+				},
+			];
+
+			testCases.forEach(({ schema, data }) => {
+				const result = schema.safeParse(data);
+				expect(result.success).toBe(false);
+			});
+		});
+	});
 });

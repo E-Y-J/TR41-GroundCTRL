@@ -219,7 +219,13 @@ async function syncOAuthProfile(uid, profileData = {}) {
  * @param {object} metadata - Additional user metadata (role, primaryRole, onboardingComplete, wantsUpdates, etc.)
  * @returns {Promise<object>} Created user with tokens
  */
-async function register(email, password, callSign = null, displayName = null, metadata = {}) {
+async function register(
+	email,
+	password,
+	callSign = null,
+	displayName = null,
+	metadata = {},
+) {
 	const db = getFirestore();
 
 	try {
@@ -258,15 +264,23 @@ async function register(email, password, callSign = null, displayName = null, me
 			lastLoginAt: null,
 			isActive: true,
 			// Beta program and onboarding metadata
-			role: metadata.role || (process.env.NODE_ENV === 'test' ? "user" : "beta"), // Default to "beta" - admin must approve to upgrade to "user"
+			role:
+				metadata.role || (process.env.NODE_ENV === "test" ? "user" : "beta"), // Default to "beta" - admin must approve to upgrade to "user"
 			primaryRole: metadata.primaryRole || null, // Student, Engineer, etc.
-			onboardingComplete: metadata.onboardingComplete !== undefined ? metadata.onboardingComplete : false,
+			onboardingComplete:
+				metadata.onboardingComplete !== undefined
+					? metadata.onboardingComplete
+					: false,
 			wantsUpdates: metadata.wantsUpdates || false,
 		};
 
 		await db.collection("users").doc(uid).set(userData);
 
-		logger.info("User registered", { uid, callSign: finalCallSign, role: userData.role });
+		logger.info("User registered", {
+			uid,
+			callSign: finalCallSign,
+			role: userData.role,
+		});
 
 		// ✅ NEW: Create audit log entry
 		const auditEntry = auditFactory.createAuditEntry(

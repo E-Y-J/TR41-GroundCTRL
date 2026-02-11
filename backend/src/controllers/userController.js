@@ -14,8 +14,8 @@ const httpStatus = require("../constants/httpStatus");
 async function getAllUsers(req, res, next) {
 	try {
 		const options = {
-			page: parseInt(req.query.page) || 1,
-			limit: parseInt(req.query.limit) || 10,
+			page: parseInt(req.query.page, 10) || 1,
+			limit: parseInt(req.query.limit, 10) || 10,
 			search: req.query.search,
 			sortBy: req.query.sortBy || "createdAt",
 			sortOrder: req.query.sortOrder || "desc",
@@ -163,7 +163,7 @@ async function getUserAuditLogs(req, res, next) {
 		const { uid } = req.params;
 
 		const options = {
-			limit: parseInt(req.query.limit) || 50,
+			limit: parseInt(req.query.limit, 10) || 50,
 			startDate: req.query.startDate
 				? new Date(req.query.startDate)
 				: undefined,

@@ -7,7 +7,9 @@ const express = require("express");
 const router = express.Router();
 const missionControl = require("../config/missionControl");
 const { authMiddleware } = require("../middleware/authMiddleware");
-const { restrictBetaUsers } = require("../middleware/betaRestrictionMiddleware");
+const {
+	restrictBetaUsers,
+} = require("../middleware/betaRestrictionMiddleware");
 
 // Import route modules
 const healthRoutes = require("./health");
@@ -36,14 +38,29 @@ router.use("/auth", authRoutes);
 router.use("/users", authMiddleware, restrictBetaUsers, userRoutes);
 router.use("/satellites", authMiddleware, restrictBetaUsers, satelliteRoutes);
 router.use("/scenarios", authMiddleware, restrictBetaUsers, scenarioRoutes);
-router.use("/scenario-steps", authMiddleware, restrictBetaUsers, scenarioStepRoutes);
-router.use("/scenario-sessions", authMiddleware, restrictBetaUsers, scenarioSessionRoutes);
+router.use(
+	"/scenario-steps",
+	authMiddleware,
+	restrictBetaUsers,
+	scenarioStepRoutes,
+);
+router.use(
+	"/scenario-sessions",
+	authMiddleware,
+	restrictBetaUsers,
+	scenarioSessionRoutes,
+);
 router.use("/tutorials", authMiddleware, restrictBetaUsers, tutorialRoutes);
 // AI routes handle their own auth (some endpoints use optionalAuth)
 router.use("/ai", aiRoutes);
 router.use("/commands", authMiddleware, restrictBetaUsers, commandRoutes);
 router.use("/help", authMiddleware, restrictBetaUsers, helpRoutes);
-router.use("/websocket-logs", authMiddleware, restrictBetaUsers, websocketLogsRoutes);
+router.use(
+	"/websocket-logs",
+	authMiddleware,
+	restrictBetaUsers,
+	websocketLogsRoutes,
+);
 router.use("/leaderboard", leaderboardRoutes); // Leaderboard routes handle their own auth
 
 // Root API endpoint

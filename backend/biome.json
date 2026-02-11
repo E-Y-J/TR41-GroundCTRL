@@ -1,20 +1,20 @@
 {
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "correctness": {
-        "useParseIntRadix": "error",
-        "noUnusedFunctionParameters": "error"
-      },
-      "security": {
-        "noDangerouslySetInnerHtml": "error"
-      },
-      "suspicious": {
-        "noExplicitAny": "warn"
-      }
-    }
-  },
-  "formatter": {
-    "enabled": true
-  }
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"correctness": {
+				"useParseIntRadix": "error",
+				"noUnusedFunctionParameters": "error"
+			},
+			"security": {
+				"noDangerouslySetInnerHtml": "error"
+			},
+			"suspicious": {
+				"noExplicitAny": "warn"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true
+	}
 }

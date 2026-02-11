@@ -3,7 +3,7 @@
  * Provides consistent logging with severity levels
  */
 
-const logLevel = process.env.LOG_LEVEL || "info";
+const _logLevel = process.env.LOG_LEVEL || "info";
 
 const levels = {
 	error: 0,
@@ -13,7 +13,10 @@ const levels = {
 };
 
 function getCurrentLevel() {
-	const logLevel = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'test' ? 'error' : 'info');
+	if (process.env.NODE_ENV === "test") {
+		return -1; // Suppress all logs in test environment
+	}
+	const logLevel = process.env.LOG_LEVEL || "info";
 	return levels[logLevel] || levels.info;
 }
 

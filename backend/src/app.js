@@ -240,7 +240,7 @@ app.use(
 );
 
 // Health endpoint at root level for tests and quick checks (before auth)
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
 	res.json({
 		status: "GO",
 		service: "GroundCTRL API",
@@ -249,7 +249,7 @@ app.get("/health", (req, res) => {
 });
 
 // Root endpoint (before auth)
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
 	res.json({
 		service: "GroundCTRL API",
 		version: missionControl.version,

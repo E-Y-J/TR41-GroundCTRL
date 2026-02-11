@@ -41,7 +41,7 @@ const crudHandlers = createCrudHandlers(
 		skipAuditOperations: ["LIST"],
 
 		// Before create hook - check for duplicate slug
-		beforeCreate: async (req, data) => {
+		beforeCreate: async (_req, data) => {
 			const slugExists = await helpArticleRepository.existsBySlug(data.slug);
 			if (slugExists) {
 				throw new ConflictError(
@@ -92,12 +92,7 @@ const crudHandlers = createCrudHandlers(
 		afterRead: async (req, docs) => {
 			// Only audit authenticated users viewing individual articles (getOne returns 1 doc)
 			// Skip for list operations (getAll returns multiple docs)
-			if (
-				req.user &&
-				req.user.uid &&
-				req.user.uid !== "ANONYMOUS" &&
-				docs.length === 1
-			) {
+			if (req.user?.uid && req.user.uid !== "ANONYMOUS" && docs.length === 1) {
 				const article = docs[0];
 				const auditEntry = auditFactory.createAuditEntry(
 					auditEvents.READ_HELP_ARTICLE,
@@ -126,7 +121,7 @@ const crudHandlers = createCrudHandlers(
 		},
 
 		// Custom audit metadata (for create/update/delete operations)
-		auditMetadata: async (req, operation, result) => {
+		auditMetadata: async (_req, _operation, result) => {
 			return {
 				articleSlug: result?.slug,
 				articleTitle: result?.title,
@@ -162,7 +157,7 @@ async function getArticleBySlug(req, res, next) {
 		});
 
 		// Audit logging: Only for authenticated users (not anonymous)
-		if (req.user && req.user.uid && req.user.uid !== "ANONYMOUS") {
+		if (req.user?.uid && req.user.uid !== "ANONYMOUS") {
 			const auditEntry = auditFactory.createAuditEntry(
 				auditEvents.READ_HELP_ARTICLE,
 				"help_article",
@@ -224,7 +219,7 @@ async function searchArticles(req, res, next) {
 			category_id: req.query.category_id,
 		};
 
-		const limit = parseInt(req.query.limit) || 10;
+		const limit = parseInt(req.query.limit, 10) || 10;
 
 		const articles = await helpArticleRepository.search(
 			searchTerm,
@@ -322,7 +317,7 @@ async function submitFeedback(req, res, next) {
  */
 async function getPopularArticles(req, res, next) {
 	try {
-		const limit = parseInt(req.query.limit) || 4;
+		const limit = parseInt(req.query.limit, 10) || 4;
 
 		const articles = await helpArticleRepository.getPopular(limit);
 
