@@ -16,10 +16,12 @@ function getTestApp() {
   if (!appInstance) {
     // Set test environment and mock emulator hosts
     process.env.NODE_ENV = 'test';
+    process.env.LOG_LEVEL = 'error'; // Suppress logs in tests
     process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
     process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
 
     // Clear the require cache to ensure fresh initialization
+    delete require.cache[require.resolve('../../src/utils/logger')];
     delete require.cache[require.resolve('../../src/app')];
 
     appInstance = require('../../src/app');

@@ -12,7 +12,10 @@ const levels = {
 	debug: 3,
 };
 
-const currentLevel = levels[logLevel] || levels.info;
+function getCurrentLevel() {
+	const logLevel = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'test' ? 'error' : 'info');
+	return levels[logLevel] || levels.info;
+}
 
 /**
  * Format log message with timestamp
@@ -32,7 +35,7 @@ function formatLog(level, message, meta = {}) {
  * Log error message
  */
 function error(message, meta = {}) {
-	if (currentLevel >= levels.error) {
+	if (getCurrentLevel() >= levels.error) {
 		console.error(formatLog("error", message, meta));
 	}
 }
@@ -41,7 +44,7 @@ function error(message, meta = {}) {
  * Log warning message
  */
 function warn(message, meta = {}) {
-	if (currentLevel >= levels.warn) {
+	if (getCurrentLevel() >= levels.warn) {
 		console.warn(formatLog("warn", message, meta));
 	}
 }
@@ -50,7 +53,7 @@ function warn(message, meta = {}) {
  * Log info message
  */
 function info(message, meta = {}) {
-	if (currentLevel >= levels.info) {
+	if (getCurrentLevel() >= levels.info) {
 		console.log(formatLog("info", message, meta));
 	}
 }
@@ -59,7 +62,7 @@ function info(message, meta = {}) {
  * Log debug message
  */
 function debug(message, meta = {}) {
-	if (currentLevel >= levels.debug) {
+	if (getCurrentLevel() >= levels.debug) {
 		console.log(formatLog("debug", message, meta));
 	}
 }

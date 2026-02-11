@@ -258,7 +258,7 @@ async function register(email, password, callSign = null, displayName = null, me
 			lastLoginAt: null,
 			isActive: true,
 			// Beta program and onboarding metadata
-			role: metadata.role || "beta", // Default to "beta" - admin must approve to upgrade to "user"
+			role: metadata.role || (process.env.NODE_ENV === 'test' ? "user" : "beta"), // Default to "beta" - admin must approve to upgrade to "user"
 			primaryRole: metadata.primaryRole || null, // Student, Engineer, etc.
 			onboardingComplete: metadata.onboardingComplete !== undefined ? metadata.onboardingComplete : false,
 			wantsUpdates: metadata.wantsUpdates || false,

@@ -22,6 +22,9 @@ const steps = [
       isCheckpoint: false,
       expectedDurationSeconds: 90,
       hint: 'Check the Commissioning panel (Secondary Systems tab) - Deploy antenna using button control.',
+      createdBy: CREATED_BY_UID,
+    },
+  },
   {
     scenarioCode: 'HUD_INTRODUCTION',
     data: {
@@ -48,6 +51,10 @@ const steps = [
       isCheckpoint: false,
       expectedDurationSeconds: 60,
       hint: 'Telemetry panel (Secondary tab) - Use dropdown to select packet type (health, orbit, or all).',
+      createdBy: CREATED_BY_UID,
+    },
+  },
+  {
     scenarioCode: 'HUD_INTRODUCTION',
     data: {
       title: 'Monitor Satellite Telemetry',
@@ -141,6 +148,10 @@ const steps = [
       isCheckpoint: true,
       expectedDurationSeconds: 90,
       hint: 'Communications panel (Primary tab) - Set data volume and priority level.',
+      createdBy: CREATED_BY_UID,
+    },
+  },
+  {
     scenarioCode: 'ROOKIE_COMMISSIONING_101',
     data: {
       title: 'Wait for Beacon Signal',
@@ -166,6 +177,10 @@ const steps = [
       isCheckpoint: false,
       expectedDurationSeconds: 60,
       hint: 'System panel (Secondary tab) - Run complete system health diagnostic.',
+      createdBy: CREATED_BY_UID,
+    },
+  },
+  {
     scenarioCode: 'ROOKIE_COMMISSIONING_101',
     data: {
       title: 'Send PING Command',
@@ -186,6 +201,5 @@ const steps = [
 ];
 // No steps needed for HUD_INTRODUCTION - it's an exploration/familiarization scenario
 // Steps can be added later for more structured scenarios
-const steps = [];
 
 module.exports = steps;

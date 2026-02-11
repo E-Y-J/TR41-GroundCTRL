@@ -48,15 +48,15 @@ async function getTopOperators(options = {}) {
 		// Calculate date threshold based on period
 		const dateThreshold = getDateThreshold(period);
 
-		// Query scenario sessions for completed missions
-		let query = getDb().collection("scenario_sessions");
-			.where("status", "==", "completed");
+		   // Query scenario sessions for completed missions
+		   let query = getDb().collection("scenario_sessions")
+			   .where("status", "==", "completed");
 
-		if (dateThreshold) {
-			_query = _query.where("endTime", ">=", dateThreshold.toISOString());
-		}
+		   if (dateThreshold) {
+			   query = query.where("endTime", ">=", dateThreshold.toISOString());
+		   }
 
-		const snapshot = await _query.get();
+		   const snapshot = await query.get();
 
 		// Handle empty results gracefully
 		if (snapshot.empty) {
