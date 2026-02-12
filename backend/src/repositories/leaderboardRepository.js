@@ -49,6 +49,7 @@ async function getTopOperators(options = {}) {
 		const dateThreshold = getDateThreshold(period);
 
 		// Query scenario sessions for completed missions
+		let query = getFirestore()
 		const baseQuery = getDb()
 			.collection("scenario_sessions")
 			.where("status", "==", "completed");
