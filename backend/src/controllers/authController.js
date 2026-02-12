@@ -335,6 +335,8 @@ async function login(req, res, next) {
 	} catch (error) {
 		// Handle Firebase auth errors specifically
 		if (error.code?.startsWith("auth/")) {
+			// Add constant-time delay to prevent timing attacks
+			await new Promise(resolve => setTimeout(resolve, 150));
 			return res
 				.status(401)
 				.json({ payload: { error: { message: "Invalid email or password" } } });
