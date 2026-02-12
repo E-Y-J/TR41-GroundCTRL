@@ -135,7 +135,7 @@ export function FloatingNovaChat({
         payload.context = context
       }
 
-      let headers = {
+      const headers = {
         "Content-Type": "application/json",
       }
 

@@ -278,9 +278,9 @@ function createOrbitLine(radius, inclination, raan, satelliteProgress = 0.0) {
   for (let i = 0; i <= segments; i++) {
     const angle = (i / segments) * Math.PI * 2
     
-    let x = radius * Math.cos(angle)
-    let y = 0
-    let z = radius * Math.sin(angle)
+    const x = radius * Math.cos(angle)
+    const y = 0
+    const z = radius * Math.sin(angle)
 
     const y1 = y * Math.cos(inclRad) - z * Math.sin(inclRad)
     const z1 = y * Math.sin(inclRad) + z * Math.cos(inclRad)
@@ -404,9 +404,9 @@ export function EarthGlobe3D({
     const inclRad = incl * DEG_TO_RAD
     const raanRad = raanDeg * DEG_TO_RAD
 
-    let x = radius * Math.cos(anomaly)
-    let y = 0
-    let z = radius * Math.sin(anomaly)
+    const x = radius * Math.cos(anomaly)
+    const y = 0
+    const z = radius * Math.sin(anomaly)
 
     const y1 = y * Math.cos(inclRad) - z * Math.sin(inclRad)
     const z1 = y * Math.sin(inclRad) + z * Math.cos(inclRad)
