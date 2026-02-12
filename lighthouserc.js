@@ -21,6 +21,8 @@ module.exports = {
         'total-blocking-time': ['error', { 'minScore': 0.5 }],
         'cumulative-layout-shift': ['error', { 'minScore': 0.5 }],
         'speed-index': ['error', { 'minScore': 0.5 }],
+        // Lower TBT threshold for bundle analysis page (development tool)
+        'total-blocking-time/bundle-analysis.html': ['error', { 'minScore': 0.3 }],
       },
     },
   },
