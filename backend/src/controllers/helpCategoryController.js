@@ -33,7 +33,7 @@ const crudHandlers = createCrudHandlers(
 		skipAuditOperations: ["LIST"],
 
 		// Before create hook - check for duplicate code
-		beforeCreate: async (req, data) => {
+		beforeCreate: async (_req, data) => {
 			const codeExists = await helpCategoryRepository.existsByCode(data.code);
 			if (codeExists) {
 				throw new ConflictError(
@@ -79,7 +79,7 @@ const crudHandlers = createCrudHandlers(
 		},
 
 		// Custom audit metadata
-		auditMetadata: async (req, operation, result) => {
+		auditMetadata: async (_req, _operation, result) => {
 			return {
 				categoryCode: result?.code,
 				categoryName: result?.name,

@@ -349,7 +349,7 @@ async function fetchContext(sessionId, stepId = null) {
  */
 function getFallbackResponse(context, _userMessage) {
 	let response;
-	let hintType = "FALLBACK";
+	const hintType = "FALLBACK";
 
 	// Try to use step hint_suggestion
 	if (context.currentStep?.hint_suggestion) {
@@ -498,7 +498,7 @@ async function generateNovaResponse(
 
 			if (attempt < MAX_RETRIES) {
 				// Exponential backoff with jitter
-				await sleep(BASE_DELAY_MS * Math.pow(2, attempt - 1));
+				await sleep(BASE_DELAY_MS * 2 ** (attempt - 1));
 			}
 		}
 	}
@@ -854,8 +854,7 @@ async function fetchHelpContext(
 				(faq) =>
 					faq.question.toLowerCase().includes(lowerQuery) ||
 					faq.answer.toLowerCase().includes(lowerQuery) ||
-					(faq.tags &&
-						faq.tags.some((tag) => lowerQuery.includes(tag.toLowerCase()))),
+					faq.tags?.some((tag) => lowerQuery.includes(tag.toLowerCase())),
 			)
 			.slice(0, 3);
 
@@ -1035,7 +1034,7 @@ async function generateHelpResponse(userMessage, options = {}) {
 			});
 
 			if (attempt < MAX_RETRIES) {
-				await sleep(BASE_DELAY_MS * Math.pow(2, attempt - 1));
+				await sleep(BASE_DELAY_MS * 2 ** (attempt - 1));
 			}
 		}
 	}

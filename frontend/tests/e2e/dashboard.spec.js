@@ -10,7 +10,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI-DASHBOARD-001: Dashboard Page Functionality', () => {
   test('should load dashboard page successfully', async ({ page }) => {
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Wait for React to mount and header to appear
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    await page.waitForTimeout(2000);
 
     // Check for dashboard-specific content
     const dashboardElements = [
@@ -34,7 +38,11 @@ test.describe('UI-DASHBOARD-001: Dashboard Page Functionality', () => {
   });
 
   test('should display dashboard cards or widgets', async ({ page }) => {
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Wait for React to mount
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    await page.waitForTimeout(2000);
 
     // Look for dashboard cards/widgets
     const cardElements = [

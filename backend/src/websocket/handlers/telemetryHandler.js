@@ -11,7 +11,7 @@ const logger = require("../../utils/logger");
  * @param {SessionManager} sessionManager - Session manager instance
  * @returns {function} Connection handler
  */
-function createTelemetryHandler(io, sessionManager) {
+function createTelemetryHandler(_io, sessionManager) {
 	return (socket) => {
 		logger.info("Telemetry connection established", {
 			socketId: socket.id,

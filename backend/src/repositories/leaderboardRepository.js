@@ -50,6 +50,7 @@ async function getTopOperators(options = {}) {
 
 		// Query scenario sessions for completed missions
 		let query = getFirestore()
+		let query = getDb()
 			.collection("scenario_sessions")
 			.where("status", "==", "completed");
 
@@ -198,6 +199,7 @@ async function getScenarioLeaderboard(scenarioId, options = {}) {
 			.where("status", "==", "completed")
 			.get();
 
+		const snapshot = await getFirestore().collection("scenarioSessions");
 		// Aggregate best scores by user
 		const userBestScores = {};
 
@@ -305,7 +307,6 @@ function getDateThreshold(period) {
 			monthAgo.setMonth(monthAgo.getMonth() - 1);
 			return monthAgo;
 		}
-		case "all-time":
 		default:
 			return null;
 	}

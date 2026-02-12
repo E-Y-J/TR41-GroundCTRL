@@ -12,7 +12,7 @@ const { v4: uuidv4 } = require("uuid");
  * @param {SessionManager} sessionManager - Session manager instance
  * @returns {function} Connection handler
  */
-function createCommandHandler(io, sessionManager, simulationEngine) {
+function createCommandHandler(_io, sessionManager, simulationEngine) {
 	return (socket) => {
 		logger.info("Command connection established", {
 			socketId: socket.id,
@@ -73,7 +73,7 @@ function createCommandHandler(io, sessionManager, simulationEngine) {
 				});
 
 				// Apply command to simulation engine if available
-				if (simulationEngine && simulationEngine.isRunning(sessionId)) {
+				if (simulationEngine?.isRunning(sessionId)) {
 					simulationEngine.applyCommand(sessionId, {
 						id: commandId,
 						...command,

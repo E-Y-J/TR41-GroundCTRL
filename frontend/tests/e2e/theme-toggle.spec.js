@@ -10,7 +10,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('UI-THEME-001: Theme Toggle Functionality', () => {
   test('should have theme toggle button in header', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Wait for React to mount and header to render
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    await page.waitForTimeout(1000);
 
     // Look for theme toggle button
     const themeButtons = [
@@ -37,7 +41,11 @@ test.describe('UI-THEME-001: Theme Toggle Functionality', () => {
   });
 
   test('should toggle between light and dark themes', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.goto('/', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Wait for React to mount
+    await expect(page.locator('header')).toBeVisible({ timeout: 25000 });
+    await page.waitForTimeout(1000);
 
     // Find theme toggle button
     const themeToggle = page.locator('[data-testid*="theme"], button:has-text("theme"), .theme-toggle').first();

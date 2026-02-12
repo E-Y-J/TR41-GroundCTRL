@@ -23,7 +23,7 @@ const hooks = {
 	 * Ownership scoping hook
 	 * Non-admins can only see commands they created
 	 */
-	ownershipScope: async (req, operation, options) => {
+	ownershipScope: async (req, _operation, options) => {
 		if (req.user?.isAdmin) {
 			return options;
 		}

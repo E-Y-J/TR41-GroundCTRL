@@ -100,7 +100,7 @@ async function getMessagesBySession(sessionId, options = {}) {
 
 		// Get all matching documents
 		const snapshot = await query.get();
-		let messages = snapshot.docs.map((doc) => ({
+		const messages = snapshot.docs.map((doc) => ({
 			id: doc.id,
 			...doc.data(),
 		}));

@@ -3,75 +3,75 @@
  * Tests: SEC-001, SEC-004, AI-004, SEC-007
  */
 
-const request = require('supertest');
-const { getTestApp } = require('../../helpers/test-utils');
+const request = require("supertest");
+const { getTestApp } = require("../../helpers/test-utils");
 
-describe('Security - Injection Tests', () => {
-  let app;
+describe("Security - Injection Tests", () => {
+	let app;
 
-  beforeAll(() => {
-    process.env.NODE_ENV = 'test';
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
-    process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
-    
-    app = getTestApp();
-  });
+	beforeAll(() => {
+		process.env.NODE_ENV = "test";
+		process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
+		process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
 
-  describe('SEC-001: CallSign Enumeration Prevention', () => {
-    it('should return 401 for callSign-based queries without auth', async () => {
-      const response = await request(app)
-        .get('/api/v1/users')
-        .query({ callSign: 'KNOWN' })
-        .expect(401);
+		app = getTestApp();
+	});
 
-      expect(response.body.payload.error).toHaveProperty('message');
-    });
-  });
+	describe("SEC-001: CallSign Enumeration Prevention", () => {
+		it("should return 401 for callSign-based queries without auth", async () => {
+			const response = await request(app)
+				.get("/api/v1/users")
+				.query({ callSign: "KNOWN" })
+				.expect(401);
 
-  describe('SEC-004: Payload Size Limits', () => {
-    it('should reject oversized payloads', async () => {
-      const largePayload = {
-        content: 'A'.repeat(5000),
-      };
+			expect(response.body.payload.error).toHaveProperty("message");
+		});
+	});
 
-      const response = await request(app)
-        .post('/api/v1/ai/chat')
-        .send(largePayload)
-        .expect(400);
+	describe("SEC-004: Payload Size Limits", () => {
+		it("should reject oversized payloads", async () => {
+			const largePayload = {
+				content: "A".repeat(5000),
+			};
 
-      expect(response.body.payload.error.message).toBeTruthy();
-    });
-  });
+			const response = await request(app)
+				.post("/api/v1/ai/chat")
+				.send(largePayload)
+				.expect(400);
 
-  describe('AI-004: XSS Prevention', () => {
-    it('should reject malicious script tags', async () => {
-      const maliciousPayload = {
-        content: '<script>alert(1)</script>',
-      };
+			expect(response.body.payload.error.message).toBeTruthy();
+		});
+	});
 
-      const response = await request(app)
-        .post('/api/v1/ai/chat')
-        .send(maliciousPayload)
-        .expect(400);
+	describe("AI-004: XSS Prevention", () => {
+		it("should reject malicious script tags", async () => {
+			const maliciousPayload = {
+				content: "<script>alert(1)</script>",
+			};
 
-      expect(response.body.payload.error).toHaveProperty('message');
-    });
-  });
+			const response = await request(app)
+				.post("/api/v1/ai/chat")
+				.send(maliciousPayload)
+				.expect(400);
 
-  describe('SEC-007: Stack Trace Suppression in Production', () => {
-    it('should not include stack traces in production errors', async () => {
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+			expect(response.body.payload.error).toHaveProperty("message");
+		});
+	});
 
-      const response = await request(app)
-        .get('/api/v1/nonexistent')
-        .expect(404);
+	describe("SEC-007: Stack Trace Suppression in Production", () => {
+		it("should not include stack traces in production errors", async () => {
+			const originalEnv = process.env.NODE_ENV;
+			process.env.NODE_ENV = "production";
 
-      expect(response.body).toHaveProperty('payload');
-      expect(response.body.payload).toHaveProperty('error');
-      expect(response.body.payload.error).not.toHaveProperty('stack');
+			const response = await request(app)
+				.get("/api/v1/nonexistent")
+				.expect(404);
 
-      process.env.NODE_ENV = originalEnv;
-    });
-  });
+			expect(response.body).toHaveProperty("payload");
+			expect(response.body.payload).toHaveProperty("error");
+			expect(response.body.payload.error).not.toHaveProperty("stack");
+
+			process.env.NODE_ENV = originalEnv;
+		});
+	});
 });

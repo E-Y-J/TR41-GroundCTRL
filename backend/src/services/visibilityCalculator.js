@@ -228,7 +228,7 @@ class VisibilityCalculator {
 		const mu = 398600.4418; // km^3/s^2 (Earth's gravitational parameter)
 		const r = this.earthRadius + altitude_km;
 
-		return 2 * Math.PI * Math.sqrt(Math.pow(r, 3) / mu);
+		return 2 * Math.PI * Math.sqrt(r ** 3 / mu);
 	}
 
 	/**
@@ -326,7 +326,7 @@ class VisibilityCalculator {
 
 		// Attenuation due to range (inverse square law, simplified)
 		const minRange = 500; // km
-		const rangeAttenuation = Math.pow(minRange / Math.max(range, minRange), 2);
+		const rangeAttenuation = (minRange / Math.max(range, minRange)) ** 2;
 		strength *= rangeAttenuation;
 
 		// Elevation factor (better signal at higher elevations)

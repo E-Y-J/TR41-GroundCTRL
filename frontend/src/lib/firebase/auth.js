@@ -130,10 +130,19 @@ export async function resetPassword(email) {
 
 // Get current user
 export function getCurrentUser() {
-  return auth.currentUser
+  if (!auth) {
+    console.warn('Firebase auth not available');
+    return null;
+  }
+  return auth.currentUser;
 }
 
 // Subscribe to auth state changes
 export function onAuthChange(callback) {
-  return onAuthStateChanged(auth, callback)
+  if (!auth) {
+    console.warn('Firebase auth not available');
+    // Return a no-op unsubscribe function
+    return () => {};
+  }
+  return onAuthStateChanged(auth, callback);
 }

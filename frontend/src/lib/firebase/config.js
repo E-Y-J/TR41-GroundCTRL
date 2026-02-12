@@ -27,17 +27,39 @@ const firebaseConfig = {
 }
 
 // Initialize Firebase (singleton pattern to prevent multiple instances)
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
+let app;
+let auth;
+let db;
 
-// Initialize Firebase services
-export const auth = getAuth(app)
-export const db = getFirestore(app)
+try {
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  
+  // Initialize Firebase services
+  auth = getAuth(app);
+  db = getFirestore(app);
+  
+  // Connect to emulators in development and test environments
+  if (import.meta.env.DEV || import.meta.env.MODE === "test") {
+    try {
+      connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+      connectFirestoreEmulator(db, "127.0.0.1", 8080);
+      console.log("🔥 Connected to Firebase Auth and Firestore Emulators");
+    } catch (err) {
+      console.warn("Could not connect to Firebase emulators – using production", err);
+    }
+  }
+  
+  console.log('✅ Firebase initialized successfully');
+} catch (error) {
+  console.warn('⚠️  Firebase initialization failed:', error.message);
+  console.warn('   App will continue without Firebase authentication');
+  console.warn('   This is expected in test/CI environments without Firebase credentials');
+  
+  // Create null exports so imports don't fail
+  auth = null;
+  db = null;
+  app = null;
+}
 
-// Connect to emulators in development
-// EMULATOR MODE DISABLED: Uncomment these lines if you want to use Firebase emulators
-// if (import.meta.env.DEV) {
-//   connectAuthEmulator(auth, "http://localhost:9099")
-//   connectFirestoreEmulator(db, "localhost", 8080)
-// }
-
-export default app
+export { auth, db };
+export default app;

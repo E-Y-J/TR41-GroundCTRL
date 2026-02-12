@@ -189,7 +189,7 @@ class PerformanceTracker {
 	 * @param {number} completionTime - Time taken to complete step (ms)
 	 * @param {boolean} wasSuccessful - Whether step was completed successfully
 	 */
-	recordStepCompletion(sessionId, step, completionTime, wasSuccessful = true) {
+	recordStepCompletion(sessionId, _step, completionTime, wasSuccessful = true) {
 		const metrics = this.sessionMetrics.get(sessionId);
 		if (!metrics) return;
 

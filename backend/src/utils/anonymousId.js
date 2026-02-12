@@ -3,7 +3,7 @@
  * Generates and validates anonymous user identifiers for unauthenticated NOVA usage
  */
 
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 
 /**
  * Generate anonymous user ID

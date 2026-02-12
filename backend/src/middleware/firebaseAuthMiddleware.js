@@ -92,7 +92,7 @@ function isValidTokenPayload(decodedToken) {
  * @param {object} res - Express response object
  * @param {function} next - Express next middleware function
  */
-async function firebaseAuthMiddleware(req, res, next) {
+async function firebaseAuthMiddleware(req, _res, next) {
 	try {
 		// Step 1: Extract and validate Authorization header
 		const authHeader = req.headers.authorization;
@@ -105,7 +105,7 @@ async function firebaseAuthMiddleware(req, res, next) {
 				{
 					hasHeader: !!authHeader,
 					headerStart: authHeader
-						? authHeader.substring(0, 10) + "..."
+						? `${authHeader.substring(0, 10)}...`
 						: "none",
 				},
 			);

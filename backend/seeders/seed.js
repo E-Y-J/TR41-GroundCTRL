@@ -1,9 +1,9 @@
 /**
  * Unified Database Seeder for GroundCTRL
- * 
+ *
  * Usage:
  *   node seed.js [--all|--satellites|--scenarios|--steps|--commands|--ground-stations]
- * 
+ *
  * Examples:
  *   node seed.js                    # Seed everything (default)
  *   node seed.js --all              # Seed everything
@@ -14,573 +14,629 @@
  *   node seed.js --ground-stations  # Seed ground stations only
  */
 
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const admin = require('firebase-admin');
+require("dotenv").config({
+	path: require("node:path").join(__dirname, "../.env"),
+});
+const admin = require("firebase-admin");
 
 // Import seed datal firestore collection
-const commands = require('./data/commands');
-const satellites = require('./data/satellites');
-const scenarios = require('./data/scenarios');
-const steps = require('./data/steps');
-const groundStations = require('./data/groundStations');
-const helpCategories = require('./data/helpCategories');
-const helpArticles = require('./data/helpArticles');
-const helpFaqs = require('./data/helpFaqs');
-const scenarioSessionsData = require('./data/scenarioSessions');
+const commands = require("./data/commands");
+const satellites = require("./data/satellites");
+const scenarios = require("./data/scenarios");
+const steps = require("./data/steps");
+const groundStations = require("./data/groundStations");
+const helpCategories = require("./data/helpCategories");
+const helpArticles = require("./data/helpArticles");
+const helpFaqs = require("./data/helpFaqs");
+const scenarioSessionsData = require("./data/scenarioSessions");
 
-const CREATED_BY_UID = '5usOQ3eOm7OjXmDOFjEmKSQovs42';
+const CREATED_BY_UID = "5usOQ3eOm7OjXmDOFjEmKSQovs42";
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
-  try {
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY
-      ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-      : undefined;
+	try {
+		const privateKey = process.env.FIREBASE_PRIVATE_KEY
+			? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+			: undefined;
 
-    if (!privateKey || !process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL) {
-      console.error('❌ Missing Firebase credentials in .env file');
-      console.error('Please ensure FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY, and FIREBASE_CLIENT_EMAIL are set');
-      process.exit(1);
-    }
+		if (
+			!privateKey ||
+			!process.env.FIREBASE_PROJECT_ID ||
+			!process.env.FIREBASE_CLIENT_EMAIL
+		) {
+			console.error("❌ Missing Firebase credentials in .env file");
+			console.error(
+				"Please ensure FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY, and FIREBASE_CLIENT_EMAIL are set",
+			);
+			process.exit(1);
+		}
 
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: privateKey,
-      }),
-    });
+		admin.initializeApp({
+			credential: admin.credential.cert({
+				projectId: process.env.FIREBASE_PROJECT_ID,
+				clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+				privateKey: privateKey,
+			}),
+		});
 
-    console.log('✅ Firebase Admin initialized');
-  } catch (error) {
-    console.error('❌ Failed to initialize Firebase Admin:', error.message);
-    process.exit(1);
-  }
+		console.log("✅ Firebase Admin initialized");
+	} catch (error) {
+		console.error("❌ Failed to initialize Firebase Admin:", error.message);
+		process.exit(1);
+	}
 }
 
 const db = admin.firestore();
 
 // Seed functions
 async function seedCommands() {
-  console.log('⚙️  Seeding commands...');
-  let count = 0;
-  
-  for (const cmd of commands) {
-    const now = new Date().toISOString();
-    await db.collection('commands').add({
-      ...cmd,
-      createdAt: cmd.createdAt || now,
-      updatedAt: cmd.updatedAt || now,
-      isActive: true,
-    });
-    count++;
-  }
-  
-  console.log(`   ✓ ${count} commands seeded`);
-  return count;
+	console.log("⚙️  Seeding commands...");
+	let count = 0;
+
+	for (const cmd of commands) {
+		const now = new Date().toISOString();
+		await db.collection("commands").add({
+			...cmd,
+			createdAt: cmd.createdAt || now,
+			updatedAt: cmd.updatedAt || now,
+			isActive: true,
+		});
+		count++;
+	}
+
+	console.log(`   ✓ ${count} commands seeded`);
+	return count;
 }
 
 async function seedSatellites() {
-  console.log('📡 Seeding satellites...');
-  const satelliteMap = {};
-  
-  for (const sat of satellites) {
-    const now = new Date().toISOString();
-    const ref = await db.collection('satellites').add({
-      ...sat.data,
-      code: sat.code,
-      createdAt: sat.data.createdAt || now,
-      updatedAt: sat.data.updatedAt || now,
-    });
-    satelliteMap[sat.code] = ref.id;
-    console.log(`   ✓ ${sat.code} → ${ref.id}`);
-  }
-  
-  return satelliteMap;
+	console.log("📡 Seeding satellites...");
+	const satelliteMap = {};
+
+	for (const sat of satellites) {
+		const now = new Date().toISOString();
+		const ref = await db.collection("satellites").add({
+			...sat.data,
+			code: sat.code,
+			createdAt: sat.data.createdAt || now,
+			updatedAt: sat.data.updatedAt || now,
+		});
+		satelliteMap[sat.code] = ref.id;
+		console.log(`   ✓ ${sat.code} → ${ref.id}`);
+	}
+
+	return satelliteMap;
 }
 
 async function seedScenarios(satelliteMap) {
-  console.log('🎯 Seeding scenarios...');
-  const scenarioMap = {};
-  
-  for (const scn of scenarios) {
-    const satelliteCode = scn.data.satellite_code;
-    const satellite_id = satelliteMap[satelliteCode];
-    
-    if (!satellite_id) {
-      throw new Error(`No satellite_id for scenario ${scn.code} (satellite_code=${satelliteCode})`);
-    }
-    
-    const now = new Date().toISOString();
-    const data = { ...scn.data };
-    delete data.satellite_code;
-    
-    const ref = await db.collection('scenarios').add({
-      ...data,
-      code: scn.code, // IMPORTANT: Store code for fetchExistingScenarios
-      satellite_id,
-      createdAt: data.createdAt || now,
-      updatedAt: data.updatedAt || now,
-    });
-    
-    scenarioMap[scn.code] = ref.id;
-    console.log(`   ✓ ${scn.code} → ${ref.id}`);
-  }
-  
-  return scenarioMap;
+	console.log("🎯 Seeding scenarios...");
+	const scenarioMap = {};
+
+	for (const scn of scenarios) {
+		const satelliteCode = scn.data.satellite_code;
+		const satellite_id = satelliteMap[satelliteCode];
+
+		if (!satellite_id) {
+			throw new Error(
+				`No satellite_id for scenario ${scn.code} (satellite_code=${satelliteCode})`,
+			);
+		}
+
+		const now = new Date().toISOString();
+		const data = { ...scn.data };
+		delete data.satellite_code;
+
+		const ref = await db.collection("scenarios").add({
+			...data,
+			code: scn.code, // IMPORTANT: Store code for fetchExistingScenarios
+			satellite_id,
+			createdAt: data.createdAt || now,
+			updatedAt: data.updatedAt || now,
+		});
+
+		scenarioMap[scn.code] = ref.id;
+		console.log(`   ✓ ${scn.code} → ${ref.id}`);
+	}
+
+	return scenarioMap;
 }
 
 async function seedSteps(scenarioMap) {
-  console.log('📝 Seeding scenario steps...');
-  let count = 0;
-  
-  for (const step of steps) {
-    const scenario_id = scenarioMap[step.scenarioCode];
-    
-    if (!scenario_id) {
-      throw new Error(`No scenario_id for step (scenarioCode=${step.scenarioCode})`);
-    }
-    
-    const now = new Date().toISOString();
-    await db.collection('scenario_steps').add({
-      ...step.data,
-      scenario_id,
-      createdAt: step.data.createdAt || now,
-      updatedAt: step.data.updatedAt || now,
-    });
-    count++;
-  }
-  
-  console.log(`   ✓ ${count} steps seeded`);
-  return count;
+	console.log("📝 Seeding scenario steps...");
+	let count = 0;
+
+	for (const step of steps) {
+		const scenario_id = scenarioMap[step.scenarioCode];
+
+		if (!scenario_id) {
+			throw new Error(
+				`No scenario_id for step (scenarioCode=${step.scenarioCode})`,
+			);
+		}
+
+		const now = new Date().toISOString();
+		await db.collection("scenario_steps").add({
+			...step.data,
+			scenario_id,
+			createdAt: step.data.createdAt || now,
+			updatedAt: step.data.updatedAt || now,
+		});
+		count++;
+	}
+
+	console.log(`   ✓ ${count} steps seeded`);
+	return count;
 }
 
 async function seedGroundStations() {
-  console.log('🛰️  Seeding ground stations...');
-  let count = 0;
-  
-  for (const gs of groundStations) {
-    const now = new Date().toISOString();
-    await db.collection('ground_stations').add({
-      ...gs,
-      createdAt: gs.createdAt || now,
-      updatedAt: gs.updatedAt || now,
-    });
-    count++;
-  }
-  
-  console.log(`   ✓ ${count} ground stations seeded`);
-  return count;
+	console.log("🛰️  Seeding ground stations...");
+	let count = 0;
+
+	for (const gs of groundStations) {
+		const now = new Date().toISOString();
+		await db.collection("ground_stations").add({
+			...gs,
+			createdAt: gs.createdAt || now,
+			updatedAt: gs.updatedAt || now,
+		});
+		count++;
+	}
+
+	console.log(`   ✓ ${count} ground stations seeded`);
+	return count;
 }
 
 async function seedHelpSystem() {
-  console.log('📚 Seeding help system...');
-  const categoryMap = {};
-  
-  // Seed categories first
-  for (const category of helpCategories) {
-    const now = new Date().toISOString();
-    const ref = await db.collection('help_categories').add({
-      ...category,
-      createdAt: now,
-      updatedAt: now,
-    });
-    categoryMap[category.code] = ref.id;
-  }
-  console.log(`   ✓ ${helpCategories.length} categories seeded`);
-  
-  // Seed articles (requires category IDs)
-  let articleCount = 0;
-  for (const article of helpArticles) {
-    const category_id = categoryMap[article.categoryCode];
-    if (!category_id) {
-      console.warn(`   ⚠️  No category_id for article: ${article.title}`);
-      continue;
-    }
-    
-    const now = new Date().toISOString();
-    const slug = article.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .substring(0, 200);
-    
-    // Build plain text from content blocks
-    const plainTextContent = article.content
-      .filter(block => block.type === 'PARAGRAPH' || block.type === 'HEADING')
-      .map(block => block.content)
-      .join(' ');
-    
-    await db.collection('help_articles').add({
-      slug,
-      title: article.title,
-      excerpt: article.excerpt,
-      category_id,
-      type: article.type || 'GUIDE',
-      difficulty: article.difficulty || 'BEGINNER',
-      tags: article.tags || [],
-      content: article.content,
-      plainTextContent,
-      status: 'PUBLISHED',
-      isActive: true,
-      isFeatured: false,
-      isPinned: false,
-      orderIndex: articleCount,
-      estimatedReadMinutes: article.estimatedReadMinutes || 5,
-      seo: {
-        metaTitle: article.title,
-        metaDescription: article.excerpt,
-        keywords: article.tags || [],
-        noIndex: false,
-      },
-      version: '1.0.0',
-      publishedAt: now,
-      lastReviewedAt: now,
-      stats: {
-        views: 0,
-        helpfulCount: 0,
-        notHelpfulCount: 0,
-        searchAppearances: 0,
-        avgTimeOnPage_seconds: 0,
-      },
-      createdAt: now,
-      updatedAt: now,
-    });
-    articleCount++;
-  }
-  console.log(`   ✓ ${articleCount} articles seeded`);
-  
-  // Seed FAQs (requires category IDs)
-  let faqCount = 0;
-  for (const faq of helpFaqs) {
-    const category_id = categoryMap[faq.categoryCode];
-    if (!category_id) {
-      console.warn(`   ⚠️  No category_id for FAQ: ${faq.question}`);
-      continue;
-    }
-    
-    const now = new Date().toISOString();
-    await db.collection('help_faqs').add({
-      question: faq.question,
-      answer: faq.answer,
-      category_id,
-      orderIndex: faq.orderIndex,
-      isActive: faq.isActive !== false,
-      stats: {
-        views: 0,
-        helpfulCount: 0,
-        notHelpfulCount: 0,
-      },
-      createdAt: now,
-      updatedAt: now,
-    });
-    faqCount++;
-  }
-  console.log(`   ✓ ${faqCount} FAQs seeded`);
-  
-  return {
-    categories: helpCategories.length,
-    articles: articleCount,
-    faqs: faqCount,
-  };
+	console.log("📚 Seeding help system...");
+	const categoryMap = {};
+
+	// Seed categories first
+	for (const category of helpCategories) {
+		const now = new Date().toISOString();
+		const ref = await db.collection("help_categories").add({
+			...category,
+			createdAt: now,
+			updatedAt: now,
+		});
+		categoryMap[category.code] = ref.id;
+	}
+	console.log(`   ✓ ${helpCategories.length} categories seeded`);
+
+	// Seed articles (requires category IDs)
+	let articleCount = 0;
+	for (const article of helpArticles) {
+		const category_id = categoryMap[article.categoryCode];
+		if (!category_id) {
+			console.warn(`   ⚠️  No category_id for article: ${article.title}`);
+			continue;
+		}
+
+		const now = new Date().toISOString();
+		const slug = article.title
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-+|-+$/g, "")
+			.substring(0, 200);
+
+		// Build plain text from content blocks
+		const plainTextContent = article.content
+			.filter((block) => block.type === "PARAGRAPH" || block.type === "HEADING")
+			.map((block) => block.content)
+			.join(" ");
+
+		await db.collection("help_articles").add({
+			slug,
+			title: article.title,
+			excerpt: article.excerpt,
+			category_id,
+			type: article.type || "GUIDE",
+			difficulty: article.difficulty || "BEGINNER",
+			tags: article.tags || [],
+			content: article.content,
+			plainTextContent,
+			status: "PUBLISHED",
+			isActive: true,
+			isFeatured: false,
+			isPinned: false,
+			orderIndex: articleCount,
+			estimatedReadMinutes: article.estimatedReadMinutes || 5,
+			seo: {
+				metaTitle: article.title,
+				metaDescription: article.excerpt,
+				keywords: article.tags || [],
+				noIndex: false,
+			},
+			version: "1.0.0",
+			publishedAt: now,
+			lastReviewedAt: now,
+			stats: {
+				views: 0,
+				helpfulCount: 0,
+				notHelpfulCount: 0,
+				searchAppearances: 0,
+				avgTimeOnPage_seconds: 0,
+			},
+			createdAt: now,
+			updatedAt: now,
+		});
+		articleCount++;
+	}
+	console.log(`   ✓ ${articleCount} articles seeded`);
+
+	// Seed FAQs (requires category IDs)
+	let faqCount = 0;
+	for (const faq of helpFaqs) {
+		const category_id = categoryMap[faq.categoryCode];
+		if (!category_id) {
+			console.warn(`   ⚠️  No category_id for FAQ: ${faq.question}`);
+			continue;
+		}
+
+		const now = new Date().toISOString();
+		await db.collection("help_faqs").add({
+			question: faq.question,
+			answer: faq.answer,
+			category_id,
+			orderIndex: faq.orderIndex,
+			isActive: faq.isActive !== false,
+			stats: {
+				views: 0,
+				helpfulCount: 0,
+				notHelpfulCount: 0,
+			},
+			createdAt: now,
+			updatedAt: now,
+		});
+		faqCount++;
+	}
+	console.log(`   ✓ ${faqCount} FAQs seeded`);
+
+	return {
+		categories: helpCategories.length,
+		articles: articleCount,
+		faqs: faqCount,
+	};
 }
 
 // Fetch existing data from Firestore
 async function fetchExistingSatellites() {
-  const satelliteMap = {};
-  const snapshot = await db.collection('satellites').get();
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    if (data.code) {
-      satelliteMap[data.code] = doc.id;
-    }
-  });
-  return satelliteMap;
+	const satelliteMap = {};
+	const snapshot = await db.collection("satellites").get();
+	snapshot.forEach((doc) => {
+		const data = doc.data();
+		if (data.code) {
+			satelliteMap[data.code] = doc.id;
+		}
+	});
+	return satelliteMap;
 }
 
 async function fetchExistingScenarios() {
-  const scenarioMap = {};
-  const snapshot = await db.collection('scenarios').get();
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    if (data.code) {
-      scenarioMap[data.code] = doc.id;
-    }
-  });
-  return scenarioMap;
+	const scenarioMap = {};
+	const snapshot = await db.collection("scenarios").get();
+	snapshot.forEach((doc) => {
+		const data = doc.data();
+		if (data.code) {
+			scenarioMap[data.code] = doc.id;
+		}
+	});
+	return scenarioMap;
 }
 
 async function seedTutorials(scenarioId) {
-  console.log('🎓 Seeding tutorials...');
-  
-  const tutorials = [
-    {
-      code: 'RENDERING_2D_INTRO',
-      title: '2D Satellite View Tutorial',
-      description: 'Learn how to use the 2D orbital map visualization',
-      scenario_id: scenarioId,
-      icon: '🗺️',
-      estimatedDurationMinutes: 5,
-      triggerType: 'ON_SCENARIO_START',
-      triggerConditions: {},
-      steps: [
-        { order: 0, title: 'Welcome to 2D View 🗺️', content: 'This is the 2D satellite visualization - a flat map projection showing your satellite\'s orbit.', targetElement: '.satellite-canvas-2d', placement: 'center', isOptional: false },
-        { order: 1, title: 'Satellite Position', content: 'The red dot shows your satellite\'s current position.', targetElement: '.satellite-canvas-2d canvas', placement: 'right', isOptional: false },
-      ],
-      status: 'PUBLISHED',
-      isActive: true,
-      priority: 80,
-      tags: ['rendering', '2d', 'visualization', 'beginner'],
-      prerequisites: [],
-    },
-    {
-      code: 'RENDERING_3D_INTRO',
-      title: '3D Globe View Tutorial',
-      description: 'Master the 3D interactive globe and camera controls',
-      scenario_id: scenarioId,
-      icon: '🌍',
-      estimatedDurationMinutes: 5,
-      triggerType: 'ON_SCENARIO_START',
-      triggerConditions: {},
-      steps: [
-        { order: 0, title: 'Welcome to 3D View 🌍', content: 'This is the 3D globe visualization - an interactive view of Earth and your satellite.', targetElement: '.satellite-globe-3d', placement: 'center', isOptional: false },
-      ],
-      status: 'PUBLISHED',
-      isActive: true,
-      priority: 80,
-      tags: ['rendering', '3d', 'visualization', 'beginner'],
-      prerequisites: [],
-    },
-  ];
-  
-  let created = 0;
-  let skipped = 0;
-  
-  for (const tutorial of tutorials) {
-    const existingQuery = await db.collection('tutorials')
-      .where('code', '==', tutorial.code)
-      .limit(1)
-      .get();
-      
-    if (!existingQuery.empty) {
-      skipped++;
-      continue;
-    }
-    
-    const now = new Date().toISOString();
-    await db.collection('tutorials').add({
-      ...tutorial,
-      createdAt: now,
-      updatedAt: now,
-      createdBy: CREATED_BY_UID,
-      createdByCallSign: 'GROUNDCTRL-SEEDER',
-    });
-    created++;
-  }
-  
-  console.log(`   ✓ ${created} tutorials created, ${skipped} skipped`);
-  return { created, skipped };
+	console.log("🎓 Seeding tutorials...");
+
+	const tutorials = [
+		{
+			code: "RENDERING_2D_INTRO",
+			title: "2D Satellite View Tutorial",
+			description: "Learn how to use the 2D orbital map visualization",
+			scenario_id: scenarioId,
+			icon: "🗺️",
+			estimatedDurationMinutes: 5,
+			triggerType: "ON_SCENARIO_START",
+			triggerConditions: {},
+			steps: [
+				{
+					order: 0,
+					title: "Welcome to 2D View 🗺️",
+					content:
+						"This is the 2D satellite visualization - a flat map projection showing your satellite's orbit.",
+					targetElement: ".satellite-canvas-2d",
+					placement: "center",
+					isOptional: false,
+				},
+				{
+					order: 1,
+					title: "Satellite Position",
+					content: "The red dot shows your satellite's current position.",
+					targetElement: ".satellite-canvas-2d canvas",
+					placement: "right",
+					isOptional: false,
+				},
+			],
+			status: "PUBLISHED",
+			isActive: true,
+			priority: 80,
+			tags: ["rendering", "2d", "visualization", "beginner"],
+			prerequisites: [],
+		},
+		{
+			code: "RENDERING_3D_INTRO",
+			title: "3D Globe View Tutorial",
+			description: "Master the 3D interactive globe and camera controls",
+			scenario_id: scenarioId,
+			icon: "🌍",
+			estimatedDurationMinutes: 5,
+			triggerType: "ON_SCENARIO_START",
+			triggerConditions: {},
+			steps: [
+				{
+					order: 0,
+					title: "Welcome to 3D View 🌍",
+					content:
+						"This is the 3D globe visualization - an interactive view of Earth and your satellite.",
+					targetElement: ".satellite-globe-3d",
+					placement: "center",
+					isOptional: false,
+				},
+			],
+			status: "PUBLISHED",
+			isActive: true,
+			priority: 80,
+			tags: ["rendering", "3d", "visualization", "beginner"],
+			prerequisites: [],
+		},
+	];
+
+	let created = 0;
+	let skipped = 0;
+
+	for (const tutorial of tutorials) {
+		const existingQuery = await db
+			.collection("tutorials")
+			.where("code", "==", tutorial.code)
+			.limit(1)
+			.get();
+
+		if (!existingQuery.empty) {
+			skipped++;
+			continue;
+		}
+
+		const now = new Date().toISOString();
+		await db.collection("tutorials").add({
+			...tutorial,
+			createdAt: now,
+			updatedAt: now,
+			createdBy: CREATED_BY_UID,
+			createdByCallSign: "GROUNDCTRL-SEEDER",
+		});
+		created++;
+	}
+
+	console.log(`   ✓ ${created} tutorials created, ${skipped} skipped`);
+	return { created, skipped };
 }
 
 async function seedLeaderboard(scenarioMap) {
-  console.log('🏆 Seeding leaderboard (scenario sessions)...');
-  
-  if (!scenarioMap || Object.keys(scenarioMap).length === 0) {
-    console.log('   ⚠️  No scenarios found. Skipping leaderboard.');
-    return 0;
-  }
-  
-  // Fetch ground station IDs for converting codes to IDs
-  console.log('   Fetching ground stations...');
-  const groundStationMap = {};
-  const gsSnapshot = await db.collection('ground_stations').get();
-  gsSnapshot.forEach((doc) => {
-    const data = doc.data();
-    if (data.code) {
-      groundStationMap[data.code] = doc.id;
-    }
-  });
-  console.log(`   Found ${Object.keys(groundStationMap).length} ground stations`);
-  
-  let count = 0;
-  let skipped = 0;
-  
-  for (const session of scenarioSessionsData) {
-    const scenarioId = scenarioMap[session.scenarioCode];
-    
-    if (!scenarioId) {
-      skipped++;
-      continue;
-    }
-    
-    const sessionData = { ...session };
-    delete sessionData.scenarioCode;
-    sessionData.scenarioId = scenarioId;
-    
-    // Convert ground station codes to IDs
-    if (sessionData.groundStationCodes && Array.isArray(sessionData.groundStationCodes)) {
-      sessionData.groundStationIds = sessionData.groundStationCodes
-        .map(code => groundStationMap[code])
-        .filter(id => id); // Remove any undefined values
-      delete sessionData.groundStationCodes;
-    }
-    
-    const now = new Date().toISOString();
-    sessionData.createdAt = sessionData.createdAt || now;
-    sessionData.updatedAt = sessionData.updatedAt || now;
-    sessionData.createdBy = CREATED_BY_UID;
-    sessionData.createdByCallSign = 'GROUNDCTRL-SEEDER';
-    
-    await db.collection('scenario_sessions').add(sessionData);
-    count++;
-  }
-  
-  console.log(`   ✓ ${count} scenario sessions seeded`);
-  if (skipped > 0) console.log(`   ⚠️  ${skipped} sessions skipped`);
-  
-  return count;
+	console.log("🏆 Seeding leaderboard (scenario sessions)...");
+
+	if (!scenarioMap || Object.keys(scenarioMap).length === 0) {
+		console.log("   ⚠️  No scenarios found. Skipping leaderboard.");
+		return 0;
+	}
+
+	// Fetch ground station IDs for converting codes to IDs
+	console.log("   Fetching ground stations...");
+	const groundStationMap = {};
+	const gsSnapshot = await db.collection("ground_stations").get();
+	gsSnapshot.forEach((doc) => {
+		const data = doc.data();
+		if (data.code) {
+			groundStationMap[data.code] = doc.id;
+		}
+	});
+	console.log(
+		`   Found ${Object.keys(groundStationMap).length} ground stations`,
+	);
+
+	let count = 0;
+	let skipped = 0;
+
+	for (const session of scenarioSessionsData) {
+		const scenarioId = scenarioMap[session.scenarioCode];
+
+		if (!scenarioId) {
+			skipped++;
+			continue;
+		}
+
+		const sessionData = { ...session };
+		delete sessionData.scenarioCode;
+		sessionData.scenarioId = scenarioId;
+
+		// Convert ground station codes to IDs
+		if (
+			sessionData.groundStationCodes &&
+			Array.isArray(sessionData.groundStationCodes)
+		) {
+			sessionData.groundStationIds = sessionData.groundStationCodes
+				.map((code) => groundStationMap[code])
+				.filter((id) => id); // Remove any undefined values
+			delete sessionData.groundStationCodes;
+		}
+
+		const now = new Date().toISOString();
+		sessionData.createdAt = sessionData.createdAt || now;
+		sessionData.updatedAt = sessionData.updatedAt || now;
+		sessionData.createdBy = CREATED_BY_UID;
+		sessionData.createdByCallSign = "GROUNDCTRL-SEEDER";
+
+		await db.collection("scenario_sessions").add(sessionData);
+		count++;
+	}
+
+	console.log(`   ✓ ${count} scenario sessions seeded`);
+	if (skipped > 0) console.log(`   ⚠️  ${skipped} sessions skipped`);
+
+	return count;
 }
 
 // Main seeder
 async function runSeed() {
-  try {
-    const args = process.argv.slice(2);
-    
-    // Parse flags
-    const flags = {
-      satellites: args.includes('--satellites'),
-      scenarios: args.includes('--scenarios'),
-      steps: args.includes('--steps'),
-      commands: args.includes('--commands'),
-      groundStations: args.includes('--ground-stations'),
-      help: args.includes('--help-system'),
-      tutorials: args.includes('--tutorials'),
-      leaderboard: args.includes('--leaderboard'),
-      all: args.includes('--all') || args.length === 0,
-    };
-    
-    if (flags.all) {
-      flags.satellites = true;
-      flags.scenarios = true;
-      flags.steps = true;
-      flags.commands = true;
-      flags.groundStations = true;
-      flags.help = true;
-      flags.tutorials = true;
-      flags.leaderboard = true;
-    }
-    
-    console.log('\n🚀 GroundCTRL Database Seeder\n');
-    console.log('Seeding:', Object.entries(flags).filter(([k, v]) => v && k !== 'all').map(([k]) => k).join(', '));
-    console.log('');
-    
-    const counts = {
-      satellites: 0,
-      scenarios: 0,
-      steps: 0,
-      commands: 0,
-      groundStations: 0,
-    };
-    
-    let satelliteMap = {};
-    let scenarioMap = {};
-    
-    // Seed satellites
-    if (flags.satellites) {
-      satelliteMap = await seedSatellites();
-      counts.satellites = satellites.length;
-    }
-    
-    // Seed scenarios (requires satellites)
-    if (flags.scenarios) {
-      if (Object.keys(satelliteMap).length === 0) {
-        console.log('⚠️  Fetching existing satellites for scenarios...');
-        satelliteMap = await fetchExistingSatellites();
-        console.log(`   Found ${Object.keys(satelliteMap).length} satellites\n`);
-      }
-      scenarioMap = await seedScenarios(satelliteMap);
-      counts.scenarios = scenarios.length;
-    }
-    
-    // Seed steps (requires scenarios)
-    if (flags.steps) {
-      if (Object.keys(scenarioMap).length === 0) {
-        console.log('⚠️  Fetching existing scenarios for steps...');
-        scenarioMap = await fetchExistingScenarios();
-        console.log(`   Found ${Object.keys(scenarioMap).length} scenarios\n`);
-      }
-      counts.steps = await seedSteps(scenarioMap);
-    }
-    
-    // Seed commands (independent)
-    if (flags.commands) {
-      counts.commands = await seedCommands();
-    }
-    
-    // Seed ground stations (independent)
-    if (flags.groundStations) {
-      counts.groundStations = await seedGroundStations();
-    }
-    
-    // Seed help system (independent)
-    if (flags.help) {
-      counts.helpSystem = await seedHelpSystem();
-    }
-    
-    // Seed tutorials (requires scenarios)
-    if (flags.tutorials) {
-      if (Object.keys(scenarioMap).length === 0) {
-        console.log('⚠️  Fetching existing scenarios for tutorials...');
-        scenarioMap = await fetchExistingScenarios();
-        console.log(`   Found ${Object.keys(scenarioMap).length} scenarios\n`);
-      }
-      // Use first scenario for all tutorials
-      const firstScenarioId = Object.values(scenarioMap)[0];
-      counts.tutorials = await seedTutorials(firstScenarioId);
-    }
-    
-    // Seed leaderboard (requires scenarios)
-    if (flags.leaderboard) {
-      if (Object.keys(scenarioMap).length === 0) {
-        console.log('⚠️  Fetching existing scenarios for leaderboard...');
-        scenarioMap = await fetchExistingScenarios();
-        console.log(`   Found ${Object.keys(scenarioMap).length} scenarios\n`);
-      }
-      counts.leaderboard = await seedLeaderboard(scenarioMap);
-    }
-    
-    // Summary
-    console.log('\n✅ Seeding complete!\n');
-    console.log('Summary:');
-    if (counts.satellites > 0) console.log(`   📡 ${counts.satellites} satellites`);
-    if (counts.scenarios > 0) console.log(`   🎯 ${counts.scenarios} scenarios`);
-    if (counts.steps > 0) console.log(`   📝 ${counts.steps} steps`);
-    if (counts.commands > 0) console.log(`   ⚙️  ${counts.commands} commands`);
-    if (counts.groundStations > 0) console.log(`   🛰️  ${counts.groundStations} ground stations`);
-    if (counts.helpSystem) {
-      console.log(`   📚 ${counts.helpSystem.categories} help categories`);
-      console.log(`   📄 ${counts.helpSystem.articles} help articles`);
-      console.log(`   ❓ ${counts.helpSystem.faqs} FAQs`);
-    }
-    if (counts.tutorials) {
-      console.log(`   🎓 ${counts.tutorials.created} tutorials (${counts.tutorials.skipped} skipped)`);
-    }
-    if (counts.leaderboard > 0) {
-      console.log(`   🏆 ${counts.leaderboard} scenario sessions (leaderboard data)`);
-    }
-    console.log('');
-    
-    process.exit(0);
-  } catch (error) {
-    console.error('\n❌ Seeding failed:', error);
-    console.error(error.stack);
-    process.exit(1);
-  }
+	try {
+		const args = process.argv.slice(2);
+
+		// Parse flags
+		const flags = {
+			satellites: args.includes("--satellites"),
+			scenarios: args.includes("--scenarios"),
+			steps: args.includes("--steps"),
+			commands: args.includes("--commands"),
+			groundStations: args.includes("--ground-stations"),
+			help: args.includes("--help-system"),
+			tutorials: args.includes("--tutorials"),
+			leaderboard: args.includes("--leaderboard"),
+			all: args.includes("--all") || args.length === 0,
+		};
+
+		if (flags.all) {
+			flags.satellites = true;
+			flags.scenarios = true;
+			flags.steps = true;
+			flags.commands = true;
+			flags.groundStations = true;
+			flags.help = true;
+			flags.tutorials = true;
+			flags.leaderboard = true;
+		}
+
+		console.log("\n🚀 GroundCTRL Database Seeder\n");
+		console.log(
+			"Seeding:",
+			Object.entries(flags)
+				.filter(([k, v]) => v && k !== "all")
+				.map(([k]) => k)
+				.join(", "),
+		);
+		console.log("");
+
+		const counts = {
+			satellites: 0,
+			scenarios: 0,
+			steps: 0,
+			commands: 0,
+			groundStations: 0,
+		};
+
+		let satelliteMap = {};
+		let scenarioMap = {};
+
+		// Seed satellites
+		if (flags.satellites) {
+			satelliteMap = await seedSatellites();
+			counts.satellites = satellites.length;
+		}
+
+		// Seed scenarios (requires satellites)
+		if (flags.scenarios) {
+			if (Object.keys(satelliteMap).length === 0) {
+				console.log("⚠️  Fetching existing satellites for scenarios...");
+				satelliteMap = await fetchExistingSatellites();
+				console.log(
+					`   Found ${Object.keys(satelliteMap).length} satellites\n`,
+				);
+			}
+			scenarioMap = await seedScenarios(satelliteMap);
+			counts.scenarios = scenarios.length;
+		}
+
+		// Seed steps (requires scenarios)
+		if (flags.steps) {
+			if (Object.keys(scenarioMap).length === 0) {
+				console.log("⚠️  Fetching existing scenarios for steps...");
+				scenarioMap = await fetchExistingScenarios();
+				console.log(`   Found ${Object.keys(scenarioMap).length} scenarios\n`);
+			}
+			counts.steps = await seedSteps(scenarioMap);
+		}
+
+		// Seed commands (independent)
+		if (flags.commands) {
+			counts.commands = await seedCommands();
+		}
+
+		// Seed ground stations (independent)
+		if (flags.groundStations) {
+			counts.groundStations = await seedGroundStations();
+		}
+
+		// Seed help system (independent)
+		if (flags.help) {
+			counts.helpSystem = await seedHelpSystem();
+		}
+
+		// Seed tutorials (requires scenarios)
+		if (flags.tutorials) {
+			if (Object.keys(scenarioMap).length === 0) {
+				console.log("⚠️  Fetching existing scenarios for tutorials...");
+				scenarioMap = await fetchExistingScenarios();
+				console.log(`   Found ${Object.keys(scenarioMap).length} scenarios\n`);
+			}
+			// Use first scenario for all tutorials
+			const firstScenarioId = Object.values(scenarioMap)[0];
+			counts.tutorials = await seedTutorials(firstScenarioId);
+		}
+
+		// Seed leaderboard (requires scenarios)
+		if (flags.leaderboard) {
+			if (Object.keys(scenarioMap).length === 0) {
+				console.log("⚠️  Fetching existing scenarios for leaderboard...");
+				scenarioMap = await fetchExistingScenarios();
+				console.log(`   Found ${Object.keys(scenarioMap).length} scenarios\n`);
+			}
+			counts.leaderboard = await seedLeaderboard(scenarioMap);
+		}
+
+		// Summary
+		console.log("\n✅ Seeding complete!\n");
+		console.log("Summary:");
+		if (counts.satellites > 0)
+			console.log(`   📡 ${counts.satellites} satellites`);
+		if (counts.scenarios > 0)
+			console.log(`   🎯 ${counts.scenarios} scenarios`);
+		if (counts.steps > 0) console.log(`   📝 ${counts.steps} steps`);
+		if (counts.commands > 0) console.log(`   ⚙️  ${counts.commands} commands`);
+		if (counts.groundStations > 0)
+			console.log(`   🛰️  ${counts.groundStations} ground stations`);
+		if (counts.helpSystem) {
+			console.log(`   📚 ${counts.helpSystem.categories} help categories`);
+			console.log(`   📄 ${counts.helpSystem.articles} help articles`);
+			console.log(`   ❓ ${counts.helpSystem.faqs} FAQs`);
+		}
+		if (counts.tutorials) {
+			console.log(
+				`   🎓 ${counts.tutorials.created} tutorials (${counts.tutorials.skipped} skipped)`,
+			);
+		}
+		if (counts.leaderboard > 0) {
+			console.log(
+				`   🏆 ${counts.leaderboard} scenario sessions (leaderboard data)`,
+			);
+		}
+		console.log("");
+
+		process.exit(0);
+	} catch (error) {
+		console.error("\n❌ Seeding failed:", error);
+		console.error(error.stack);
+		process.exit(1);
+	}
 }
 
 // Show help
-if (process.argv.includes('--help')) {
-  console.log(`
+if (process.argv.includes("--help")) {
+	console.log(`
 GroundCTRL Database Seeder
 
 Usage:
@@ -622,7 +678,7 @@ Notes:
   - Commands, ground stations, and help system are independent
   - All data owned by user: ${CREATED_BY_UID}
 `);
-  process.exit(0);
+	process.exit(0);
 }
 
 // Run seeder

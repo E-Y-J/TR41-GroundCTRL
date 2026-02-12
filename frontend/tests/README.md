@@ -10,7 +10,6 @@ The tests implement UI-specific requirements based on the actual app structure:
 - **UI-001**: Basic App Rendering - Verifies Header, Footer, and page load without errors
 - **UI-005**: Code Splitting - Tests lazy loading and chunk fetching with React.lazy()
 - **UI-006**: Tailwind Styling - Validates Tailwind CSS classes are applied correctly
-- **UI-007**: Mobile Responsive - Tests responsive layout at different viewport sizes
 - **UI-008**: ES Module Imports - Verifies no CommonJS require statements
 - **UI-009**: Theme Toggle - Tests dark/light mode switching
 - **UI-010**: Lazy Loading - Tests React Suspense and loading states
@@ -99,7 +98,6 @@ tests/
 ├── duplicate-callsign.spec.js           # Duplicate callSign tests
 ├── code-splitting.spec.js               # Code splitting tests
 ├── tailwind-styling.spec.js             # Tailwind CSS tests
-├── mobile-responsive.spec.js            # Mobile responsiveness tests
 └── es-module-imports.spec.js            # ES module import tests
 2. Import Playwright test utilities:
    ```javascript

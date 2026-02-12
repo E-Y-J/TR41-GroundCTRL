@@ -23,7 +23,6 @@
 - ✅ `tests/duplicate-callsign.spec.js` - Duplicate callSign tests
 - ✅ `tests/code-splitting.spec.js` - Code splitting verification
 - ✅ `tests/tailwind-styling.spec.js` - Tailwind CSS tests
-- ✅ `tests/mobile-responsive.spec.js` - Mobile responsive tests
 - ✅ `tests/es-module-imports.spec.js` - ES module import tests
 
 ### Documentation
@@ -80,16 +79,6 @@
 - Consistent primary colors across elements
 - Dark mode toggle functionality (if available)
 
-### UI-007: Mobile Responsive ✅
-**Related PRs:** #45  
-**Tests:**
-- Hamburger menu visible on mobile (≤480px)
-- Hamburger toggles mobile navigation
-- Desktop navigation hidden on mobile
-- Responsive at 480px breakpoint
-- Hamburger hidden on desktop
-- Functionality maintained on device rotation
-
 ### UI-008: ES Module Imports ✅
 **Related PRs:** #47  
 **Tests:**
@@ -115,8 +104,6 @@
 - ✅ Chromium (Chrome, Edge)
 - ✅ Firefox
 - ✅ WebKit (Safari)
-- ✅ Mobile Chrome (Pixel 5)
-- ✅ Mobile Safari (iPhone 12)
 
 ### Features Enabled
 - **Parallel Execution** - Tests run in parallel for speed
@@ -179,7 +166,6 @@ All tests from Section 2️⃣ of the Comprehensive Test Plan have been implemen
 | UI-004 | Duplicate callSign | ✅ |
 | UI-005 | Code splitting | ✅ |
 | UI-006 | Tailwind styling | ✅ |
-| UI-007 | Mobile responsive | ✅ |
 | UI-008 | ES module imports | ✅ |
 
 ---
@@ -219,9 +205,7 @@ Example workflow integration:
 
 3. **Build Tests**: UI-008 requires running `npm run build` before testing to verify the production bundle.
 
-4. **Responsive Tests**: UI-007 tests across multiple viewports (mobile and desktop).
-
-5. **Browser Support**: Tests run on Chromium, Firefox, and WebKit by default.
+4. **Browser Support**: Tests run on Chromium, Firefox, and WebKit by default.
 
 ---
 

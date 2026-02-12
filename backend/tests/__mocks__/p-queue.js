@@ -4,66 +4,66 @@
  */
 
 class MockPQueue {
-  constructor(options = {}) {
-    this.concurrency = options.concurrency || 1;
-    this.intervalCap = options.intervalCap || Infinity;
-    this.interval = options.interval || 0;
-    this.size = 0;
-    this.pending = 0;
-    this.isPaused = false;
-    this._listeners = {};
-  }
+	constructor(options = {}) {
+		this.concurrency = options.concurrency || 1;
+		this.intervalCap = options.intervalCap || Infinity;
+		this.interval = options.interval || 0;
+		this.size = 0;
+		this.pending = 0;
+		this.isPaused = false;
+		this._listeners = {};
+	}
 
-  async add(fn, _options = {}) {
-    // Simulate queue behavior - just execute immediately in tests
-    this.pending++;
-    this.size++;
-    
-    try {
-      const result = await fn();
-      this.pending--;
-      this.size--;
-      this._emit('idle');
-      return result;
-    } catch (error) {
-      this.pending--;
-      this.size--;
-      this._emit('error', error);
-      throw error;
-    }
-  }
+	async add(fn, _options = {}) {
+		// Simulate queue behavior - just execute immediately in tests
+		this.pending++;
+		this.size++;
 
-  on(event, listener) {
-    if (!this._listeners[event]) {
-      this._listeners[event] = [];
-    }
-    this._listeners[event].push(listener);
-  }
+		try {
+			const result = await fn();
+			this.pending--;
+			this.size--;
+			this._emit("idle");
+			return result;
+		} catch (error) {
+			this.pending--;
+			this.size--;
+			this._emit("error", error);
+			throw error;
+		}
+	}
 
-  _emit(event, ...args) {
-    if (this._listeners[event]) {
-      this._listeners[event].forEach(listener => listener(...args));
-    }
-  }
+	on(event, listener) {
+		if (!this._listeners[event]) {
+			this._listeners[event] = [];
+		}
+		this._listeners[event].push(listener);
+	}
 
-  pause() {
-    this.isPaused = true;
-  }
+	_emit(event, ...args) {
+		if (this._listeners[event]) {
+			this._listeners[event].forEach((listener) => void listener(...args));
+		}
+	}
 
-  start() {
-    this.isPaused = false;
-  }
+	pause() {
+		this.isPaused = true;
+	}
 
-  clear() {
-    this.size = 0;
-  }
+	start() {
+		this.isPaused = false;
+	}
 
-  async onIdle() {
-    // In tests, resolve immediately since we execute tasks immediately
-    return Promise.resolve();
-  }
+	clear() {
+		this.size = 0;
+	}
+
+	async onIdle() {
+		// In tests, resolve immediately since we execute tasks immediately
+		return Promise.resolve();
+	}
 }
 
 module.exports = {
-  default: MockPQueue,
+	default: MockPQueue,
 };

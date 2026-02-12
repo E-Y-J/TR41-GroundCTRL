@@ -14,6 +14,13 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    // Skip auth initialization if Firebase is not available (e.g., in tests)
+    if (!auth) {
+      console.warn('⚠️ Firebase auth not available - skipping auth initialization');
+      setLoading(false);
+      return () => {};  // Return cleanup function
+    }
+    
     const unsubscribe = onAuthChange(async (firebaseUser) => {
       if (firebaseUser) {
         try {

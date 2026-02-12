@@ -1,84 +1,84 @@
 {
-  "name": "groundctrl-backend",
-  "version": "1.6.0",
-  "description": "GroundCTRL - Mission Control Platform for Satellite Simulation",
-  "main": "src/server.js",
-  "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "test": "node check-files.js && jest --runInBand",
-    "test:unit": "jest tests/unit",
-    "test:integration": "jest tests/integration",
-    "test:e2e": "jest tests/e2e",
-    "test:security": "jest tests/security",
-    "test:performance": "jest tests/performance",
-    "test:ci-cd": "jest tests/ci-cd",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:all": "jest tests/unit tests/integration tests/security tests/ci-cd",
-    "test:silent": "jest --runInBand --silent",
-    "test:debug": "node check-files.js && jest --runInBand --detectOpenHandles",
-    "test:emulator": "firebase emulators:exec --only auth,firestore \"npm test\"",
-    "lint": "biome check src",
-    "lint:fix": "biome check src --write",
-    "seed": "node seeders/seed.js",
-    "seed:all": "node seeders/seed.js --all",
-    "seed:leaderboard": "node seeders/seed.js --leaderboard",
-    "seed:tutorials": "node seeders/seed.js --tutorials",
-    "seed:scenarios": "node seeders/seed.js --scenarios",
-    "cleanup": "node src/scripts/FB_cleanup.js",
-    "test:verify-migration": "node tests/scripts/verify-migration.js",
-    "test:migrate": "bash tests/scripts/migrate-from-tests-backend.sh"
-  },
-  "keywords": [
-    "satellite",
-    "mission-control",
-    "api",
-    "express"
-  ],
-  "author": "TR41 Backend Team",
-  "license": "MIT",
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "axios": "^1.13.4",
-    "cors": "^2.8.6",
-    "dotenv": "^17.2.4",
-    "express": "^5.2.1",
-    "express-openapi-validator": "^5.6.2",
-    "express-rate-limit": "^8.2.1",
-    "firebase-admin": "^13.6.1",
-    "helmet": "^8.1.0",
-    "js-yaml": "^4.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "p-queue": "^9.1.0",
-    "satellite.js": "^6.0.2",
-    "socket.io": "^4.7.5",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0",
-    "uuid": "^9.0.1",
-    "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.3.14",
-    "@eslint/js": "^9.39.2",
-    "@types/jest": "^30.0.0",
-    "eslint": "^9.39.2",
-    "globals": "^17.3.0",
-    "jest": "^30.2.0",
-    "nodemon": "^3.0.2",
-    "supertest": "^7.2.2"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
-  },
-  "overrides": {
-    "glob": "^10.0.0",
-    "fast-xml-parser": ">=5.3.4",
-    "z-schema": {
-      ".": "^6.0.0",
-      "lodash.get": "npm:lodash@^4.17.21",
-      "lodash.isequal": "npm:lodash@^4.17.21"
-    }
-  }
+	"name": "groundctrl-backend",
+	"version": "1.6.0",
+	"description": "GroundCTRL - Mission Control Platform for Satellite Simulation",
+	"main": "src/server.js",
+	"scripts": {
+		"start": "node src/server.js",
+		"dev": "nodemon src/server.js",
+		"test": "node check-files.js && jest --runInBand",
+		"test:unit": "jest tests/unit",
+		"test:integration": "jest tests/integration",
+		"test:e2e": "jest tests/e2e",
+		"test:security": "jest tests/security",
+		"test:performance": "jest tests/performance",
+		"test:ci-cd": "jest tests/ci-cd",
+		"test:watch": "jest --watch",
+		"test:coverage": "jest --coverage",
+		"test:all": "jest tests/unit tests/integration tests/security tests/ci-cd",
+		"test:silent": "jest --runInBand --silent",
+		"test:debug": "node check-files.js && jest --runInBand --detectOpenHandles",
+		"test:emulator": "firebase emulators:exec --only auth,firestore \"npm test\"",
+		"lint": "biome check src",
+		"lint:fix": "biome check src --write",
+		"seed": "node seeders/seed.js",
+		"seed:all": "node seeders/seed.js --all",
+		"seed:leaderboard": "node seeders/seed.js --leaderboard",
+		"seed:tutorials": "node seeders/seed.js --tutorials",
+		"seed:scenarios": "node seeders/seed.js --scenarios",
+		"cleanup": "node src/scripts/FB_cleanup.js",
+		"test:verify-migration": "node tests/scripts/verify-migration.js",
+		"test:migrate": "bash tests/scripts/migrate-from-tests-backend.sh"
+	},
+	"keywords": [
+		"satellite",
+		"mission-control",
+		"api",
+		"express"
+	],
+	"author": "TR41 Backend Team",
+	"license": "MIT",
+	"dependencies": {
+		"@google/generative-ai": "^0.24.1",
+		"axios": "^1.13.4",
+		"cors": "^2.8.6",
+		"dotenv": "^17.2.4",
+		"express": "^5.2.1",
+		"express-openapi-validator": "^5.6.2",
+		"express-rate-limit": "^8.2.1",
+		"firebase-admin": "^13.6.1",
+		"helmet": "^8.1.0",
+		"js-yaml": "^4.1.0",
+		"jsonwebtoken": "^9.0.2",
+		"p-queue": "^9.1.0",
+		"satellite.js": "^6.0.2",
+		"socket.io": "^4.7.5",
+		"swagger-jsdoc": "^6.2.8",
+		"swagger-ui-express": "^5.0.0",
+		"uuid": "^9.0.1",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.14",
+		"@eslint/js": "^9.39.2",
+		"@types/jest": "^30.0.0",
+		"eslint": "^9.39.2",
+		"globals": "^17.3.0",
+		"jest": "^30.2.0",
+		"nodemon": "^3.0.2",
+		"supertest": "^7.2.2"
+	},
+	"engines": {
+		"node": ">=18.0.0",
+		"npm": ">=9.0.0"
+	},
+	"overrides": {
+		"glob": "^10.0.0",
+		"fast-xml-parser": ">=5.3.4",
+		"z-schema": {
+			".": "^6.0.0",
+			"lodash.get": "npm:lodash@^4.17.21",
+			"lodash.isequal": "npm:lodash@^4.17.21"
+		}
+	}
 }

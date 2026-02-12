@@ -31,7 +31,7 @@ const tutorialHooks = {
 	 *
 	 * Called before getAll to filter results
 	 */
-	ownershipScope: async (req, operation, options) => {
+	ownershipScope: async (req, _operation, options) => {
 		// Admins can see all
 		if (req.user?.isAdmin) {
 			return options;
