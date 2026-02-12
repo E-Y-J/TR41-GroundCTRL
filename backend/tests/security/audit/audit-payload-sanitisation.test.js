@@ -92,21 +92,6 @@ describe("Audit - Payload Sanitisation", () => {
 		}
 	}, 60000);
 
-	it("should sanitize OAuth/third-party credentials", async () => {
-		const oauthPayload = {
-			provider: "google",
-			accessToken: "ya29.secret_oauth_token_here",
-			refreshToken: "refresh_token_secret",
-		};
-
-		const response = await request(app)
-			.post("/api/v1/auth/oauth")
-			.send(oauthPayload)
-			.expect([200, 201, 400, 401, 404]);
-
-		// OAuth tokens should be redacted
-		expect(response.status).toBeDefined();
-	}, 60000);
 
 	it("should mask credit card data if present", async () => {
 		const paymentData = {

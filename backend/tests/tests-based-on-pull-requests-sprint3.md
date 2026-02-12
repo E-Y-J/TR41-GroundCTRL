@@ -32,7 +32,6 @@
 
 ### Frontend
 - Add/update tests for:
-  - Google sign-in flow and OAuth sync integration (PR 74)
   - Demo scenario E2E workflow (PR 124)
   - NOVA help assistant personalized responses (PR 124)
   - Dependency upgrades and UI changes (PRs 123, 122)
