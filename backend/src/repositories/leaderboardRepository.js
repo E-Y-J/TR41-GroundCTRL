@@ -50,12 +50,12 @@ async function getTopOperators(options = {}) {
 
 		// Query scenario sessions for completed missions
 		let query = getFirestore()
+		const baseQuery = getDb()
 			.collection("scenario_sessions")
 			.where("status", "==", "completed");
-
-		if (dateThreshold) {
-			query = query.where("endTime", ">=", dateThreshold.toISOString());
-		}
+		const query = dateThreshold
+			? baseQuery.where("endTime", ">=", dateThreshold.toISOString())
+			: baseQuery;
 
 		const snapshot = await query.get();
 
