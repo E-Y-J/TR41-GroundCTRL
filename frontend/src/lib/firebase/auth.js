@@ -80,24 +80,38 @@ export async function signIn(email, password) {
 
 // Sign in with Google
 export async function signInWithGoogle() {
-  const userCredential = await signInWithPopup(auth, googleProvider)
+  console.log('🚀 Starting Google sign-in...')
+  console.log('Auth config:', {
+    authDomain: auth.config.authDomain,
+    apiKey: auth.config.apiKey?.substring(0, 10) + '...'
+  })
   
-  // Sync user profile with backend (creates if new, updates if existing)
+  const userCredential = await signInWithPopup(auth, googleProvider)
+  console.log('✅ Google popup completed, user:', userCredential.user.email)
+  
+  // Sync user profile with backend and exchange Firebase token for backend JWT
   if (userCredential.user) {
     try {
       // Get Firebase ID token to send with request
       const idToken = await userCredential.user.getIdToken()
       
-      // SECURITY: Backend uses authenticated UID from token, not from request body
-      await apiAuthService.syncGoogleProfile({
+      // Sync profile with backend (creates user if new, updates if existing)
+      // This endpoint returns backend JWT tokens
+      const result = await apiAuthService.syncGoogleProfile({
         email: userCredential.user.email,
         displayName: userCredential.user.displayName || "",
         photoURL: userCredential.user.photoURL || null
       }, idToken)
+      
+      console.log('Google sign-in complete:', { 
+        hasUser: !!result.user,
+        tokensStored: !!(result.accessToken || result.tokens?.accessToken)
+      })
     } catch (error) {
       // Log error but don't block sign-in
       console.error('Failed to sync Google profile with backend:', error)
-      // User is still signed in with Firebase, just missing backend profile sync
+      // User is still signed in with Firebase, but may need to retry backend sync
+      throw new Error('Failed to complete Google sign-in. Please try again.')
     }
   }
   

@@ -144,7 +144,7 @@ export function PasswordStrengthMeter({ password, className }) {
       {strength.level === 5 && (
         <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2 text-center">
           <p className="text-xs font-mono font-semibold text-green-500">
-            ✓ CLEARANCE GRANTED - READY FOR MISSION
+            ✓ GO FOR BETA - CLEARANCE GRANTED
           </p>
         </div>
       )}
