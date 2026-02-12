@@ -125,7 +125,7 @@ export function NovaAssistant({
       }
 
       // Get auth token if authenticated
-      let headers = {
+      const headers = {
         "Content-Type": "application/json",
       }
 

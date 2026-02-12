@@ -102,7 +102,7 @@ export function DockingProvider({ children }) {
       let zoneX = zone.position.x
       let zoneY = zone.position.y
       let zoneWidth = zone.size.width
-      let zoneHeight = 400 // Approximate height for vertical zones
+      const zoneHeight = 400 // Approximate height for vertical zones
       
       if (typeof zoneX === 'string' && zoneX.includes('100vw')) {
         zoneX = window.innerWidth - 320

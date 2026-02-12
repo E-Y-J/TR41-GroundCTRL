@@ -26,9 +26,9 @@ export function calculateOrbitalNodes(radius, inclination, raan) {
   const raanRad = raan * (Math.PI / 180)
   
   // Ascending node: where orbit crosses equator going north (angle = 0)
-  let x_an = radius * Math.cos(0)
-  let y_an = 0
-  let z_an = radius * Math.sin(0)
+  const x_an = radius * Math.cos(0)
+  const y_an = 0
+  const z_an = radius * Math.sin(0)
   
   // Apply inclination
   const y1_an = y_an * Math.cos(inclRad) - z_an * Math.sin(inclRad)
@@ -41,9 +41,9 @@ export function calculateOrbitalNodes(radius, inclination, raan) {
   const ascendingNode = new THREE.Vector3(x2_an, y1_an, z2_an)
   
   // Descending node: opposite side of orbit (angle = PI)
-  let x_dn = radius * Math.cos(Math.PI)
-  let y_dn = 0
-  let z_dn = radius * Math.sin(Math.PI)
+  const x_dn = radius * Math.cos(Math.PI)
+  const y_dn = 0
+  const z_dn = radius * Math.sin(Math.PI)
   
   // Apply inclination
   const y1_dn = y_dn * Math.cos(inclRad) - z_dn * Math.sin(inclRad)

@@ -292,7 +292,7 @@ export function WebSocketProvider({ children }) {
     })();
     
     return connectionPromise;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []); // Empty deps - uses refs for checks
 
   /**
