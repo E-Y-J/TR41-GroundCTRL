@@ -38,15 +38,18 @@ try {
   auth = getAuth(app);
   db = getFirestore(app);
   
-  // Connect to emulators in development and test environments
-  if (import.meta.env.DEV || import.meta.env.MODE === "test") {
+  // Connect to emulators ONLY in test environments
+  // Do NOT use emulators in development - use production Firebase
+  if (import.meta.env.MODE === "test" || import.meta.env.VITE_USE_EMULATOR === "true") {
     try {
       connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
       connectFirestoreEmulator(db, "127.0.0.1", 8080);
-      console.log("🔥 Connected to Firebase Auth and Firestore Emulators");
+      console.log("🔥 Connected to Firebase Auth and Firestore Emulators (TEST MODE)");
     } catch (err) {
       console.warn("Could not connect to Firebase emulators – using production", err);
     }
+  } else {
+    console.log("🚀 Using production Firebase (not emulators)");
   }
   
   console.log('✅ Firebase initialized successfully');
