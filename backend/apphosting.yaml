@@ -60,8 +60,31 @@ env:
   - variable: JWT_REFRESH_TOKEN_EXPIRY
     value: 7d
 
-# Note: Sensitive environment variables should be set via Firebase Secret Manager:
-# firebase apphosting:secrets:set JWT_SECRET --project groundctrl-c8860
-# firebase apphosting:secrets:set FIREBASE_PRIVATE_KEY --project groundctrl-c8860
-# firebase apphosting:secrets:set SMTP_PASSWORD --project groundctrl-c8860
-# firebase apphosting:secrets:set GEMINI_API_KEY --project groundctrl-c8860
+# Secrets from Google Cloud Secret Manager
+# These are mapped from Secret Manager to environment variables
+secrets:
+  - variable: JWT_SECRET
+    secret: JWT_SECRET
+    versionPolicy: latest
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: FIREBASE_PRIVATE_KEY
+    versionPolicy: latest
+  - variable: FIREBASE_CLIENT_EMAIL
+    secret: FIREBASE_CLIENT_EMAIL
+    versionPolicy: latest
+  - variable: FIREBASE_WEB_API_KEY
+    secret: FIREBASE_WEB_API_KEY
+    versionPolicy: latest
+  - variable: GEMINI_API_KEY
+    secret: GEMINI_API_KEY
+    versionPolicy: latest
+  - variable: SMTP_USER
+    secret: SMTP_USER
+    versionPolicy: latest
+  - variable: SMTP_PASSWORD
+    secret: SMTP_PASSWORD
+    versionPolicy: latest
+
+# Note: Secrets are managed in Google Cloud Secret Manager
+# To update a secret value, use:
+# echo -n "your-secret-value" | gcloud secrets versions add SECRET_NAME --data-file=- --project groundctrl-c8860
