@@ -3,13 +3,11 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useAuth } from "@/hooks/use-auth"
 import { Loader2, Rocket, AlertCircle } from "lucide-react"
-import { PasswordStrengthMeter, calculateStrength } from "@/components/password-strength-meter"
 
 /**
- * Beta Signup Form - All Required Fields
- * Comprehensive validation with regex patterns
+ * Beta Signup Form - Simplified (No Password Required)
+ * Saves to Firestore collection instead of creating auth accounts
  */
 
 // Validation regex patterns
@@ -20,10 +18,8 @@ const VALIDATION_PATTERNS = {
 
 export function BetaSignupForm() {
   const navigate = useNavigate()
-  const { signUp } = useAuth()
 
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [role, setRole] = useState("")
@@ -33,7 +29,6 @@ export function BetaSignupForm() {
   // Field-specific errors
   const [fieldErrors, setFieldErrors] = useState({
     email: "",
-    password: "",
     firstName: "",
     lastName: "",
     role: "",
@@ -101,14 +96,7 @@ export function BetaSignupForm() {
       firstName: validateName(firstName, "First name"),
       lastName: validateName(lastName, "Last name"),
       role: validateRole(role),
-      password: "",
       terms: ""
-    }
-
-    // Check password strength
-    const passwordStrength = calculateStrength(password)
-    if (passwordStrength.level < 5) {
-      errors.password = "Password does not meet NASA-grade security requirements. All checks must be green."
     }
 
     // Check terms agreement
@@ -122,7 +110,6 @@ export function BetaSignupForm() {
       firstName: true,
       lastName: true,
       role: true,
-      password: true,
       terms: true
     })
 
@@ -137,16 +124,28 @@ export function BetaSignupForm() {
     setLoading(true)
 
     try {
-      // Combine first and last name for displayName
-      const displayName = `${firstName.trim()} ${lastName.trim()}`
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
       
-      // Sign up with beta role
-      await signUp(email.trim(), password, displayName, "", {
-        role: "beta",
-        primaryRole: role,
-        onboardingComplete: false,
-        wantsUpdates,
+      // Submit to backend endpoint
+      const response = await fetch(`${apiUrl}/api/auth/beta-signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          primaryRole: role,
+          wantsUpdates,
+        }),
       })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.payload?.error?.message || 'Failed to submit beta signup')
+      }
 
       // Redirect to beta waiting page
       navigate("/beta-welcome")
@@ -199,32 +198,6 @@ export function BetaSignupForm() {
             <div className="flex items-start gap-1 mt-1">
               <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
               <p className="text-[10px] text-red-500">{fieldErrors.email}</p>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-0.5">
-          <label htmlFor="password" className="text-[10px] font-medium text-foreground">
-            Password <span className="text-red-500">*</span>
-          </label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••••••"
-            className={`rounded-lg ${touched.password && fieldErrors.password ? 'border-red-500' : ''}`}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={12}
-          />
-          
-          {/* NASA-Grade Password Strength Meter */}
-          {password && <PasswordStrengthMeter password={password} className="mt-1" />}
-          
-          {touched.password && fieldErrors.password && (
-            <div className="flex items-start gap-1 mt-1">
-              <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
-              <p className="text-[10px] text-red-500">{fieldErrors.password}</p>
             </div>
           )}
         </div>

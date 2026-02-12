@@ -7,6 +7,7 @@ const express = require("express");
 const router = express.Router();
 const { z } = require("zod");
 const authController = require("../controllers/authController");
+const betaSignupController = require("../controllers/betaSignupController");
 const {
 	authMiddleware,
 	requireAdmin,
@@ -31,6 +32,7 @@ const {
 	forgotPasswordSchema,
 	resetPasswordSchema,
 } = require("../schemas/authSchemas");
+const { betaSignupSchema } = require("../schemas/betaSignupSchema");
 
 // Wrapper schemas for unified validation (body + query + params)
 const loginValidation = z.object({
@@ -84,6 +86,70 @@ const resetPasswordValidation = z.object({
 	query: z.object({}).strict(),
 	params: z.object({}).strict(),
 });
+
+const betaSignupValidation = z.object({
+	body: betaSignupSchema,
+	query: z.object({}).strict(),
+	params: z.object({}).strict(),
+});
+
+/**
+ * @swagger
+ * /auth/beta-signup:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Submit beta signup request
+ *     description: Submits a beta signup request without password. Saves to Firestore collection for admin review.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - firstName
+ *               - lastName
+ *               - primaryRole
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User email address
+ *                 example: pilot@example.com
+ *               firstName:
+ *                 type: string
+ *                 description: User first name
+ *                 example: John
+ *               lastName:
+ *                 type: string
+ *                 description: User last name
+ *                 example: Doe
+ *               primaryRole:
+ *                 type: string
+ *                 description: User's primary role
+ *                 example: Student
+ *               wantsUpdates:
+ *                 type: boolean
+ *                 description: Whether user wants to receive updates
+ *                 example: true
+ *     responses:
+ *       201:
+ *         description: GO - Beta signup submitted successfully
+ *       409:
+ *         description: NO-GO - Email already registered
+ *       422:
+ *         $ref: '#/components/responses/ValidationError'
+ *       429:
+ *         $ref: '#/components/responses/RateLimitError'
+ */
+router.post(
+	"/beta-signup",
+	authLimiter,
+	validate(betaSignupValidation),
+	betaSignupController.submitBetaSignup,
+);
 
 /**
  * @swagger

@@ -1,30 +1,12 @@
-import { useEffect } from "react"
-import { useNavigate } from "react-router-dom"
 import { Helmet } from "react-helmet-async"
+import { useNavigate } from "react-router-dom"
 import { Rocket, CheckCircle, Clock, Satellite } from "lucide-react"
 import AppHeader from "@/components/app-header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/use-auth"
 
 export default function BetaWelcome() {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
-
-  useEffect(() => {
-    if (!user) {
-      navigate("/")
-    }
-  }, [user, navigate])
-
-  const handleSignOut = async () => {
-    await signOut()
-    navigate("/")
-  }
-
-  if (!user) {
-    return null
-  }
 
   return (
     <>
@@ -89,7 +71,7 @@ export default function BetaWelcome() {
                       <div>
                         <p className="font-medium text-foreground">Email Notification</p>
                         <p className="text-sm text-muted-foreground">
-                          You'll receive an email at <strong>{user.email}</strong> when your access is approved.
+                          You'll receive an email when your access is approved with instructions to create your account.
                         </p>
                       </div>
                     </div>
@@ -120,8 +102,8 @@ export default function BetaWelcome() {
 
             {/* Actions */}
             <div className="flex flex-col items-center gap-4 pt-4">
-              <Button onClick={handleSignOut} variant="outline">
-                Sign Out
+              <Button onClick={() => navigate("/")} variant="outline">
+                Return to Home
               </Button>
               <p className="text-xs text-muted-foreground">
                 Questions? Contact us at{" "}
