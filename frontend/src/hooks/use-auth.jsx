@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { onAuthChange, signIn, signUp, signOut, resetPassword, signInWithGoogle } from "@/lib/firebase/auth"
+import { onAuthChange, signIn, signUp, signOut, resetPassword } from "@/lib/firebase/auth"
 import { loginWithFirebaseToken, getCurrentUser } from "@/lib/api/authService"
 import { setBackendTokens, clearBackendTokens } from "@/lib/api/httpClient"
 import { auth } from "@/lib/firebase/config"
@@ -89,16 +89,6 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const handleSignInWithGoogle = async () => {
-    try {
-      setError(null)
-      await signInWithGoogle()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sign in with Google")
-      throw err
-    }
-  }
-
   const handleSignOut = async () => {
     try {
       setError(null)
@@ -128,7 +118,6 @@ export function AuthProvider({ children }) {
         error,
         signIn: handleSignIn,
         signUp: handleSignUp,
-        signInWithGoogle: handleSignInWithGoogle,
         signOut: handleSignOut,
         resetPassword: handleResetPassword,
       }}

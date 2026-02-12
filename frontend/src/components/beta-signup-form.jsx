@@ -4,16 +4,23 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/hooks/use-auth"
-import { Loader2, Rocket } from "lucide-react"
+import { Loader2, Rocket, AlertCircle } from "lucide-react"
 import { PasswordStrengthMeter, calculateStrength } from "@/components/password-strength-meter"
 
 /**
- * Beta Signup Form - Low Friction
- * Collects minimal information to maximize conversion
+ * Beta Signup Form - All Required Fields
+ * Comprehensive validation with regex patterns
  */
+
+// Validation regex patterns
+const VALIDATION_PATTERNS = {
+  email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  name: /^[a-zA-Z\s'-]{2,50}$/,
+}
+
 export function BetaSignupForm() {
   const navigate = useNavigate()
-  const { signUp, signInWithGoogle } = useAuth()
+  const { signUp } = useAuth()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -23,23 +30,107 @@ export function BetaSignupForm() {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [wantsUpdates, setWantsUpdates] = useState(false)
 
+  // Field-specific errors
+  const [fieldErrors, setFieldErrors] = useState({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    role: "",
+    terms: ""
+  })
+
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
+  const [touched, setTouched] = useState({})
+
+  // Validation functions
+  const validateEmail = (value) => {
+    if (!value.trim()) return "Email is required"
+    if (!VALIDATION_PATTERNS.email.test(value)) {
+      return "Please enter a valid email address (e.g., name@example.com)"
+    }
+    return ""
+  }
+
+  const validateName = (value, fieldName) => {
+    if (!value.trim()) return `${fieldName} is required`
+    if (value.trim().length < 2) return `${fieldName} must be at least 2 characters`
+    if (!VALIDATION_PATTERNS.name.test(value)) {
+      return `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`
+    }
+    return ""
+  }
+
+  const validateRole = (value) => {
+    if (!value) return "Please select your primary role"
+    return ""
+  }
+
+  const handleFieldBlur = (field) => {
+    setTouched({ ...touched, [field]: true })
+    
+    let error = ""
+    switch (field) {
+      case "email":
+        error = validateEmail(email)
+        break
+      case "firstName":
+        error = validateName(firstName, "First name")
+        break
+      case "lastName":
+        error = validateName(lastName, "Last name")
+        break
+      case "role":
+        error = validateRole(role)
+        break
+      default:
+        break
+    }
+    
+    setFieldErrors({ ...fieldErrors, [field]: error })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
 
-    if (!agreedToTerms) {
-      setError("Please agree to the Terms & Privacy Policy")
-      return
+    // Validate all fields
+    const errors = {
+      email: validateEmail(email),
+      firstName: validateName(firstName, "First name"),
+      lastName: validateName(lastName, "Last name"),
+      role: validateRole(role),
+      password: "",
+      terms: ""
     }
 
-    // Validate NASA-grade password requirements
+    // Check password strength
     const passwordStrength = calculateStrength(password)
     if (passwordStrength.level < 5) {
-      setError("🚫 Mission abort! Password does not meet NASA-grade security requirements. All checks must be green.")
+      errors.password = "Password does not meet NASA-grade security requirements. All checks must be green."
+    }
+
+    // Check terms agreement
+    if (!agreedToTerms) {
+      errors.terms = "You must agree to the Terms & Privacy Policy"
+    }
+
+    // Set all fields as touched
+    setTouched({
+      email: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+      password: true,
+      terms: true
+    })
+
+    // If any errors, show them and stop
+    const hasErrors = Object.values(errors).some(err => err !== "")
+    if (hasErrors) {
+      setFieldErrors(errors)
+      setError("🚫 Mission abort! Please fix the errors above before proceeding.")
       return
     }
 
@@ -47,12 +138,12 @@ export function BetaSignupForm() {
 
     try {
       // Combine first and last name for displayName
-      const displayName = `${firstName} ${lastName}`.trim() || email.split("@")[0]
+      const displayName = `${firstName.trim()} ${lastName.trim()}`
       
       // Sign up with beta role
-      await signUp(email, password, displayName, "", {
+      await signUp(email.trim(), password, displayName, "", {
         role: "beta",
-        primaryRole: role || "Other",
+        primaryRole: role,
         onboardingComplete: false,
         wantsUpdates,
       })
@@ -63,20 +154,6 @@ export function BetaSignupForm() {
       const errorMessage = err instanceof Error ? err.message : "Failed to sign up"
       setError(errorMessage)
       setLoading(false)
-    }
-  }
-
-  const handleGoogleSignIn = async () => {
-    setError(null)
-    setGoogleLoading(true)
-
-    try {
-      await signInWithGoogle()
-      // Navigation happens automatically via useAuth hook
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to sign up with Google"
-      setError(errorMessage)
-      setGoogleLoading(false)
     }
   }
 
@@ -99,46 +176,6 @@ export function BetaSignupForm() {
           </div>
         )}
 
-        {/* Google Sign-in Button */}
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full rounded-lg"
-          onClick={handleGoogleSignIn}
-          disabled={loading || googleLoading}
-          data-testid="google-signin"
-        >
-          {googleLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-            <path
-              fill="currentColor"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="currentColor"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="currentColor"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-            />
-            <path
-              fill="currentColor"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-            />
-          </svg>
-          Sign up with Google
-        </Button>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-          </div>
-        </div>
-
         <div className="space-y-0.5">
           <label htmlFor="email" className="text-xs font-medium text-foreground">
             Email <span className="text-red-500">*</span>
@@ -147,11 +184,23 @@ export function BetaSignupForm() {
             id="email"
             type="email"
             placeholder="you@example.com"
-            className="rounded-lg"
+            className={`rounded-lg ${touched.email && fieldErrors.email ? 'border-red-500' : ''}`}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (touched.email) {
+                setFieldErrors({ ...fieldErrors, email: validateEmail(e.target.value) })
+              }
+            }}
+            onBlur={() => handleFieldBlur("email")}
             required
           />
+          {touched.email && fieldErrors.email && (
+            <div className="flex items-start gap-1 mt-1">
+              <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
+              <p className="text-[10px] text-red-500">{fieldErrors.email}</p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-0.5">
@@ -162,7 +211,7 @@ export function BetaSignupForm() {
             id="password"
             type="password"
             placeholder="••••••••••••"
-            className="rounded-lg"
+            className={`rounded-lg ${touched.password && fieldErrors.password ? 'border-red-500' : ''}`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -171,47 +220,89 @@ export function BetaSignupForm() {
           
           {/* NASA-Grade Password Strength Meter */}
           {password && <PasswordStrengthMeter password={password} className="mt-1" />}
+          
+          {touched.password && fieldErrors.password && (
+            <div className="flex items-start gap-1 mt-1">
+              <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
+              <p className="text-[10px] text-red-500">{fieldErrors.password}</p>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-0.5">
             <label htmlFor="firstName" className="text-[10px] font-medium text-foreground">
-              First Name
+              First Name <span className="text-red-500">*</span>
             </label>
             <Input
               id="firstName"
               type="text"
               placeholder="John"
-              className="rounded-lg"
+              className={`rounded-lg ${touched.firstName && fieldErrors.firstName ? 'border-red-500' : ''}`}
               value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              onChange={(e) => {
+                setFirstName(e.target.value)
+                if (touched.firstName) {
+                  setFieldErrors({ ...fieldErrors, firstName: validateName(e.target.value, "First name") })
+                }
+              }}
+              onBlur={() => handleFieldBlur("firstName")}
+              required
             />
+            {touched.firstName && fieldErrors.firstName && (
+              <div className="flex items-start gap-1 mt-1">
+                <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
+                <p className="text-[10px] text-red-500">{fieldErrors.firstName}</p>
+              </div>
+            )}
           </div>
           
           <div className="space-y-0.5">
             <label htmlFor="lastName" className="text-[10px] font-medium text-foreground">
-              Last Name
+              Last Name <span className="text-red-500">*</span>
             </label>
             <Input
               id="lastName"
               type="text"
               placeholder="Doe"
-              className="rounded-lg"
+              className={`rounded-lg ${touched.lastName && fieldErrors.lastName ? 'border-red-500' : ''}`}
               value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              onChange={(e) => {
+                setLastName(e.target.value)
+                if (touched.lastName) {
+                  setFieldErrors({ ...fieldErrors, lastName: validateName(e.target.value, "Last name") })
+                }
+              }}
+              onBlur={() => handleFieldBlur("lastName")}
+              required
             />
+            {touched.lastName && fieldErrors.lastName && (
+              <div className="flex items-start gap-1 mt-1">
+                <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
+                <p className="text-[10px] text-red-500">{fieldErrors.lastName}</p>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="space-y-0.5">
           <label htmlFor="role" className="text-[10px] font-medium text-foreground">
-            Primary Role
+            Primary Role <span className="text-red-500">*</span>
           </label>
           <select
             id="role"
-            className="w-full px-2 py-1.5 text-xs rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className={`w-full px-2 py-1.5 text-xs rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
+              touched.role && fieldErrors.role ? 'border-red-500' : 'border-input'
+            }`}
             value={role}
-            onChange={(e) => setRole(e.target.value)}
+            onChange={(e) => {
+              setRole(e.target.value)
+              if (touched.role) {
+                setFieldErrors({ ...fieldErrors, role: validateRole(e.target.value) })
+              }
+            }}
+            onBlur={() => handleFieldBlur("role")}
+            required
           >
             <option value="">Select your role...</option>
             <option value="Student">Student</option>
@@ -222,6 +313,12 @@ export function BetaSignupForm() {
             <option value="Researcher">Researcher</option>
             <option value="Other">Other</option>
           </select>
+          {touched.role && fieldErrors.role && (
+            <div className="flex items-start gap-1 mt-1">
+              <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
+              <p className="text-[10px] text-red-500">{fieldErrors.role}</p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-1 pt-0.5">
@@ -229,8 +326,17 @@ export function BetaSignupForm() {
             <Checkbox
               id="terms"
               checked={agreedToTerms}
-              onCheckedChange={setAgreedToTerms}
+              onCheckedChange={(checked) => {
+                setAgreedToTerms(checked)
+                if (touched.terms) {
+                  setFieldErrors({ 
+                    ...fieldErrors, 
+                    terms: checked ? "" : "You must agree to the Terms & Privacy Policy" 
+                  })
+                }
+              }}
               className="mt-1"
+              required
             />
             <label htmlFor="terms" className="text-[10px] text-foreground leading-tight cursor-pointer">
               I agree to the{" "}
@@ -244,6 +350,12 @@ export function BetaSignupForm() {
               <span className="text-red-500 ml-1">*</span>
             </label>
           </div>
+          {touched.terms && fieldErrors.terms && (
+            <div className="flex items-start gap-1 mt-1 ml-6">
+              <AlertCircle className="h-3 w-3 text-red-500 mt-0.5 shrink-0" />
+              <p className="text-[10px] text-red-500">{fieldErrors.terms}</p>
+            </div>
+          )}
 
           <div className="flex items-start gap-2">
             <Checkbox

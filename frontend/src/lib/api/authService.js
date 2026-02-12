@@ -83,54 +83,6 @@ export async function registerUser(userData) {
 }
 
 /**
- * Create/update user profile after Google sign-in
- * Exchanges Firebase ID token for backend JWT tokens
- * @param {object} profileData - User profile data from Google
- * @param {string} idToken - Firebase ID token for authentication
- * @returns {Promise<object>} User data
- */
-export async function syncGoogleProfile(profileData, idToken) {
-  try {
-    // Use fetch directly (not api.post) since we don't have backend JWT tokens yet
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/auth/sync-oauth-profile`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}` // Firebase ID token
-      },
-      body: JSON.stringify(profileData)
-    })
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.brief || errorData.message || `Failed to sync profile: ${response.status}`)
-    }
-    
-    const responseData = await response.json()
-    
-    // Extract response data from Mission Control envelope
-    const data = responseData.payload?.data || responseData
-    
-    // Store backend JWT tokens for subsequent requests
-    if (data.accessToken && data.refreshToken) {
-      setBackendTokens(data.accessToken, data.refreshToken)
-      console.log('✅ Backend JWT tokens stored after OAuth sync')
-    } else if (data.tokens?.accessToken && data.tokens?.refreshToken) {
-      setBackendTokens(data.tokens.accessToken, data.tokens.refreshToken)
-      console.log('✅ Backend JWT tokens stored after OAuth sync')
-    } else {
-      console.warn('⚠️ No JWT tokens received from sync endpoint')
-    }
-    
-    // Return user data
-    return data.user || data
-  } catch (error) {
-    console.error('Failed to sync Google profile:', error)
-    throw new Error(error.message || 'Failed to sync user profile')
-  }
-}
-
-/**
  * Update user profile
  * @param {string} userId - User ID
  * @param {object} updates - Profile updates
