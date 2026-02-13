@@ -5,6 +5,7 @@ import { onAuthChange, signIn, signUp, signOut, resetPassword } from "@/lib/fire
 import { loginWithFirebaseToken, getCurrentUser } from "@/lib/api/authService"
 import { setBackendTokens, clearBackendTokens } from "@/lib/api/httpClient"
 import { auth } from "@/lib/firebase/config"
+import { fetchUserProfile } from "@/lib/firebase/userProfile"
 
 const AuthContext = createContext(undefined)
 
@@ -57,8 +58,34 @@ export function AuthProvider({ children }) {
           })
         } catch (e) {
           console.error('❌ Failed to authenticate with backend:', e)
-          // Still set user with Firebase data so they can at least view public pages
-          setUser({ ...firebaseUser, callSign: "", isAdmin: false, role: "user" })
+          
+          // Fallback: Fetch user profile directly from Firestore
+          try {
+            console.log('🔄 Attempting to fetch user profile from Firestore...')
+            const firestoreProfile = await fetchUserProfile(firebaseUser.uid)
+            
+            if (firestoreProfile) {
+              setUser({ 
+                ...firebaseUser, 
+                callSign: firestoreProfile.callSign || "",
+                isAdmin: firestoreProfile.isAdmin || false,
+                role: firestoreProfile.role || "user"
+              })
+              console.log('✅ User profile loaded from Firestore fallback', { 
+                isAdmin: firestoreProfile.isAdmin,
+                role: firestoreProfile.role,
+                callSign: firestoreProfile.callSign
+              })
+            } else {
+              // No Firestore profile - default to basic user with "user" role
+              console.warn('⚠️ No Firestore profile found, using defaults')
+              setUser({ ...firebaseUser, callSign: "", isAdmin: false, role: "user" })
+            }
+          } catch (firestoreError) {
+            console.error('❌ Failed to fetch Firestore profile:', firestoreError)
+            // Last resort: set user with defaults
+            setUser({ ...firebaseUser, callSign: "", isAdmin: false, role: "user" })
+          }
         }
       } else {
         setUser(null)
