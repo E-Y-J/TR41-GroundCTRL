@@ -9,13 +9,7 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
-  test.skip('should display NOVA help interface (requires authentication)', async ({ page }) => {
-    // /help is now a protected route - skipping test
-    // TODO: Add authentication setup to test help features
-    console.log('Skipped: Help page requires authentication');
-  });
-
-  test.skip('original test - should display NOVA help interface', async ({ page }) => {
+  test('should display NOVA help interface', async ({ page }) => {
     await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Look for NOVA help elements
@@ -39,12 +33,7 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
     expect(novaFound).toBe(true);
   });
 
-  test.skip('should accept help questions and show responses (requires authentication)', async ({ page }) => {
-    // /help is now a protected route - skipping test
-    console.log('Skipped: Help page requires authentication');
-  });
-
-  test.skip('original test - should accept help questions and show responses', async ({ page }) => {
+  test('should accept help questions and show responses', async ({ page }) => {
     await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Find help input
@@ -99,7 +88,7 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
     }
   });
 
-  test.skip('should show personalized suggestions based on context (requires authentication)', async ({ page }) => {
+  test('should show personalized suggestions based on context', async ({ page }) => {
     await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Look for suggestion elements
@@ -134,7 +123,7 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
     }
   });
 
-  test.skip('should handle multi-turn conversations (requires authentication)', async ({ page }) => {
+  test('should handle multi-turn conversations', async ({ page }) => {
     await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Look for conversation history elements

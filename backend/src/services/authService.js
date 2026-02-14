@@ -5,7 +5,7 @@
 
 const httpClient = require("../utils/httpClient");
 const { getAuth, getFirestore } = require("../config/firebase");
-// JWT removed - using Firebase Auth tokens only
+const jwtUtil = require("../utils/jwt");
 const tokenBlacklistRepository = require("../repositories/tokenBlacklistRepository");
 const { validatePassword } = require("../utils/passwordValidation");
 const {
@@ -126,7 +126,14 @@ async function syncOAuthProfile(uid, profileData = {}) {
 
 			logger.info("OAuth user profile updated", { uid, email });
 
-			// NO JWT tokens - Firebase SDK handles authentication
+			// Generate tokens
+			const accessToken = jwtUtil.createAccessToken(
+				uid,
+				userData.callSign,
+				userData.isAdmin || false,
+			);
+			const refreshToken = jwtUtil.createRefreshToken(uid);
+
 			return {
 				user: {
 					uid,
@@ -134,8 +141,9 @@ async function syncOAuthProfile(uid, profileData = {}) {
 					callSign: userData.callSign,
 					displayName: userData.displayName,
 					isAdmin: userData.isAdmin || false,
-					role: userData.role || "user",
 				},
+				accessToken,
+				refreshToken,
 			};
 		}
 
@@ -176,7 +184,10 @@ async function syncOAuthProfile(uid, profileData = {}) {
 		);
 		await auditRepository.logAudit(auditEntry);
 
-		// NO JWT tokens - Firebase SDK handles authentication
+		// Generate tokens
+		const accessToken = jwtUtil.createAccessToken(uid, finalCallSign, false);
+		const refreshToken = jwtUtil.createRefreshToken(uid);
+
 		return {
 			user: {
 				uid,
@@ -186,6 +197,8 @@ async function syncOAuthProfile(uid, profileData = {}) {
 				isAdmin: false,
 				role: "user",
 			},
+			accessToken,
+			refreshToken,
 		};
 	} catch (error) {
 		logger.error("OAuth profile sync error", {
@@ -239,7 +252,6 @@ async function register(
 		logger.info("Firebase user created", { uid, email });
 
 		// Create user document in Firestore with metadata
-		// SECURITY: Role is NEVER accepted from user input - always defaults to "beta"
 		const userData = {
 			uid,
 			email,
@@ -252,8 +264,8 @@ async function register(
 			lastLoginAt: null,
 			isActive: true,
 			// Beta program and onboarding metadata
-			// SECURITY: All new users start as "beta" - admins must manually upgrade to "user"
-			role: process.env.NODE_ENV === "test" ? "user" : "beta",
+			role:
+				metadata.role || (process.env.NODE_ENV === "test" ? "user" : "beta"), // Default to "beta" - admin must approve to upgrade to "user"
 			primaryRole: metadata.primaryRole || null, // Student, Engineer, etc.
 			onboardingComplete:
 				metadata.onboardingComplete !== undefined
@@ -282,7 +294,10 @@ async function register(
 		);
 		await auditRepository.logAudit(auditEntry);
 
-		// NO JWT tokens - Firebase SDK handles authentication
+		// Generate tokens
+		const accessToken = jwtUtil.createAccessToken(uid, finalCallSign, false);
+		const refreshToken = jwtUtil.createRefreshToken(uid);
+
 		// Return raw data - envelope middleware will wrap it
 		return {
 			user: {
@@ -293,6 +308,8 @@ async function register(
 				isAdmin: false,
 				role: userData.role,
 			},
+			accessToken,
+			refreshToken,
 		};
 	} catch (error) {
 		// CREATE FAILED REGISTRATION AUDIT LOG

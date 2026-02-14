@@ -78,14 +78,15 @@ async function register(req, res, next) {
 			password,
 			callSign,
 			displayName,
+			role,
 			primaryRole,
 			onboardingComplete,
 			wantsUpdates,
 		} = validation.data;
 
 		// Build metadata object from optional fields
-		// SECURITY: Role is NEVER accepted from user input - service layer always defaults to "beta"
 		const metadata = {};
+		if (role) metadata.role = role;
 		if (primaryRole) metadata.primaryRole = primaryRole;
 		if (onboardingComplete !== undefined)
 			metadata.onboardingComplete = onboardingComplete;
@@ -334,8 +335,6 @@ async function login(req, res, next) {
 	} catch (error) {
 		// Handle Firebase auth errors specifically
 		if (error.code?.startsWith("auth/")) {
-			// Add constant-time delay to prevent timing attacks
-			await new Promise((resolve) => setTimeout(resolve, 150));
 			return res
 				.status(401)
 				.json({ payload: { error: { message: "Invalid email or password" } } });

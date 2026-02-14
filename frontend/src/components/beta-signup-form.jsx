@@ -140,9 +140,9 @@ export function BetaSignupForm() {
       // Combine first and last name for displayName
       const displayName = `${firstName.trim()} ${lastName.trim()}`
       
-      // Sign up with beta program metadata
-      // NOTE: role is NOT sent - backend automatically sets to "beta" for security
+      // Sign up with beta role
       await signUp(email.trim(), password, displayName, "", {
+        role: "beta",
         primaryRole: role,
         onboardingComplete: false,
         wantsUpdates,

@@ -64,7 +64,7 @@ env:
 # These are mapped from Secret Manager to environment variables
 secrets:
   - variable: JWT_SECRET
-    secret: jwt-secret
+    secret: JWT_SECRET
     versionPolicy: latest
   - variable: FIREBASE_PRIVATE_KEY
     secret: FIREBASE_PRIVATE_KEY
