@@ -78,15 +78,14 @@ async function register(req, res, next) {
 			password,
 			callSign,
 			displayName,
-			role,
 			primaryRole,
 			onboardingComplete,
 			wantsUpdates,
 		} = validation.data;
 
 		// Build metadata object from optional fields
+		// SECURITY: Role is NEVER accepted from user input - service layer always defaults to "beta"
 		const metadata = {};
-		if (role) metadata.role = role;
 		if (primaryRole) metadata.primaryRole = primaryRole;
 		if (onboardingComplete !== undefined)
 			metadata.onboardingComplete = onboardingComplete;
