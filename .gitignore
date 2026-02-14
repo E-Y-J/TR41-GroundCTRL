@@ -74,3 +74,23 @@ lighthouse-results.json
 production-lighthouse-results.json
 frontend/production-lighthouse-results-final.json
 frontend/production-lighthouse-results-optimized.json
+
+# AI-generated documentation and implementation notes
+*_IMPLEMENTATION.md
+*_COMPLETE.md
+*_FIX.md
+*_SUMMARY.md
+*_STATUS.md
+*_ROADMAP.md
+*_GUIDE.md
+*_PLAN.md
+*_REFACTOR.md
+*_AUDIT.md
+*_ENHANCEMENT.md
+*_SETUP.md
+*_SCOPE*.md
+*_QUICK_REFERENCE.md
+RESEARCH.md
+frontend_fix_notes.md
+ALL_PHASES_COMPLETE.md
+WORKFLOW_IMPROVEMENTS.md

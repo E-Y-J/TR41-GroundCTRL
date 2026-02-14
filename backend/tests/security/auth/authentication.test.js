@@ -4,28 +4,17 @@
  */
 
 const request = require("supertest");
-const { getTestApp, createTestUser, deleteTestUser } = require("../../helpers/test-utils");
+const { getTestApp } = require("../../helpers/test-utils");
 
 describe("Authentication Security Tests", () => {
 	let app;
-	let testUser;
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		process.env.NODE_ENV = "test";
 		process.env.FIREBASE_AUTH_EMULATOR_HOST = "127.0.0.1:9099";
 		process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
 
 		app = getTestApp();
-		
-		// Create a test user for timing comparison
-		testUser = await createTestUser("testuser@example.com", "TestPassword123!");
-	});
-
-	afterAll(async () => {
-		// Clean up test user
-		if (testUser) {
-			await deleteTestUser(testUser.uid);
-		}
 	});
 
 	describe("Login Security", () => {
@@ -60,7 +49,7 @@ describe("Authentication Security Tests", () => {
 			// Timing should be similar (within reasonable bounds)
 			const diff1 = end1 - start1;
 			const diff2 = end2 - start2;
-			expect(Math.abs(diff1 - diff2)).toBeLessThan(200); // Allow 200ms difference for CI
+			expect(Math.abs(diff1 - diff2)).toBeLessThan(100); // Allow 100ms difference
 		});
 	});
 

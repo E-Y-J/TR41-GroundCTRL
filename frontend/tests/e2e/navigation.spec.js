@@ -29,9 +29,9 @@ test.describe('UI-011: Navigation and Routing', () => {
 
   test('should navigate to all major routes', async ({ page, baseURL }) => {
     // Only test public routes that don't require authentication
-    // Note: /help is now a protected route requiring full user access
     const publicRoutes = [
       { path: '/', title: 'GroundCTRL' },
+      { path: '/help', title: 'Help' },
       { path: '/contact', title: 'Contact' },
       { path: '/privacy', title: 'Privacy' },
       { path: '/terms', title: 'Terms' },
@@ -77,8 +77,7 @@ test.describe('UI-011: Navigation and Routing', () => {
   });
 
   test('should highlight active navigation link', async ({ page }) => {
-    // Navigate to a public route instead of protected /help
-    await page.goto('/contact');
+    await page.goto('/help');
     // Wait for load or timeout after 30 seconds (networkidle can be slow)
     try {
       await page.waitForLoadState('networkidle', { timeout: 30000 });
@@ -87,12 +86,12 @@ test.describe('UI-011: Navigation and Routing', () => {
       console.log('Note: networkidle timeout, but page is loaded');
     }
 
-    // Find the contact link (public route)
-    const contactLink = page.locator('header nav a[href="/contact"]');
+    // Find the help link
+    const helpLink = page.locator('header nav a[href="/help"]');
     
-    if (await contactLink.count() > 0) {
+    if (await helpLink.count() > 0) {
       // Get classes on active link
-      const classes = await contactLink.getAttribute('class');
+      const classes = await helpLink.getAttribute('class');
       
       // Should have some styling (classes)
       expect(classes).toBeTruthy();
@@ -100,8 +99,7 @@ test.describe('UI-011: Navigation and Routing', () => {
   });
 
   test('should navigate via logo click', async ({ page }) => {
-    // Start from a public route instead of protected /help
-    await page.goto('/contact');
+    await page.goto('/help');
     await page.waitForLoadState('networkidle', { timeout: 60000 });
 
     // Click logo to return home

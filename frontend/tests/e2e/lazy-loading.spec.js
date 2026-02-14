@@ -18,11 +18,11 @@ test.describe('UI-010: Lazy Loading with Suspense', () => {
 
     await page.goto('/');
 
-    // Navigate to a public lazy-loaded route (contact instead of protected /help)
-    const contactLink = page.locator('a[href="/contact"]').first();
-    if (await contactLink.count() > 0) {
-      console.log('Found contact link, clicking it');
-      await contactLink.click();
+    // Navigate to a public lazy-loaded route
+    const helpLink = page.locator('a[href="/help"]').first();
+    if (await helpLink.count() > 0) {
+      console.log('Found help link, clicking it');
+      await helpLink.click();
 
       // Try to catch loading spinner (Loader2 with animate-spin)
       const loader = page.locator('[class*="animate-spin"]').first();
@@ -34,18 +34,18 @@ test.describe('UI-010: Lazy Loading with Suspense', () => {
       // Either we caught the loader or page loaded successfully
       await page.waitForLoadState('networkidle');
       
-      // Wait for URL to change to /contact
-      await page.waitForURL('/contact');
+      // Wait for URL to change to /help
+      await page.waitForURL('/help');
 
       const currentUrl = page.url();
       console.log('Current URL after navigation:', currentUrl);
 
-      await expect(page).toHaveURL('/contact');
+      await expect(page).toHaveURL('/help');
     } else {
-      console.log('Contact link not found on homepage, navigating directly');
-      await page.goto('/contact');
+      console.log('Help link not found on homepage, navigating directly');
+      await page.goto('/help');
       await page.waitForLoadState('networkidle');
-      await expect(page).toHaveURL('/contact');
+      await expect(page).toHaveURL('/help');
     }
   });
 
@@ -68,8 +68,7 @@ test.describe('UI-010: Lazy Loading with Suspense', () => {
     await page.waitForLoadState('networkidle');
 
     // Navigate to public lazy-loaded pages only (avoid auth-required routes)
-    // Note: /help is now a protected route
-    const publicRoutes = ['/contact', '/privacy', '/terms'];
+    const publicRoutes = ['/help', '/contact', '/privacy', '/terms'];
 
     for (const route of publicRoutes) {
       console.log(`Testing lazy loading for route: ${route}`);
@@ -92,9 +91,9 @@ test.describe('UI-010: Lazy Loading with Suspense', () => {
   });
 
   test('should have PageLoader component with correct styling', async ({ page }) => {
-    console.log('Testing PageLoader component on /contact route');
+    console.log('Testing PageLoader component on /help route');
 
-    await page.goto('/contact'); // Public lazy loaded page
+    await page.goto('/help'); // Public lazy loaded page
     await page.waitForLoadState('networkidle');
     
     // Wait for lazy loading to complete and content to render

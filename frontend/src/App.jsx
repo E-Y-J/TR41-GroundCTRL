@@ -5,9 +5,8 @@ import { Providers } from '@/components/providers.jsx'
 import { lazy, Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 
-// Route Guards
+// Admin components
 import { AdminRoute } from '@/components/admin/AdminRoute.jsx'
-import { ProtectedRoute } from '@/components/ProtectedRoute.jsx'
 
 // Tutorial System
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay'
@@ -66,202 +65,36 @@ function App() {
     <Providers>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          {/* Public Routes - Accessible to everyone including beta users */}
           <Route path="/" element={<HomePage />} />
+          <Route path="/beta-welcome" element={<BetaWelcomePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/simulator" element={<SimulatorPage />} />
+          <Route path="/missions" element={<MissionsPage />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/help/article/:slug" element={<HelpArticlePage />} />
+          <Route path="/mission-briefing/:id" element={<MissionBriefingPage />} />
+          <Route path="/websocket-test" element={<WebSocketTestPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           
-          {/* Beta Program Page - Accessible to logged-in beta users */}
-          <Route path="/beta-welcome" element={<BetaWelcomePage />} />
-          
-          {/* Protected Routes - Require full user access (not beta) */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/simulator" 
-            element={
-              <ProtectedRoute>
-                <SimulatorPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/missions" 
-            element={
-              <ProtectedRoute>
-                <MissionsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/account" 
-            element={
-              <ProtectedRoute>
-                <AccountPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/settings" 
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/help" 
-            element={
-              <ProtectedRoute>
-                <HelpPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/help/article/:slug" 
-            element={
-              <ProtectedRoute>
-                <HelpArticlePage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/mission-briefing/:id" 
-            element={
-              <ProtectedRoute>
-                <MissionBriefingPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/websocket-test" 
-            element={
-              <ProtectedRoute>
-                <WebSocketTestPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* New Protected Routes */}
-          <Route 
-            path="/leaderboard" 
-            element={
-              <ProtectedRoute>
-                <LeaderboardPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/satellites" 
-            element={
-              <ProtectedRoute>
-                <SatellitesPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/ground-stations" 
-            element={
-              <ProtectedRoute>
-                <GroundStationsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/community" 
-            element={
-              <ProtectedRoute>
-                <CommunityPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/news" 
-            element={
-              <ProtectedRoute>
-                <NewsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/resources" 
-            element={
-              <ProtectedRoute>
-                <ResourcesPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/tutorials" 
-            element={
-              <ProtectedRoute>
-                <TutorialsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/achievements" 
-            element={
-              <ProtectedRoute>
-                <AchievementsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/certificates" 
-            element={
-              <ProtectedRoute>
-                <CertificatesPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/history" 
-            element={
-              <ProtectedRoute>
-                <HistoryPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/replay/:sessionId" 
-            element={
-              <ProtectedRoute>
-                <ReplayPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/analytics" 
-            element={
-              <ProtectedRoute>
-                <AnalyticsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/profile/:userId" 
-            element={
-              <ProtectedRoute>
-                <OperatorProfilePage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/support" 
-            element={
-              <ProtectedRoute>
-                <SupportTicketsPage />
-              </ProtectedRoute>
-            } 
-          />
+          {/* New Routes */}
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/satellites" element={<SatellitesPage />} />
+          <Route path="/ground-stations" element={<GroundStationsPage />} />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/news" element={<NewsPage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/tutorials" element={<TutorialsPage />} />
+          <Route path="/achievements" element={<AchievementsPage />} />
+          <Route path="/certificates" element={<CertificatesPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/replay/:sessionId" element={<ReplayPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/profile/:userId" element={<OperatorProfilePage />} />
+          <Route path="/support" element={<SupportTicketsPage />} />
           
           {/* Admin Routes */}
           <Route 

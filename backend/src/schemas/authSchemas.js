@@ -48,8 +48,8 @@ const registerSchema = z
 			.min(2, "Display name must be at least 2 characters")
 			.max(50, "Display name must not exceed 50 characters")
 			.optional(),
-		// Beta program fields - SECURITY: role is NOT accepted from user input
-		// All new registrations default to "beta" role
+		// Beta program fields
+		role: z.enum(["beta", "user", "admin"]).optional(),
 		primaryRole: z.string().max(50).optional(),
 		onboardingComplete: z.boolean().optional(),
 		wantsUpdates: z.boolean().optional(),
