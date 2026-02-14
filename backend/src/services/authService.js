@@ -5,7 +5,7 @@
 
 const httpClient = require("../utils/httpClient");
 const { getAuth, getFirestore } = require("../config/firebase");
-const jwtUtil = require("../utils/jwt");
+// JWT removed - using Firebase Auth tokens only
 const tokenBlacklistRepository = require("../repositories/tokenBlacklistRepository");
 const { validatePassword } = require("../utils/passwordValidation");
 const {
@@ -126,14 +126,7 @@ async function syncOAuthProfile(uid, profileData = {}) {
 
 			logger.info("OAuth user profile updated", { uid, email });
 
-			// Generate tokens
-			const accessToken = jwtUtil.createAccessToken(
-				uid,
-				userData.callSign,
-				userData.isAdmin || false,
-			);
-			const refreshToken = jwtUtil.createRefreshToken(uid);
-
+			// NO JWT tokens - Firebase SDK handles authentication
 			return {
 				user: {
 					uid,
@@ -141,9 +134,8 @@ async function syncOAuthProfile(uid, profileData = {}) {
 					callSign: userData.callSign,
 					displayName: userData.displayName,
 					isAdmin: userData.isAdmin || false,
+					role: userData.role || "user",
 				},
-				accessToken,
-				refreshToken,
 			};
 		}
 
@@ -184,10 +176,7 @@ async function syncOAuthProfile(uid, profileData = {}) {
 		);
 		await auditRepository.logAudit(auditEntry);
 
-		// Generate tokens
-		const accessToken = jwtUtil.createAccessToken(uid, finalCallSign, false);
-		const refreshToken = jwtUtil.createRefreshToken(uid);
-
+		// NO JWT tokens - Firebase SDK handles authentication
 		return {
 			user: {
 				uid,
@@ -197,8 +186,6 @@ async function syncOAuthProfile(uid, profileData = {}) {
 				isAdmin: false,
 				role: "user",
 			},
-			accessToken,
-			refreshToken,
 		};
 	} catch (error) {
 		logger.error("OAuth profile sync error", {
@@ -295,10 +282,7 @@ async function register(
 		);
 		await auditRepository.logAudit(auditEntry);
 
-		// Generate tokens
-		const accessToken = jwtUtil.createAccessToken(uid, finalCallSign, false);
-		const refreshToken = jwtUtil.createRefreshToken(uid);
-
+		// NO JWT tokens - Firebase SDK handles authentication
 		// Return raw data - envelope middleware will wrap it
 		return {
 			user: {
@@ -309,8 +293,6 @@ async function register(
 				isAdmin: false,
 				role: userData.role,
 			},
-			accessToken,
-			refreshToken,
 		};
 	} catch (error) {
 		// CREATE FAILED REGISTRATION AUDIT LOG
