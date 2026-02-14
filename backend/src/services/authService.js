@@ -252,6 +252,7 @@ async function register(
 		logger.info("Firebase user created", { uid, email });
 
 		// Create user document in Firestore with metadata
+		// SECURITY: Role is NEVER accepted from user input - always defaults to "beta"
 		const userData = {
 			uid,
 			email,
@@ -264,8 +265,8 @@ async function register(
 			lastLoginAt: null,
 			isActive: true,
 			// Beta program and onboarding metadata
-			role:
-				metadata.role || (process.env.NODE_ENV === "test" ? "user" : "beta"), // Default to "beta" - admin must approve to upgrade to "user"
+			// SECURITY: All new users start as "beta" - admins must manually upgrade to "user"
+			role: process.env.NODE_ENV === "test" ? "user" : "beta",
 			primaryRole: metadata.primaryRole || null, // Student, Engineer, etc.
 			onboardingComplete:
 				metadata.onboardingComplete !== undefined
