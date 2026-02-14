@@ -100,11 +100,6 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
   });
 
   test.skip('should show personalized suggestions based on context (requires authentication)', async ({ page }) => {
-    // /help is now a protected route - skipping test
-    console.log('Skipped: Help page requires authentication');
-  });
-
-  test.skip('original test - should show personalized suggestions based on context', async ({ page }) => {
     await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Look for suggestion elements
@@ -140,11 +135,6 @@ test.describe('UI-NOVA-001: NOVA Help Assistant', () => {
   });
 
   test.skip('should handle multi-turn conversations (requires authentication)', async ({ page }) => {
-    // /help is now a protected route - skipping test
-    console.log('Skipped: Help page requires authentication');
-  });
-
-  test.skip('original test - should handle multi-turn conversations', async ({ page }) => {
     await page.goto('/help', { waitUntil: 'networkidle' });
 
     // Look for conversation history elements
