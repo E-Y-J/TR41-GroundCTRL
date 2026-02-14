@@ -21,15 +21,24 @@ export default function AppHeader({ onAuthViewChange }) {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   
-  // Define nav links - only show for authenticated non-beta users
-  const navLinks = user && user.role !== "beta"
-    ? [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/missions", label: "Missions" },
-        { href: "/simulator", label: "Simulator" },
-        { href: "/leaderboard", label: "Leaderboard" },
-        { href: "/help", label: "Help" },
-      ]
+  // Define nav links based on user role
+  const navLinks = user 
+    ? user.role === "beta"
+      ? [
+          // Beta users see limited navigation
+          { href: "/beta-welcome", label: "Beta Program" },
+          { href: "/contact", label: "Contact" },
+          { href: "/privacy", label: "Privacy" },
+          { href: "/terms", label: "Terms" },
+        ]
+      : [
+          // Full users see complete navigation
+          { href: "/dashboard", label: "Dashboard" },
+          { href: "/missions", label: "Missions" },
+          { href: "/simulator", label: "Simulator" },
+          { href: "/leaderboard", label: "Leaderboard" },
+          { href: "/help", label: "Help" },
+        ]
     : []
 
   const handleSignOut = async () => {
@@ -57,24 +66,8 @@ export default function AppHeader({ onAuthViewChange }) {
         <span className="text-foreground">GroundCTRL</span>
       </Link>
 
-      {/* Navigation - Beta users see only Beta Program link */}
-      {user && user.role === "beta" && (
-        <nav className="flex items-center gap-6">
-          <Link
-            to="/beta-welcome"
-            className={`text-sm font-medium transition-colors ${
-              pathname === "/beta-welcome"
-                ? "text-primary border-b-2 border-primary pb-0.5"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Beta Program
-          </Link>
-        </nav>
-      )}
-      
-      {/* Navigation - Only show full nav for authenticated non-beta users */}
-      {user && user.role !== "beta" && (
+      {/* Navigation - Shows different links based on user role */}
+      {user && (
         <nav className="flex items-center gap-6">
           {navLinks.map((link) => (
             <Link
@@ -141,43 +134,48 @@ export default function AppHeader({ onAuthViewChange }) {
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/account">
-                    <UserCircle className="mr-2 h-4 w-4" />
-                    Account
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to={`/profile/${user.uid}`}>
-                    <User className="mr-2 h-4 w-4" />
-                    My Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/achievements">
-                    <span className="mr-2">🏆</span>
-                    Achievements
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/history">
-                    <span className="mr-2">📜</span>
-                    Mission History
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/analytics">
-                    <span className="mr-2">📊</span>
-                    Analytics
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
+                {/* Beta users have limited dropdown options */}
+                {user.role !== "beta" && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/account">
+                        <UserCircle className="mr-2 h-4 w-4" />
+                        Account
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to={`/profile/${user.uid}`}>
+                        <User className="mr-2 h-4 w-4" />
+                        My Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/achievements">
+                        <span className="mr-2">🏆</span>
+                        Achievements
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/history">
+                        <span className="mr-2">📜</span>
+                        Mission History
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/analytics">
+                        <span className="mr-2">📊</span>
+                        Analytics
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={handleSignOut} className="text-red-500 focus:text-red-500">
                   <LogOut className="mr-2 h-4 w-4" />

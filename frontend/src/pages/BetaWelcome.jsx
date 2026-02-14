@@ -57,30 +57,88 @@ export default function BetaWelcome() {
               </p>
             </div>
 
-            {/* 2 Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 max-w-4xl mx-auto">
+            {/* Beta Program Information */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 max-w-5xl mx-auto">
               {/* Left Column - Status */}
-              <div className="lg:col-span-1">
-                <div className="bg-card border border-border rounded-lg p-6 h-full">
+              <div className="lg:col-span-1 space-y-6">
+                <div className="bg-card border border-border rounded-lg p-6">
                   <div className="flex flex-col items-center text-center gap-4">
                     <Clock className="h-12 w-12 text-status-warning" />
                     <div>
                       <h3 className="font-bold text-lg text-foreground mb-2">Beta Access Pending</h3>
                       <p className="text-sm text-muted-foreground">
                         Your beta access request has been received and is currently under review. 
-                        We're working hard to bring more operators onboard!
+                        We're onboarding operators in batches to ensure a smooth mission experience.
                       </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Beta Mission Timeline */}
+                <div className="bg-muted/50 rounded-lg p-6">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2 mb-4">
+                    <span className="text-xl">📅</span>
+                    Beta Mission Timeline
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    {/* Phase 1: Q1-Q2 2026 */}
+                    <div>
+                      <p className="text-xs font-semibold text-primary mb-2">Phase 1: Q1-Q2 2026</p>
+                      <div className="space-y-3 pl-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-status-nominal mt-2 shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm text-foreground">Early Access Onboarding</p>
+                            <p className="text-xs text-muted-foreground">
+                              We're inviting the first wave of operators into GroundCTRL, validating core mission flows and stability.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Phase 2: Q3-Q4 2026 */}
+                    <div>
+                      <p className="text-xs font-semibold text-status-warning mb-2">Phase 2: Q3-Q4 2026</p>
+                      <div className="space-y-3 pl-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-status-warning mt-2 shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm text-foreground">Expanded Access & Iteration</p>
+                            <p className="text-xs text-muted-foreground">
+                              We'll bring more operators online, ship new mission scenarios, and rapidly iterate based on your feedback.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Phase 3: Q1-Q2 2027 */}
+                    <div>
+                      <p className="text-xs font-semibold text-primary mb-2">Phase 3: Q1-Q2 2027</p>
+                      <div className="space-y-3 pl-3">
+                        <div className="flex items-start gap-3">
+                          <div className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm text-foreground">Feature Complete & Public Launch</p>
+                            <p className="text-xs text-muted-foreground">
+                              Focus shifts to polishing key systems, performance, and reliability. GroundCTRL exits beta and opens mission control to everyone.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Right Column - What Happens Next */}
+              {/* Right Column - What to Expect */}
               <div className="lg:col-span-1">
-                <div className="bg-muted/50 rounded-lg p-6 h-full">
+                <div className="bg-muted/50 rounded-lg p-6">
                   <h2 className="text-xl font-bold text-foreground flex items-center gap-2 mb-6">
                     <Satellite className="h-6 w-6 text-primary" />
-                    What Happens Next
+                    What to Expect
                   </h2>
                   
                   <div className="space-y-4">
@@ -89,7 +147,7 @@ export default function BetaWelcome() {
                       <div>
                         <p className="font-medium text-foreground">Email Notification</p>
                         <p className="text-sm text-muted-foreground">
-                          You'll receive an email at <strong>{user.email}</strong> when your access is approved.
+                          You'll receive an email at <strong>{user.email}</strong> when your beta access is approved.
                         </p>
                       </div>
                     </div>
@@ -97,9 +155,9 @@ export default function BetaWelcome() {
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                       <div>
-                        <p className="font-medium text-foreground">Full Access</p>
+                        <p className="font-medium text-foreground">Full Simulator Access</p>
                         <p className="text-sm text-muted-foreground">
-                          Once approved, you'll have full access to the GroundCTRL simulator, interactive tutorials, and all mission scenarios.
+                          Manage virtual satellites, command ground stations, and run mission scenarios with real-time telemetry.
                         </p>
                       </div>
                     </div>
@@ -107,9 +165,29 @@ export default function BetaWelcome() {
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                       <div>
-                        <p className="font-medium text-foreground">Mission Control Experience</p>
+                        <p className="font-medium text-foreground">AI Flight Director (NOVA)</p>
                         <p className="text-sm text-muted-foreground">
-                          Learn satellite operations through hands-on simulations with real-time AI guidance from NOVA, our AI flight director.
+                          Get real-time guidance from NOVA, our AI assistant trained on satellite operations procedures.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-medium text-foreground">Progress Tracking</p>
+                        <p className="text-sm text-muted-foreground">
+                          Earn achievements, track mission history, and climb the leaderboard.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-medium text-foreground">Interactive Tutorials</p>
+                        <p className="text-sm text-muted-foreground">
+                          Learn orbital mechanics, telemetry monitoring, and command sequences through step-by-step missions.
                         </p>
                       </div>
                     </div>
