@@ -175,6 +175,8 @@ curl -X POST https://missionctrl.org/api/v1/auth/register \
 1. `backend/src/schemas/authSchemas.js` - Removed role from schema
 2. `backend/src/services/authService.js` - Hardcoded default role
 3. `backend/src/controllers/authController.js` - Removed role extraction
+4. `frontend/src/components/beta-signup-form.jsx` - Removed role from signup request
+5. `backend/seeders/data/scenarioSessions.js` - Fixed syntax error
 
 ### Breaking Changes
 None - this is a security fix that removes a vulnerability. Legitimate users were never meant to set their own roles.
