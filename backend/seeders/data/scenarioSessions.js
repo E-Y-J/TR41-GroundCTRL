@@ -27,7 +27,7 @@ const OPERATORS = [
 // All 7 ground stations that should be available in scenarios
 const ALL_GROUND_STATIONS = [
   'SVALBARD',
-  'ALASKA', 
+  'ALASKA',
   'HAWAII',
   'AUSTRALIA',
   'SOUTH_AFRICA',
@@ -42,7 +42,7 @@ function createCompletedSession(operator, scenarioCode, performance, daysAgo = 0
   const now = new Date();
   const completedAt = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
   const startedAt = new Date(completedAt.getTime() - (performance.durationMinutes * 60 * 1000));
-  
+
   return {
     scenarioCode, // Will be replaced with scenarioId in seeder
     userId: operator.userId,
@@ -176,6 +176,8 @@ scenarioSessions.push(
   createCompletedSession(OPERATORS[10], 'DEMO_COMPLETE_HUD', { overallScore: 64, durationMinutes: 60 }, 34),
   createCompletedSession(OPERATORS[12], 'DEMO_COMPLETE_HUD', { overallScore: 58, durationMinutes: 65 }, 41),
   createCompletedSession(OPERATORS[14], 'DEMO_COMPLETE_HUD', { overallScore: 52, durationMinutes: 70 }, 50),
+);
+
 // Generate leaderboard data for HUD_INTRODUCTION only
 
 // HUD_INTRODUCTION - Beginner scenario (15 operators with varying scores)

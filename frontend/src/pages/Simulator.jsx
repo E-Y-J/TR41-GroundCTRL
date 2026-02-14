@@ -30,16 +30,16 @@ import { Loader2, AlertCircle, Satellite, Radio, Clock, Battery, Antenna, Zap, G
 const FloatingNovaChat = lazy(() => import("@/components/nova/FloatingNovaChat").then(module => ({ default: module.FloatingNovaChat })))
 
 // SimulatorContent - Renders all panels (they decide where to render based on docked state)
-function SimulatorContent({ 
+function SimulatorContent({
   telemetry,
-  contextSessionId, 
-  sessionIdParam, 
+  contextSessionId,
+  sessionIdParam,
   missionStarted,
-  showTMTCConsole, 
-  showADCSPanel, 
-  showEPSPanel, 
-  showCommsPanel, 
-  showPropulsionPanel, 
+  showTMTCConsole,
+  showADCSPanel,
+  showEPSPanel,
+  showCommsPanel,
+  showPropulsionPanel,
   showTimeControlPanel,
   showOrbitalViewPanel,
   setShowTMTCConsole,
@@ -59,7 +59,7 @@ function SimulatorContent({
           onClose={() => setShowTMTCConsole(false)}
         />
       )}
-      
+
       {missionStarted && showADCSPanel && (
         <ADCSPanel
           telemetry={telemetry}
@@ -67,7 +67,7 @@ function SimulatorContent({
           onClose={() => setShowADCSPanel(false)}
         />
       )}
-      
+
       {missionStarted && showEPSPanel && (
         <EPSPanel
           telemetry={telemetry}
@@ -75,7 +75,7 @@ function SimulatorContent({
           onClose={() => setShowEPSPanel(false)}
         />
       )}
-      
+
       {missionStarted && showCommsPanel && (
         <CommsPanel
           telemetry={telemetry}
@@ -83,7 +83,7 @@ function SimulatorContent({
           onClose={() => setShowCommsPanel(false)}
         />
       )}
-      
+
       {missionStarted && showPropulsionPanel && (
         <PropulsionPanel
           telemetry={telemetry}
@@ -91,14 +91,14 @@ function SimulatorContent({
           onClose={() => setShowPropulsionPanel(false)}
         />
       )}
-      
+
       {missionStarted && showTimeControlPanel && (
         <TimeControlPanel
           sessionId={contextSessionId || sessionIdParam}
           onClose={() => setShowTimeControlPanel(false)}
         />
       )}
-      
+
       {missionStarted && showOrbitalViewPanel && (
         <OrbitalViewPanel
           telemetry={telemetry}
@@ -114,12 +114,12 @@ export default function Simulator() {
   const { user, loading: authLoading } = useAuth()
   const [searchParams] = useSearchParams()
   const sessionIdParam = searchParams.get("session")
-  
+
   // Loading and error states
   const [sessionLoading, setSessionLoading] = useState(true)
   const [sessionError, setSessionError] = useState(null)
   const [sessionData, setSessionData] = useState(null)
-  
+
   // HUD Enhancement - Panel visibility state (all start closed, user opens via icon toggles)
   const [showTMTCConsole, setShowTMTCConsole] = useState(false)
   const [showADCSPanel, setShowADCSPanel] = useState(false)
@@ -129,19 +129,19 @@ export default function Simulator() {
   const [showTimeControlPanel, setShowTimeControlPanel] = useState(false)
   const [showOrbitalViewPanel, setShowOrbitalViewPanel] = useState(false)
   const [viewMode, setViewMode] = useState("2d")
-  
+
   // Use simulator state context
-  const { 
-    missionStarted, 
-    initializeSession, 
+  const {
+    missionStarted,
+    initializeSession,
     startMission,
     sessionId: contextSessionId,
     telemetry
   } = useSimulatorState()
-  
+
   // Import WebSocket context to manually connect
-  const { 
-    connect: connectWebSocket, 
+  const {
+    connect: connectWebSocket,
     disconnect: disconnectWebSocket,
     groundStations // Ground station data from WebSocket
   } = useWebSocket()
@@ -159,19 +159,19 @@ export default function Simulator() {
       startMission()
     }
   }
-  
+
   // Connect WebSocket when simulator page loads
   useEffect(() => {
     console.log('[Simulator] Page mounted - connecting WebSocket...')
     connectWebSocket()
-    
+
     return () => {
       console.log('[Simulator] Page unmounting - disconnecting WebSocket...')
       disconnectWebSocket()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Only run on mount/unmount
-  
+
   // Load SESSION data from Firestore (contains snapshot of scenario/satellite data)
   useEffect(() => {
     async function loadSession() {
@@ -180,20 +180,20 @@ export default function Simulator() {
         setSessionLoading(false)
         return
       }
-      
+
       try {
         setSessionLoading(true)
         setSessionError(null)
-        
+
         // Fetch the session document which contains all scenario data as a snapshot
         const session = await fetchSessionById(sessionIdParam)
-        
+
         if (!session) {
           setSessionError('Session not found')
           setSessionLoading(false)
           return
         }
-        
+
         setSessionData(session)
         setSessionLoading(false)
       } catch (err) {
@@ -202,10 +202,10 @@ export default function Simulator() {
         setSessionLoading(false)
       }
     }
-    
+
     loadSession()
   }, [sessionIdParam])
-  
+
   // Initialize simulator state when session is loaded
   useEffect(() => {
     if (user && sessionData && !contextSessionId) {
@@ -215,14 +215,14 @@ export default function Simulator() {
         completedSteps: sessionData.completedSteps || [],
         elapsedTime: sessionData.elapsedTime || 0
       }
-      
+
       console.log('Restoring session progress:', savedProgress)
-      
+
       const steps = sessionData.steps?.map((step, idx) => {
         const stepId = step.id || idx + 1
         const isCompleted = savedProgress.completedSteps.includes(stepId)
         const isActive = idx === savedProgress.currentStepOrder && !isCompleted
-        
+
         return {
           id: stepId,
           text: step.objective || step.text || step.description,
@@ -231,19 +231,19 @@ export default function Simulator() {
           completed: isCompleted
         }
       }) || []
-      
+
       // Restore saved telemetry if resuming a session
       const satelliteData = sessionData.satellite || {}
       const savedTelemetry = sessionData.state?.telemetry
       const savedElapsedTime = sessionData.state?.elapsedTime || 0
-      
+
       console.log('[Simulator] Session data loaded', {
         hasSavedTelemetry: !!savedTelemetry,
         savedElapsedTime,
         savedLat: savedTelemetry?.orbit?.latitude,
         savedLon: savedTelemetry?.orbit?.longitude
       })
-      
+
       // Create initial telemetry - restore from saved state if available
       const initialTelemetry = {
         timestamp: Date.now(),
@@ -283,7 +283,7 @@ export default function Simulator() {
           groundStation: 'Goldstone'
         }
       }
-      
+
       initializeSession(
         sessionData.id, // Use the actual session ID from Firestore
         sessionData.scenario_id,
@@ -354,7 +354,7 @@ export default function Simulator() {
   if (!user) {
     return null
   }
-  
+
   // Session loading
   if (sessionLoading) {
     return (
@@ -372,7 +372,7 @@ export default function Simulator() {
       </>
     )
   }
-  
+
   // Session error
   if (sessionError || !sessionData) {
     return (
@@ -388,21 +388,21 @@ export default function Simulator() {
                 <Satellite className="w-16 h-16 text-destructive animate-pulse" />
                 <Radio className="w-12 h-12 text-muted-foreground" />
               </div>
-              
+
               <h2 className="text-2xl font-bold text-foreground mb-3">
                 📡 Session Data Unavailable
               </h2>
               <p className="text-muted-foreground mb-4">
-                Houston, we're experiencing a communications blackout with the session database. 
+                Houston, we're experiencing a communications blackout with the session database.
                 The session may have expired or been deleted. Please start a new mission.
               </p>
-              
+
               {import.meta.env.DEV && sessionError && (
                 <p className="text-xs text-muted-foreground/60 font-mono mb-4">
                   Dev: {sessionError}
                 </p>
               )}
-              
+
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => window.location.reload()}
@@ -432,16 +432,16 @@ export default function Simulator() {
       <DockingProvider>
         <div className="h-screen min-h-150 flex flex-col bg-background overflow-hidden">
           <AppHeader />
-          
+
           {/* Mission Steps Panel - Shows current objectives */}
           {missionStarted && <MissionStepsPanel />}
-          
+
           {/* Mission Control Enhancement - Ground Station Indicator + Panel Controls */}
           {missionStarted && (
             <div className="px-4 py-2 border-b border-border bg-muted/30">
               <div className="flex items-center justify-between">
                 <GroundStationIndicator />
-                
+
                 {/* Panel Toggle Icons - Show icons for closed panels with abbreviated labels */}
                 <div className="flex items-center gap-2">
                   {!showTimeControlPanel && (
@@ -521,26 +521,32 @@ export default function Simulator() {
                       <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">ORBIT</span>
                     </button>
                   )}
-                  
+
                   {/* 2D/3D View Toggle */}
                   <button
-                    onClick={() => setViewMode(prev => prev === "2d" ? "3d" : "2d")}
+                    onClick={() => setViewMode(prev => {
+                      if (prev === "2d") return "3d";
+                      if (prev === "3d") return "transform";
+                      return "2d";
+                    })}
                     className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
-                    title={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
-                    aria-label={`Switch to ${viewMode === "2d" ? "3D" : "2D"} View`}
+                    title={`Switch View Mode (Current: ${viewMode.toUpperCase()})`}
+                    aria-label={`Switch View Mode (Current: ${viewMode.toUpperCase()})`}
                   >
                     <Globe className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">{viewMode === "2d" ? "3D" : "2D"}</span>
+                    <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">
+                      {viewMode === "2d" ? "3D" : viewMode === "3d" ? "Morph" : "2D"}
+                    </span>
                   </button>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <PerformanceMetrics sessionId={contextSessionId || sessionIdParam} />
                 </div>
               </div>
             </div>
           )}
-          
+
           {/* Fixed Grid Layout - Always visible with locked columns */}
           {missionStarted ? (
             <>
@@ -574,10 +580,10 @@ export default function Simulator() {
                   className="h-full w-full"
                 />
               </DockContainerLayout>
-              
+
               {/* Enhanced Footer (outside grid, full width at bottom) */}
-              <SimulatorFooter 
-                missionStarted={missionStarted} 
+              <SimulatorFooter
+                missionStarted={missionStarted}
                 sessionId={contextSessionId || sessionIdParam}
                 satellite={sessionData?.satellite}
               />
@@ -588,35 +594,35 @@ export default function Simulator() {
             </div>
           )}
         </div>
-        
+
         {/* Alert Panel - displays system alerts */}
         <AlertPanel />
-        
+
         {/* Mission Control Enhancement - Operator Prompt for time acceleration */}
         {missionStarted && (
           <OperatorPrompt sessionId={contextSessionId || sessionIdParam} />
         )}
-        
+
         {/* Mission Start Modal - shows before mission begins */}
         {!missionStarted && sessionData && (
-          <MissionStartModal 
-            missionId={sessionData.scenario_id} 
+          <MissionStartModal
+            missionId={sessionData.scenario_id}
             onStart={handleStartMission}
           />
         )}
-        
+
         {/* Floating NOVA Chat - Always floating, never docked */}
         {missionStarted && (
           <Suspense fallback={null}>
-            <FloatingNovaChat 
-              sessionId={contextSessionId || sessionIdParam} 
+            <FloatingNovaChat
+              sessionId={contextSessionId || sessionIdParam}
               stepId={sessionData?.scenario_id}
               context="simulator"
               position="left"
             />
           </Suspense>
         )}
-        
+
         {/* HUD Enhancement - All Panels (only renders floating ones, docked are in containers) */}
         <SimulatorContent
           telemetry={telemetry}

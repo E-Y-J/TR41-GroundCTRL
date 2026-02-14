@@ -20,16 +20,17 @@ export default function AppHeader({ onAuthViewChange }) {
   const location = useLocation(); const pathname = location.pathname
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
-  
+
   // Define nav links - only show for authenticated non-beta users
   const navLinks = user && user.role !== "beta"
     ? [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/missions", label: "Missions" },
-        { href: "/simulator", label: "Simulator" },
-        { href: "/leaderboard", label: "Leaderboard" },
-        { href: "/help", label: "Help" },
-      ]
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/missions", label: "Missions" },
+      { href: "/simulator", label: "Simulator" },
+      { href: "/satellites", label: "Satellites" },
+      { href: "/leaderboard", label: "Leaderboard" },
+      { href: "/help", label: "Help" },
+    ]
     : []
 
   const handleSignOut = async () => {
@@ -62,17 +63,16 @@ export default function AppHeader({ onAuthViewChange }) {
         <nav className="flex items-center gap-6">
           <Link
             to="/beta-welcome"
-            className={`text-sm font-medium transition-colors ${
-              pathname === "/beta-welcome"
+            className={`text-sm font-medium transition-colors ${pathname === "/beta-welcome"
                 ? "text-primary border-b-2 border-primary pb-0.5"
                 : "text-muted-foreground hover:text-foreground"
-            }`}
+              }`}
           >
             Beta Program
           </Link>
         </nav>
       )}
-      
+
       {/* Navigation - Only show full nav for authenticated non-beta users */}
       {user && user.role !== "beta" && (
         <nav className="flex items-center gap-6">
@@ -80,25 +80,23 @@ export default function AppHeader({ onAuthViewChange }) {
             <Link
               key={link.href}
               to={link.href}
-              className={`text-sm font-medium transition-colors ${
-                isActive(link.href)
+              className={`text-sm font-medium transition-colors ${isActive(link.href)
                   ? "text-primary border-b-2 border-primary pb-0.5"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               {link.label}
             </Link>
           ))}
-          
+
           {/* Admin Link - Only visible for admins */}
           {user.isAdmin && (
             <Link
               to="/admin/scenarios"
-              className={`text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                pathname.startsWith("/admin")
+              className={`text-sm font-medium transition-colors flex items-center gap-1.5 ${pathname.startsWith("/admin")
                   ? "text-primary border-b-2 border-primary pb-0.5"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               <Shield className="h-3.5 w-3.5" />
               Admin
@@ -111,13 +109,13 @@ export default function AppHeader({ onAuthViewChange }) {
       <div className="flex items-center gap-3">
         {/* Tutorial Toggle - Only for logged-in non-beta users */}
         {user && user.role !== "beta" && <TutorialToggle compact />}
-        
+
         {/* Theme Toggle */}
         <ThemeToggle />
 
         {/* Account dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger 
+          <DropdownMenuTrigger
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer outline-none"
           >
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
