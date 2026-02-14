@@ -1,7 +1,7 @@
 /**
  * Globe to Map Transform Component
  * Smooth 3D globe to 2D map transition with lat/long overlay
- * Adapted for GroundCTRL satellite tracking
+ * Optimized for overlay and seamless integration
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -29,17 +29,24 @@ function interpolateProjection(raw0, raw1) {
 
 export function GlobeToMap({
     satellites = [],
-    width = 800,
-    height = 500,
+    width = 720, // Default to matching our 2D NASA map viewbox
+    height = 360,
+    progress: controlledProgress, // 0 = globe, 100 = map
+    showUI = true,
+    showCountries = true,
+    opacity = 1,
     onProjectionChange
 }) {
     const svgRef = useRef(null);
     const [isAnimating, setIsAnimating] = useState(false);
-    const [progress, setProgress] = useState(0); // 0 = globe, 100 = map
+    const [internalProgress, setInternalProgress] = useState(0);
     const [worldData, setWorldData] = useState([]);
     const [rotation, setRotation] = useState([0, 0]);
     const [isDragging, setIsDragging] = useState(false);
     const [lastMouse, setLastMouse] = useState([0, 0]);
+
+    // Use controlled or internal progress
+    const progress = controlledProgress !== undefined ? controlledProgress : internalProgress;
 
     // Load world data
     useEffect(() => {
@@ -49,10 +56,8 @@ export function GlobeToMap({
                 const world = await response.json();
                 const countries = feature(world, world.objects.countries).features;
                 setWorldData(countries);
-                console.log('✅ Loaded world data:', countries.length, 'countries');
             } catch (error) {
                 console.error('❌ Error loading world data:', error);
-                // Fallback: simple world outline
                 setWorldData([{
                     type: 'Feature',
                     geometry: {
@@ -88,7 +93,7 @@ export function GlobeToMap({
         const dy = currentMouse[1] - lastMouse[1];
 
         const t = progress / 100;
-        const sensitivity = t < 0.5 ? 0.5 : 0.25; // Globe vs map sensitivity
+        const sensitivity = t < 0.5 ? 0.5 : 0.25;
 
         setRotation((prev) => [
             prev[0] + dx * sensitivity,
@@ -112,12 +117,15 @@ export function GlobeToMap({
         const t = progress / 100;
         const alpha = Math.pow(t, 0.5); // Ease-out
 
-        // Scale: larger for globe, smaller for map
-        const scale = d3.scaleLinear().domain([0, 1]).range([200, 120]);
+        // Scale: larger for globe, matching NASA map for 2D
+        // In our NASA map (720x360), Plate Carree scale is 720 / (2*PI) ≈ 114.6
+        const globeScale = 180;
+        const mapScale = 114.59;
+        const currentScale = d3.interpolate(globeScale, mapScale)(alpha);
 
         // Create interpolated projection
         const projection = interpolateProjection(d3.geoOrthographicRaw, d3.geoEquirectangularRaw)
-            .scale(scale(alpha))
+            .scale(currentScale)
             .translate([width / 2, height / 2])
             .rotate([rotation[0], rotation[1]])
             .precision(0.1);
@@ -135,31 +143,33 @@ export function GlobeToMap({
                 .datum(graticule())
                 .attr('d', graticulePath)
                 .attr('fill', 'none')
-                .attr('stroke', '#4ade80') // Green lat/long lines
+                .attr('stroke', '#4ade80')
                 .attr('stroke-width', 0.5)
-                .attr('opacity', 0.3);
+                .attr('opacity', 0.3 * opacity);
         }
 
         // Add countries
-        svg
-            .selectAll('.country')
-            .data(worldData)
-            .enter()
-            .append('path')
-            .attr('class', 'country')
-            .attr('d', (d) => {
-                try {
-                    const pathString = path(d);
-                    if (!pathString || pathString.includes('NaN')) return '';
-                    return pathString;
-                } catch {
-                    return '';
-                }
-            })
-            .attr('fill', 'rgba(100, 116, 139, 0.2)') // Subtle country fill
-            .attr('stroke', '#64748b')
-            .attr('stroke-width', 0.5)
-            .attr('opacity', 0.8);
+        if (showCountries) {
+            svg
+                .selectAll('.country')
+                .data(worldData)
+                .enter()
+                .append('path')
+                .attr('class', 'country')
+                .attr('d', (d) => {
+                    try {
+                        const pathString = path(d);
+                        if (!pathString || pathString.includes('NaN')) return '';
+                        return pathString;
+                    } catch {
+                        return '';
+                    }
+                })
+                .attr('fill', 'rgba(100, 116, 139, 0.2)')
+                .attr('stroke', '#64748b')
+                .attr('stroke-width', 0.5)
+                .attr('opacity', 0.6 * opacity);
+        }
 
         // Add satellites
         if (satellites.length > 0) {
@@ -181,44 +191,44 @@ export function GlobeToMap({
                 .attr('fill', '#f59e0b')
                 .attr('stroke', '#fbbf24')
                 .attr('stroke-width', 2)
-                .attr('opacity', 0.9)
+                .attr('opacity', 0.9 * opacity)
                 .append('title')
                 .text((d) => `${d.name}\nLat: ${d.latitude.toFixed(2)}°\nLon: ${d.longitude.toFixed(2)}°\nAlt: ${d.altitude.toFixed(0)} km`);
         }
 
-        // Draw sphere outline
-        const sphereOutline = path({ type: 'Sphere' });
-        if (sphereOutline) {
-            svg
-                .append('path')
-                .datum({ type: 'Sphere' })
-                .attr('d', sphereOutline)
-                .attr('fill', 'none')
-                .attr('stroke', '#334155')
-                .attr('stroke-width', 2)
-                .attr('opacity', 1);
+        // Draw sphere outline (only visible when not fully flattened)
+        if (alpha < 0.99) {
+            const sphereOutline = path({ type: 'Sphere' });
+            if (sphereOutline) {
+                svg
+                    .append('path')
+                    .datum({ type: 'Sphere' })
+                    .attr('d', sphereOutline)
+                    .attr('fill', 'none')
+                    .attr('stroke', '#334155')
+                    .attr('stroke-width', 2)
+                    .attr('opacity', (1 - alpha) * opacity);
+            }
         }
-    }, [worldData, progress, rotation, satellites, width, height]);
+    }, [worldData, progress, rotation, satellites, width, height, showCountries, opacity]);
 
     // Animate transition
-    const handleAnimate = useCallback(() => {
+    const animateTo = useCallback((target) => {
         if (isAnimating) return;
 
         setIsAnimating(true);
         const startProgress = progress;
-        const endProgress = startProgress === 0 ? 100 : 0;
-        const duration = 2000;
+        const endProgress = target;
+        const duration = 1500;
         const startTime = Date.now();
 
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const t = Math.min(elapsed / duration, 1);
-
-            // Smooth easing
             const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-            const currentProgress = startProgress + (endProgress - startProgress) * eased;
+            const currentP = startProgress + (endProgress - startProgress) * eased;
 
-            setProgress(currentProgress);
+            setInternalProgress(currentP);
 
             if (t < 1) {
                 requestAnimationFrame(animate);
@@ -240,42 +250,47 @@ export function GlobeToMap({
     const isGlobeMode = progress < 50;
 
     return (
-        <div className="relative flex items-center justify-center w-full h-full">
+        <div className="relative flex items-center justify-center w-full h-full pointer-events-none">
             <svg
                 ref={svgRef}
                 viewBox={`0 0 ${width} ${height}`}
-                className="w-full h-full border rounded-lg bg-slate-950 border-slate-700 cursor-grab active:cursor-grabbing"
+                className={`w-full h-full transition-opacity duration-500 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} pointer-events-auto`}
                 preserveAspectRatio="xMidYMid meet"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                style={{ background: 'none' }} // Ensure transparency
             />
-            <div className="absolute bottom-4 right-4 flex gap-2 z-10">
-                <Button
-                    onClick={handleAnimate}
-                    disabled={isAnimating}
-                    className="min-w-[140px]"
-                    variant="default"
-                >
-                    {isAnimating ? 'Animating...' : isGlobeMode ? '🌍 → 🗺️ Flatten' : '🗺️ → 🌍 Spherize'}
-                </Button>
-                <Button
-                    onClick={handleReset}
-                    variant="outline"
-                    className="min-w-[80px]"
-                >
-                    Reset
-                </Button>
-            </div>
-            <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-slate-700">
-                <p className="text-xs text-slate-300">
-                    Mode: <span className="font-semibold text-green-400">{isGlobeMode ? '3D Globe' : '2D Map'}</span>
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                    Drag to rotate • {satellites.length} satellites tracked
-                </p>
-            </div>
+            {showUI && (
+                <>
+                    <div className="absolute bottom-4 right-4 flex gap-2 z-10 pointer-events-auto">
+                        <Button
+                            onClick={() => animateTo(progress === 0 ? 100 : 0)}
+                            disabled={isAnimating}
+                            className="min-w-[140px]"
+                            variant="default"
+                        >
+                            {isAnimating ? 'Animating...' : isGlobeMode ? '🌍 → 🗺️ Flatten' : '🗺️ → 🌍 Spherize'}
+                        </Button>
+                        <Button
+                            onClick={handleReset}
+                            variant="outline"
+                            className="min-w-[80px]"
+                        >
+                            Reset
+                        </Button>
+                    </div>
+                    <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-slate-700 pointer-events-auto">
+                        <p className="text-xs text-slate-300">
+                            Mode: <span className="font-semibold text-green-400">{isGlobeMode ? '3D Globe' : '2D Map'}</span>
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">
+                            Drag to rotate • {satellites.length} satellites tracked
+                        </p>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -290,5 +305,9 @@ GlobeToMap.propTypes = {
     })),
     width: PropTypes.number,
     height: PropTypes.number,
+    progress: PropTypes.number,
+    showUI: PropTypes.boolean,
+    showCountries: PropTypes.boolean,
+    opacity: PropTypes.number,
     onProjectionChange: PropTypes.func
 };

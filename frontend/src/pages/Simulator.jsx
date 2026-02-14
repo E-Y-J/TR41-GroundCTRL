@@ -524,18 +524,14 @@ export default function Simulator() {
 
                   {/* 2D/3D View Toggle */}
                   <button
-                    onClick={() => setViewMode(prev => {
-                      if (prev === "2d") return "3d";
-                      if (prev === "3d") return "transform";
-                      return "2d";
-                    })}
+                    onClick={() => setViewMode(prev => prev === "2d" ? "3d" : "2d")}
                     className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md border border-border bg-card hover:bg-primary/10 hover:border-primary transition-colors"
                     title={`Switch View Mode (Current: ${viewMode.toUpperCase()})`}
                     aria-label={`Switch View Mode (Current: ${viewMode.toUpperCase()})`}
                   >
                     <Globe className="w-4 h-4 text-muted-foreground" />
                     <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">
-                      {viewMode === "2d" ? "3D" : viewMode === "3d" ? "Morph" : "2D"}
+                      {viewMode === "2d" ? "3D" : "2D"}
                     </span>
                   </button>
                 </div>
